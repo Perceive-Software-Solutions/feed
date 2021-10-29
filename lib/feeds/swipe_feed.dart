@@ -335,7 +335,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                 fillBar(fill, position);
               },
               onContinue: (dir) async {
-                await widget.onContinue!(dir!, itemCubit.item1);
+                if(widget.onContinue != null){
+                  await widget.onContinue!(dir!, itemCubit.item1);
+                }
                 _removeCard();
               },
               onSwipe: (dir) {

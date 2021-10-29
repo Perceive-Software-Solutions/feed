@@ -1,4 +1,5 @@
 import 'package:example/widgets/multi_feed.dart';
+import 'package:example/widgets/swipe_feed.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -79,7 +80,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     onTap: (){
-
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SwipeFeedExample()),
+                      );
                     },
                   ),
                   Container(
@@ -102,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     onTap: (){
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const MultiFeed()),
+                        MaterialPageRoute(builder: (context) => const MultiFeedExample()),
                       );
                     },
                   ),

@@ -3,14 +3,14 @@ import 'package:feed/feeds/simple_multi_feed.dart';
 import 'package:tuple/tuple.dart';
 
 
-class MultiFeed extends StatefulWidget {
-  const MultiFeed({ Key? key }) : super(key: key);
+class MultiFeedExample extends StatefulWidget {
+  const MultiFeedExample({ Key? key }) : super(key: key);
 
   @override
-  _MultiFeedState createState() => _MultiFeedState();
+  _MultiFeedExampleState createState() => _MultiFeedExampleState();
 }
 
-class _MultiFeedState extends State<MultiFeed> with TickerProviderStateMixin{
+class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProviderStateMixin{
 
   ///Controller for the multifeed
   late SimpleMultiFeedController feedController;
@@ -39,7 +39,7 @@ class _MultiFeedState extends State<MultiFeed> with TickerProviderStateMixin{
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 32, right: 30),
+                  padding: const EdgeInsets.only(top: 32, right: 34),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
