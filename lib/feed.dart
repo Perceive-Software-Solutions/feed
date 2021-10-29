@@ -1,7 +1,4 @@
-library feed;
+library Feed;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'package:feed/feeds/simple_multi_feed.dart';
+export 'package:feed/feeds/swipe_feed.dart';
