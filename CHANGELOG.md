@@ -1,3 +1,8 @@
+## [0.0.9] v0.0.9
+
+* Added isLoading bool to the PagedCompactListController
+* Added loadMore functionality to the PagedCompactList
+
 ## [0.0.8] v0.0.8
 
 * Hotfix+1

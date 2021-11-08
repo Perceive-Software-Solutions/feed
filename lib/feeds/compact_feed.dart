@@ -265,7 +265,7 @@ class _PagedCompactListState<T> extends State<PagedCompactList<T>> {
                   ///Only displays if [maxCapacity] is toggled off
                   if(!maxCapacity)
                     GestureDetector(
-                      onTap: () => fetchPage(nextSize),
+                      onTap: () => isLoading ? fetchPage(nextSize) : null,
                       child: widget.child,
                     )
                 ],
@@ -324,6 +324,9 @@ class PagedCompactListController<T> extends ChangeNotifier{
 
   ///Removes an indexed item from the list
   void remove(int index) => _validate((state) => state.remove(index));
+
+  // Checks if the compact list is currently loading
+  bool isLoading() => _state!.loading || _state!.items.isEmpty;
 
   ///Remove a specific typed item from the list, 
   ///Only if it exists
