@@ -1,3 +1,7 @@
+## [0.0.8] v0.0.8
+
+* Hotfix+1
+
 ## [0.0.7] v0.0.7
 
 * Created Icon Position Enum
