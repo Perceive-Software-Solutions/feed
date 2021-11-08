@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/global/pollar_icons.dart';
+import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -333,44 +334,6 @@ class PollPageAnimatedIconController extends ChangeNotifier {
     return onRetreive(_state!);
   }
 
-}
-
-///The positionings for the icon
-enum IconPosition {
-  LEFT, RIGHT, TOP, BOTTOM
-}
-
-extension IconPostionExtension on IconPosition{
-
-  DismissDirection? get direction{
-    switch (this) {
-      case IconPosition.LEFT:
-        return DismissDirection.endToStart;
-      case IconPosition.RIGHT:
-        return DismissDirection.startToEnd;
-      case IconPosition.TOP:
-        return DismissDirection.down;
-      case IconPosition.BOTTOM:
-        return DismissDirection.up;
-      default:
-        return null;
-    }
-  }
-
-  IconPosition? fromDirection(DismissDirection direction){
-    switch (direction) {
-      case DismissDirection.endToStart:
-        return IconPosition.LEFT;
-      case DismissDirection.startToEnd:
-        return IconPosition.RIGHT;
-      case DismissDirection.down:
-        return IconPosition.BOTTOM;
-      case DismissDirection.up:
-        return IconPosition.TOP;
-      default:
-        return null;
-    }
-  }
 }
 
 class TrashCan extends StatefulWidget {

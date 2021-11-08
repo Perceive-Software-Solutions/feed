@@ -4,6 +4,7 @@ import 'package:feed/animated/poll_swipe_animated_icon.dart';
 import 'package:feed/animated/swipe_feed_card.dart';
 import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';

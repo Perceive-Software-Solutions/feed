@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:feed/animated/poll_swipe_animated_icon.dart';
 import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/inner_shadow.dart';
 import 'package:flutter/material.dart';
 

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:feed/animated/poll_swipe_animated_icon.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/widgets/swipe_card.dart';
 import 'package:flutter/material.dart';
