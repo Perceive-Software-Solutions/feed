@@ -19,7 +19,6 @@ typedef PagedCompactListBuilder<T> = Widget Function(BuildContext context, int i
 ///and a [PAGE_SIZE] that determines the amount of items being added.
 ///
 ///A [title] is displayed above the list.
-@Deprecated('[REFACTOR] Ibtesam - Review Paged Compact List')
 class PagedCompactList<T> extends StatefulWidget {
 
   const PagedCompactList({
@@ -326,7 +325,7 @@ class PagedCompactListController<T> extends ChangeNotifier{
   void remove(int index) => _validate((state) => state.remove(index));
 
   // Checks if the compact list is currently loading
-  bool isLoading() => _state!.loading || _state!.items.isEmpty;
+  bool get isLoading => _state!.loading || _state!.items.isEmpty;
 
   ///Remove a specific typed item from the list, 
   ///Only if it exists
