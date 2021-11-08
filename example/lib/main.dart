@@ -1,5 +1,6 @@
 import 'package:example/widgets/multi_feed.dart';
 import 'package:example/widgets/swipe_feed.dart';
+import 'package:example/widgets/compact_feed.dart';
 import 'package:flutter/material.dart';
 
 void main() {

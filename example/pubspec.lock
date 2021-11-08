@@ -111,6 +111,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.4"
+  flutter_neumorphic:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "12ffde5fecdc4724b4c64c4db92fd4dfd303f9a9"
+      url: "https://github.com/tsvillain/Flutter-Neumorphic.git"
+    source: git
+    version: "3.1.0"
   flutter_svg:
     dependency: transitive
     description:
