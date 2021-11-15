@@ -1,12 +1,15 @@
 import 'package:feed/feed.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
+import 'package:sliding_sheet/sliding_sheet.dart';
 
 class SingleFeedExample extends StatefulWidget {
   final ScrollController controller;
+  final SheetController sheetController;
   const SingleFeedExample({ 
     Key? key,
-    required this.controller
+    required this.controller,
+    required this.sheetController
   }) : super(key: key);
 
   @override
@@ -21,6 +24,7 @@ class _SingleFeedExampleState extends State<SingleFeedExample> {
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
         child: SingleFeed(
+          sheetController: widget.sheetController,
           controller: widget.controller,
           headerBuilder: (context){
             return Column(

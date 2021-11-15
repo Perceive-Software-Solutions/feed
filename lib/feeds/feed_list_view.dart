@@ -1,6 +1,7 @@
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sliding_sheet/sliding_sheet.dart';
 
 ///Defines the laoding state
 enum FeedLoadingState {
@@ -11,6 +12,8 @@ enum FeedLoadingState {
 }
 
 class SimpleMultiFeedListView extends StatefulWidget {
+
+  final SheetController sheetController;
 
   //Weither to disable scrolling
   final bool? disableScroll;
@@ -38,6 +41,7 @@ class SimpleMultiFeedListView extends StatefulWidget {
 
   const SimpleMultiFeedListView({ 
     Key? key, 
+    required this.sheetController,
     this.disableScroll = false, 
     this.onLoad, 
     required this.builder, 
@@ -60,6 +64,8 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
 
   late ScrollController scrollController;
 
+  bool snapping = false;
+
 
   @override
   void initState() {
@@ -70,6 +76,31 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
 
     //init
     scrollController = ScrollController();
+
+    scrollController.addListener(() {
+      if(scrollController.offset <= -80 && !snapping){
+        print('called');
+        if(widget.sheetController.state!.extent == 1.0){
+          snapping = true;
+          Future.delayed(Duration.zero, () {
+            widget.sheetController.snapToExtent(0.7, duration: Duration(milliseconds: 300));
+            Future.delayed(Duration(milliseconds: 800)).then((value) => {
+              snapping = false
+            });
+          });
+        }
+        else if(widget.sheetController.state!.extent == 0.7){
+          snapping = true;
+          Future.delayed(Duration.zero, () {
+            widget.sheetController.snapToExtent(0.0, duration: Duration(milliseconds: 300));
+          });
+          Future.delayed(Duration(milliseconds: 800)).then((value) => {
+            snapping = false
+          });
+        }
+
+      }
+    });
   }
 
   Widget get loading => widget.loading == null ? Container() : widget.loading!;

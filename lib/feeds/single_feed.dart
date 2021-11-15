@@ -5,9 +5,12 @@ import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:tuple/tuple.dart';
 
 class SingleFeed extends StatefulWidget {
+
+  final SheetController sheetController;
 
   final FeedLoader loader;
 
@@ -42,6 +45,7 @@ class SingleFeed extends StatefulWidget {
 
   const SingleFeed({ 
     Key? key,
+    required this.sheetController,
       required this.loader,
       required this.controller,
       this.lengthFactor,
@@ -248,6 +252,7 @@ class _SingleFeedState extends State<SingleFeed> {
   Widget buildFeed(){
     return KeepAliveWidget(
       child: SimpleMultiFeedListView(
+        sheetController: widget.sheetController,
         controller: widget.controller,
         itemsCubit: itemsCubit,
         disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
