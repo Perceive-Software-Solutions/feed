@@ -149,7 +149,7 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
         builder: (context, items) {
 
           return SingleChildScrollView(
-            physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
+            physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(),
             controller: widget.controller,
             child: Column(
               children: [

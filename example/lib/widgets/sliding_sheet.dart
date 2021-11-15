@@ -23,7 +23,7 @@ class _SlidingSheetExampleState extends State<SlidingSheetExample> {
   }
 
   void sheetStateListener(SheetState state){
-    
+
     if(state.extent == 0.0){
       Navigator.pop(context);
     }
