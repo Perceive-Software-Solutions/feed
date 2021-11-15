@@ -128,16 +128,8 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
                 if(items.isEmpty)
                   Center(child: loading),
 
-                SizedBox(
-                  height: MediaQuery.of(context).size.height,
-                  child: ListView(
-                    controller: scrollController,
-                    children: [
-                      for (var i = 0; i < items.length; i++)
-                      _buildChild(items, i),
-                    ],
-                  ),
-                )
+                for (var i = 0; i < items.length; i++)
+                _buildChild(items, i)
               ],
             ),
           );

@@ -4,7 +4,13 @@ import 'package:tuple/tuple.dart';
 
 
 class MultiFeedExample extends StatefulWidget {
-  const MultiFeedExample({ Key? key }) : super(key: key);
+
+  final bool disableScroll;
+
+  const MultiFeedExample({ 
+    Key? key,
+    this.disableScroll = false
+  }) : super(key: key);
 
   @override
   _MultiFeedExampleState createState() => _MultiFeedExampleState();
@@ -35,6 +41,7 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
         padding: const EdgeInsets.only(left: 16, right: 16),
         child: SimpleMultiFeed(
           controller: feedController,
+          disableScroll: widget.disableScroll,
           headerBuilder: (context, i){
             return Column(
               children: [
