@@ -166,10 +166,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     onTap: (){
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) => const MultiFeedExample()),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const MultiFeedExample()),
+                      );
                     },
                   ),
                   Container(
