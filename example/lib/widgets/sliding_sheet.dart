@@ -25,7 +25,14 @@ class _SlidingSheetExampleState extends State<SlidingSheetExample> {
   void sheetStateListener(SheetState state){
 
     if(state.extent == 0.0){
-      Navigator.pop(context);
+      if(mounted){
+        Navigator.pop(context);
+      }
+      // Future.delayed(const Duration(milliseconds: 300), (){
+      //   if(mounted){
+      //     Navigator.pop(context);
+      //   }
+      // });
     }
     extent = state.extent;
   }

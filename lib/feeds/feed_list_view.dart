@@ -102,6 +102,19 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
     });
   }
 
+  @override
+  void dispose(){
+    super.dispose();
+    widget.controller!.removeListener(() { 
+      widget.controller!.dispose();
+    });
+    scrollController.removeListener(() { 
+      scrollController.dispose();
+    });
+    // widget.controller!.dispose();
+    // scrollController.dispose();
+  }
+
   Widget get loading => widget.loading == null ? Container() : widget.loading!;
 
 
@@ -148,7 +161,7 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
         builder: (context, items) {
 
           return SingleChildScrollView(
-            physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(),
+            physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
             controller: widget.controller,
             child: Column(
               children: [
@@ -161,6 +174,7 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
                 SizedBox(
                   height: MediaQuery.of(context).size.height,
                   child: ListView(
+                    physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                     controller: scrollController,
                     children: [
                       for (var i = 0; i < items.length; i++)

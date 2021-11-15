@@ -26,6 +26,7 @@ class _SingleFeedExampleState extends State<SingleFeedExample> {
         child: SingleFeed(
           sheetController: widget.sheetController,
           controller: widget.controller,
+          disableScroll: false,
           headerBuilder: (context){
             return Column(
               children: [
