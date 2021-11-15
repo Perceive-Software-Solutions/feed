@@ -79,12 +79,11 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
 
     scrollController.addListener(() {
       if(scrollController.offset <= -80 && !snapping){
-        print('called');
         if(widget.sheetController.state!.extent == 1.0){
           snapping = true;
           Future.delayed(Duration.zero, () {
             widget.sheetController.snapToExtent(0.7, duration: Duration(milliseconds: 300));
-            Future.delayed(Duration(milliseconds: 800)).then((value) => {
+            Future.delayed(Duration(milliseconds: 300)).then((value) => {
               snapping = false
             });
           });
@@ -94,7 +93,7 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
           Future.delayed(Duration.zero, () {
             widget.sheetController.snapToExtent(0.0, duration: Duration(milliseconds: 300));
           });
-          Future.delayed(Duration(milliseconds: 800)).then((value) => {
+          Future.delayed(Duration(milliseconds: 300)).then((value) => {
             snapping = false
           });
         }
