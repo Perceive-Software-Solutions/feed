@@ -33,7 +33,7 @@ packages:
       name: flutter_bloc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "7.3.1"
+    version: "7.3.3"
   flutter_keyboard_visibility:
     dependency: "direct main"
     description:
@@ -55,15 +55,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
-  flutter_neumorphic:
+  flutter_neumorphic_null_safety:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "12ffde5fecdc4724b4c64c4db92fd4dfd303f9a9"
-      url: "https://github.com/tsvillain/Flutter-Neumorphic.git"
-    source: git
-    version: "3.1.0"
+      name: flutter_neumorphic_null_safety
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.4"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -83,6 +81,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.3"
+  linked_scroll_controller:
+    dependency: "direct main"
+    description:
+      name: linked_scroll_controller
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   matcher:
     dependency: transitive
     description:

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:flutter_neumorphic_null_safety/flutter_neumorphic.dart';
 
 enum EECardMode {
   ///Regular EECard
@@ -12,7 +12,6 @@ enum EECardMode {
   FLAT
 }
 
-@Deprecated('[REFACTOR] Ibtesam - Review Neumorphic Design')
 class NeumorpicCard extends StatelessWidget {
 
   final Widget child;

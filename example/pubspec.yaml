@@ -42,6 +42,7 @@ dependency_overrides:
     path: ../
 
 dev_dependencies:
+  sliding_sheet: ^0.5.2
   flutter_test:
     sdk: flutter
 

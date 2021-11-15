@@ -1,3 +1,8 @@
+## [0.0.10] v0.0.10
+
+* Added homepage
+* Updated Dependancies
+
 ## [0.0.9] v0.0.9
 
 * Added isLoading bool to the PagedCompactListController
