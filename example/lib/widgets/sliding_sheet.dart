@@ -13,10 +13,6 @@ class _SlidingSheetExampleState extends State<SlidingSheetExample> {
 
   late SheetController sheetController;
 
-  double extent = 0.7;
-
-  bool snapping = false;
-
   @override
   void initState(){
     sheetController = SheetController();
@@ -29,7 +25,6 @@ class _SlidingSheetExampleState extends State<SlidingSheetExample> {
         Navigator.pop(context);
       }
     }
-    extent = state.extent;
   }
 
   @override
