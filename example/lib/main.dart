@@ -144,7 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         backgroundColor: Colors.transparent,
                         isScrollControlled: true,
                         enableDrag: false,
-                        isDismissible: false,
+                        isDismissible: true,
                         useRootNavigator: false,
                         builder: (c) => const SlidingSheetExample(),
                       );
