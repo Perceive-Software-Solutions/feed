@@ -125,7 +125,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
         return childBuilder(item);
       },
       //Widgets
-      page: const MultiFeedExample(),
+      page: MultiFeedExample(sheetController: sheetController),
     );
   }
 }

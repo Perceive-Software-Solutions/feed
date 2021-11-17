@@ -1,4 +1,3 @@
-import 'package:feed/feeds/page.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +11,7 @@ enum FeedLoadingState {
   FIRST, //Start the loading process
 }
 
-class SimpleMultiFeedListView extends StatefulWidget {
+class FeedListView extends StatefulWidget {
 
   //State of the sheet
   final SheetController? sheetController;
@@ -45,7 +44,7 @@ class SimpleMultiFeedListView extends StatefulWidget {
 
   final Widget? page;
 
-  const SimpleMultiFeedListView({ 
+  const FeedListView({ 
     Key? key, 
     required this.sheetController,
     this.disableScroll = false, 
@@ -60,10 +59,10 @@ class SimpleMultiFeedListView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SimpleMultiFeedListViewState createState() => _SimpleMultiFeedListViewState();
+  _FeedListViewState createState() => _FeedListViewState();
 }
 
-class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
+class _FeedListViewState extends State<FeedListView> {
 
 
   //Cubit for each list item

@@ -3,7 +3,7 @@ import 'package:feed/util/global/functions.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 
-/// Uses package [SlidingSheet] and widget [SimpleMultiFeed]
+/// Uses package [SlidingSheet] and widget [MultiFeed]
 /// Creates a multi feed that can manage its own context and list inside of a bottom modal sheet
 /// *** The sliding of the list relative to the sliding sheet can not currently be 
 class SlidingSheetFeed extends StatefulWidget {
@@ -162,7 +162,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
 
   void sheetStateListener(SheetState state){
-
     if(state.extent == 0.0){
       if(Navigator.canPop(context)){
         Navigator.pop(context);
@@ -200,7 +199,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
               onGenerateRoute: (settings) => MaterialPageRoute(
                 settings: settings,
                 builder: (context){
-                  return SimpleMultiFeed(
+                  return MultiFeed(
                     sheetController: widget.sheetController,
                     loaders: widget.loaders,
                     headerSliver: widget.headerSliver,
@@ -218,6 +217,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                     condition: widget.condition,
                     disableScroll: widget.disableScroll,
                     headerBuilder: widget.headerBuilder,
+                    page: widget.page,
                   );
                 }
               ),
