@@ -1,6 +1,5 @@
 import 'package:example/widgets/multi_feed.dart';
-import 'package:example/widgets/single_feed.dart';
-import 'package:example/widgets/sliding_sheet.dart';
+import 'package:example/widgets/sliding_feed.dart';
 import 'package:example/widgets/swipe_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
@@ -146,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         enableDrag: false,
                         isDismissible: true,
                         useRootNavigator: false,
-                        builder: (c) => const SlidingSheetExample(),
+                        builder: (c) => const SlidingFeedExample(),
                       );
                     },
                   ),

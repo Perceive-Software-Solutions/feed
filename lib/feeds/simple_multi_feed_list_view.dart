@@ -41,6 +41,10 @@ class SimpleMultiFeedListView extends StatefulWidget {
   ///The header builder
   final Widget Function(BuildContext context)? headerBuilder;
 
+  //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  final Widget? page;
+
   const SimpleMultiFeedListView({ 
     Key? key, 
     required this.sheetController,
@@ -51,7 +55,8 @@ class SimpleMultiFeedListView extends StatefulWidget {
     this.controller, 
     this.footerHeight, 
     this.headerBuilder, 
-    this.loading
+    this.loading,
+    this.page
   }) : super(key: key);
 
   @override
@@ -177,14 +182,14 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
                       for (var i = 0; i < items.length; i++)
                         GestureDetector(
                           child: _buildChild(items, i),
-                          onTap: (){
+                          onTap: widget.page != null ? (){
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => PageExample()
+                                builder: (context) => widget.page!
                               ),
                             );
-                          },
+                          } : null,
                         ),
                     ],
                   ),

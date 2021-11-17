@@ -113,6 +113,11 @@ class SlidingSheetFeed extends StatefulWidget {
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
+  //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  /// Page that can be pushed on top of the [SlidingSheet]
+  final Widget? page;
+
   const SlidingSheetFeed({ 
     Key? key,
     required this.sheetController,
@@ -144,7 +149,8 @@ class SlidingSheetFeed extends StatefulWidget {
     this.loading,
     this.condition = false, 
     this.disableScroll, 
-    this.headerBuilder
+    this.headerBuilder,
+    this.page
   }) : super(key: key);
 
   @override

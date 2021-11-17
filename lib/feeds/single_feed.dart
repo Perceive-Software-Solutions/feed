@@ -43,6 +43,11 @@ class SingleFeed extends StatefulWidget {
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context)? headerBuilder;
 
+  //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  /// Page that can be pushed on top of the single feed
+  final Widget? page;
+
   const SingleFeed({ 
     Key? key,
       required this.loader,
@@ -57,7 +62,8 @@ class SingleFeed extends StatefulWidget {
       this.loading,
       this.condition = false, 
       this.headerBuilder,
-      this.disableScroll})
+      this.disableScroll,
+      this.page})
       : super(key: key);
 
   @override
@@ -260,6 +266,7 @@ class _SingleFeedState extends State<SingleFeed> {
           itemsCubit: itemsCubit,
           disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
           footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
+          page: widget.page,
           onLoad: (){
             // print(loadMore[j]);
             if(loading == false && loadMore == true) {

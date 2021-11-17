@@ -63,6 +63,11 @@ class SimpleMultiFeed extends StatefulWidget {
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ///Page that can be pushed ontop of the single-multi feed
+  final Widget? page;
+
   const SimpleMultiFeed(
       {Key? key,
       required this.loaders,
@@ -81,7 +86,8 @@ class SimpleMultiFeed extends StatefulWidget {
       this.loading,
       this.condition = false, 
       this.disableScroll, 
-      this.headerBuilder})
+      this.headerBuilder,
+      this.page})
       : assert(childBuilders == null || childBuilders.length == loaders.length),
         assert(controller == null || controller.length == loaders.length),
         super(key: key);
@@ -375,6 +381,7 @@ class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
               itemsCubit: itemsCubit[j],
               disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
               footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
+              page: widget.page,
               onLoad: (){
                 // print(loadMore[j]);
                 if(loading[j] == false && loadMore[j] == true) {
