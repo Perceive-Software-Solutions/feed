@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:feed/feeds/feed_list_view.dart';
+import 'package:feed/feeds/simple_multi_feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
@@ -251,46 +251,50 @@ class _SingleFeedState extends State<SingleFeed> {
 
   Widget buildFeed(){
     return KeepAliveWidget(
-      child: SimpleMultiFeedListView(
-        sheetController: widget.sheetController,
+      child: SingleChildScrollView(
+        physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
         controller: widget.controller,
-        itemsCubit: itemsCubit,
-        disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
-        footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
-        onLoad: (){
-          // print(loadMore[j]);
-          if(loading == false && loadMore == true) {
-            _loadMore();
-          }
-        },
-        builder: (context, i, items){
-          if (i == items.length) {
-            return Column(
-              children: [
+        child: SimpleMultiFeedListView(
+          sheetController: widget.sheetController,
+          controller: widget.controller,
+          itemsCubit: itemsCubit,
+          disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
+          footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
+          onLoad: (){
+            // print(loadMore[j]);
+            if(loading == false && loadMore == true) {
+              _loadMore();
+            }
+          },
+          builder: (context, i, items){
+            if (i == items.length) {
+              return Column(
+                children: [
 
-                Container(
-                  height: 100,
-                  width: double.infinity,
-                  child: Center(
-                    child: loadMore ? load : SizedBox.shrink(),
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    child: Center(
+                      child: loadMore ? load : SizedBox.shrink(),
+                    ),
                   ),
-                ),
-                Container(
-                  height: widget.footerHeight,
-                  width: double.infinity,
-                ),
-              ],
-            );
-          }
-          else if(widget.childBuilder != null){
-            return widget.childBuilder!(items[i], items.length - 1 == i);
-          }
+                  Container(
+                    height: widget.footerHeight,
+                    width: double.infinity,
+                  ),
+                ],
+              );
+            }
+            else if(widget.childBuilder != null){
+              return widget.childBuilder!(items[i], items.length - 1 == i);
+            }
   
-          return _loadCard(items, i);
-        },
-        headerBuilder: widget.headerBuilder == null ? null : (context){
-          return widget.headerBuilder!(context);
-        },              
+            return _loadCard(items, i);
+          },
+          headerBuilder: widget.headerBuilder == null ? null : (context){
+            return widget.headerBuilder!(context);
+          },              
+        ),
       )
     );
   }

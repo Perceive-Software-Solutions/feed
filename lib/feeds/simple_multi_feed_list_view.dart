@@ -160,9 +160,8 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
         },
         builder: (context, items) {
 
-          return SingleChildScrollView(
-            physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-            controller: widget.controller,
+          return Container(
+            height: MediaQuery.of(context).size.height,
             child: Column(
               children: [
                 if(widget.headerBuilder != null)
@@ -171,8 +170,7 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
                 if(items.isEmpty)
                   Center(child: loading),
 
-                SizedBox(
-                  height: MediaQuery.of(context).size.height,
+                Expanded(
                   child: ListView(
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                     controller: scrollController,

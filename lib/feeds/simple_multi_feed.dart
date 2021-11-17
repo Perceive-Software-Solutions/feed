@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:feed/feeds/feed_list_view.dart';
+import 'package:feed/feeds/simple_multi_feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
@@ -21,6 +21,7 @@ import 'package:tuple/tuple.dart';
 /// 
 /// `Supports: Posts, Polls, All Objects if childBuilder is present`
 class SimpleMultiFeed extends StatefulWidget {
+
   final List<FeedLoader> loaders;
 
   final List<Widget>? headerSliver;
