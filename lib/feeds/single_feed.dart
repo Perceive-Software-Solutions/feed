@@ -10,9 +10,9 @@ import 'package:tuple/tuple.dart';
 
 class SingleFeed extends StatefulWidget {
 
-  final SheetController sheetController;
-
   final FeedLoader loader;
+
+  final SheetController? sheetController;
 
   final int? lengthFactor;
 
@@ -38,16 +38,16 @@ class SingleFeed extends StatefulWidget {
   final Widget? placeHolder;
 
   /// Controls the scroll position
-  final ScrollController controller;
+  final ScrollController? controller;
 
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context)? headerBuilder;
 
   const SingleFeed({ 
     Key? key,
-    required this.sheetController,
       required this.loader,
-      required this.controller,
+      this.controller,
+      this.sheetController,
       this.lengthFactor,
       this.innitalLength,
       this.onRefresh,

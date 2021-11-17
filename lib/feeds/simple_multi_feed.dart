@@ -24,6 +24,10 @@ class SimpleMultiFeed extends StatefulWidget {
 
   final List<FeedLoader> loaders;
 
+  final SimpleMultiFeedController? controller;
+
+  final SheetController? sheetController;
+
   final List<Widget>? headerSliver;
 
   final List<Widget>? footerSliver;
@@ -37,8 +41,6 @@ class SimpleMultiFeed extends StatefulWidget {
   final List<MultiFeedBuilder>? childBuilders;
 
   final MultiFeedBuilder? childBuilder;
-
-  final SimpleMultiFeedController? controller;
 
   ///defines the height to offset the body
   final double? footerHeight;
@@ -64,11 +66,12 @@ class SimpleMultiFeed extends StatefulWidget {
   const SimpleMultiFeed(
       {Key? key,
       required this.loaders,
+      this.controller,
+      this.sheetController,
       this.headerSliver,
       this.lengthFactor,
       this.innitalLength,
       this.onRefresh,
-      this.controller,
       this.footerSliver,
       this.childBuilders,
       this.childBuilder,
@@ -367,8 +370,8 @@ class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
         tabs.add(
           KeepAliveWidget(
             child: SimpleMultiFeedListView(
-              sheetController: SheetController(),
-              controller: widget.controller?.scrollControllers![j],
+              sheetController: widget.sheetController,
+              controller: widget.controller!.scrollControllers![j],
               itemsCubit: itemsCubit[j],
               disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
               footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,

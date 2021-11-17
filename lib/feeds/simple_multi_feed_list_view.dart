@@ -1,3 +1,4 @@
+import 'package:feed/feeds/page.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +14,8 @@ enum FeedLoadingState {
 
 class SimpleMultiFeedListView extends StatefulWidget {
 
-  final SheetController sheetController;
+  //State of the sheet
+  final SheetController? sheetController;
 
   //Weither to disable scrolling
   final bool? disableScroll;
@@ -62,9 +64,12 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
   //Cubit for each list item
   List<ConcreteCubit<FeedLoadingState>> itemLoadState = [];
 
-  late ScrollController scrollController;
-
+  //If currently snapping
   bool snapping = false;
+
+  late ScrollController controller;
+
+  ScrollController get scrollController => widget.controller ?? scrollController;
 
 
   @override
@@ -74,24 +79,23 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
     //Sync the providers
     _syncProviders(widget.itemsCubit.state);
 
-    //init
-    scrollController = ScrollController();
+    controller = ScrollController();
 
-    scrollController.addListener(() {
+    widget.sheetController != null ? scrollController.addListener(() {
       if(scrollController.offset <= -80 && !snapping){
-        if(widget.sheetController.state!.extent == 1.0){
+        if(widget.sheetController!.state!.extent == 1.0){
           snapping = true;
           Future.delayed(Duration.zero, () {
-            widget.sheetController.snapToExtent(0.7, duration: Duration(milliseconds: 300));
+            widget.sheetController!.snapToExtent(0.7, duration: Duration(milliseconds: 300));
             Future.delayed(Duration(milliseconds: 300)).then((value) => {
               snapping = false
             });
           });
         }
-        else if(widget.sheetController.state!.extent == 0.7){
+        else if(widget.sheetController!.state!.extent == 0.7){
           snapping = true;
           Future.delayed(Duration.zero, () {
-            widget.sheetController.snapToExtent(0.0, duration: Duration(milliseconds: 300));
+            widget.sheetController!.snapToExtent(0.0, duration: Duration(milliseconds: 300));
           });
           Future.delayed(Duration(milliseconds: 300)).then((value) => {
             snapping = false
@@ -99,20 +103,15 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
         }
 
       }
-    });
+    }) : null;
   }
 
   @override
   void dispose(){
     super.dispose();
-    widget.controller!.removeListener(() { 
-      widget.controller!.dispose();
-    });
     scrollController.removeListener(() { 
       scrollController.dispose();
     });
-    // widget.controller!.dispose();
-    // scrollController.dispose();
   }
 
   Widget get loading => widget.loading == null ? Container() : widget.loading!;
@@ -176,7 +175,17 @@ class _SimpleMultiFeedListViewState extends State<SimpleMultiFeedListView> {
                     controller: scrollController,
                     children: [
                       for (var i = 0; i < items.length; i++)
-                      _buildChild(items, i),
+                        GestureDetector(
+                          child: _buildChild(items, i),
+                          onTap: (){
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PageExample()
+                              ),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 )

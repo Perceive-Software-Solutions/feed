@@ -4,12 +4,12 @@ import 'package:tuple/tuple.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 
 class SingleFeedExample extends StatefulWidget {
-  final ScrollController controller;
-  final SheetController sheetController;
+  final ScrollController? controller;
+  final SheetController? sheetController;
   const SingleFeedExample({ 
     Key? key,
-    required this.controller,
-    required this.sheetController
+    this.controller,
+    this.sheetController
   }) : super(key: key);
 
   @override

@@ -2,7 +2,6 @@ import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
-import 'package:tuple/tuple.dart';
 
 /// Uses package [SlidingSheet] and widget [SimpleMultiFeed]
 /// Creates a multi feed that can manage its own context and list inside of a bottom modal sheet
@@ -58,9 +57,6 @@ class SlidingSheetFeed extends StatefulWidget {
   /// Header of the sheet
   final Widget header;
 
-  /// Body of the sheet
-  final Widget body;
-
   /// Footer of the sheet
   final Widget footer;
 
@@ -71,6 +67,9 @@ class SlidingSheetFeed extends StatefulWidget {
 
   /// Loader for the feed
   final List<FeedLoader> loaders;
+  
+    /// State of the feed
+  final SimpleMultiFeedController controller;
 
   /// Sliver header of the feed
   final List<Widget>? headerSliver;
@@ -92,9 +91,6 @@ class SlidingSheetFeed extends StatefulWidget {
 
   /// Child builder
   final MultiFeedBuilder? childBuilder;
-
-  /// State of the feed
-  final SimpleMultiFeedController? controller;
 
   ///defines the height to offset the body
   final double? footerHeight;
@@ -121,7 +117,7 @@ class SlidingSheetFeed extends StatefulWidget {
     Key? key,
     required this.sheetController,
     required this.loaders,
-    required this.body,
+    required this.controller,
     this.minExtent = 0.0,
     this.initialExtent = 0.7,
     this.expandedExtent = 1.0,
@@ -139,7 +135,6 @@ class SlidingSheetFeed extends StatefulWidget {
     this.lengthFactor,
     this.innitalLength,
     this.onRefresh,
-    this.controller,
     this.footerSliver,
     this.childBuilders,
     this.childBuilder,
@@ -158,6 +153,7 @@ class SlidingSheetFeed extends StatefulWidget {
 
 class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
+  GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
 
   void sheetStateListener(SheetState state){
 
@@ -191,23 +187,35 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         return SingleChildScrollView(
           physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
           controller: controller,
-          child: SimpleMultiFeed(
-            loaders: widget.loaders,
-            headerSliver: widget.headerSliver,
-            lengthFactor: widget.lengthFactor,
-            innitalLength: widget.innitalLength,
-            onRefresh: widget.onRefresh,
-            controller: widget.controller,
-            footerSliver: widget.footerSliver,
-            childBuilders: widget.childBuilders,
-            childBuilder: widget.childBuilder,
-            footerHeight: widget.footerHeight,
-            placeHolder: widget.placeHolder,
-            placeHolders: widget.placeHolders,
-            loading: widget.loading,
-            condition: widget.condition,
-            disableScroll: widget.disableScroll,
-            headerBuilder: widget.headerBuilder,
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: Navigator(
+              key: key,
+              onGenerateRoute: (settings) => MaterialPageRoute(
+                settings: settings,
+                builder: (context){
+                  return SimpleMultiFeed(
+                    sheetController: widget.sheetController,
+                    loaders: widget.loaders,
+                    headerSliver: widget.headerSliver,
+                    lengthFactor: widget.lengthFactor,
+                    innitalLength: widget.innitalLength,
+                    onRefresh: widget.onRefresh,
+                    controller: widget.controller,
+                    footerSliver: widget.footerSliver,
+                    childBuilders: widget.childBuilders,
+                    childBuilder: widget.childBuilder,
+                    footerHeight: widget.footerHeight,
+                    placeHolder: widget.placeHolder,
+                    placeHolders: widget.placeHolders,
+                    loading: widget.loading,
+                    condition: widget.condition,
+                    disableScroll: widget.disableScroll,
+                    headerBuilder: widget.headerBuilder,
+                  );
+                }
+              ),
+            ),
           ),
         );
       },
