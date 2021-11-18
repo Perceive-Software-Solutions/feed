@@ -1,4 +1,4 @@
-## [0.1.0] v0.0.12
+## [0.1.0] v0.1.0
 
 * Added Single Feed
 * Added a Sliding Sheet Feed that can take a Multi-Feed
