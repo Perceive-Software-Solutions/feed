@@ -69,7 +69,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final List<FeedLoader> loaders;
   
     /// State of the feed
-  final SimpleMultiFeedController controller;
+  final MultiFeedController controller;
 
   /// Sliver header of the feed
   final List<Widget>? headerSliver;

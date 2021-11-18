@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:feed/feeds/simple_multi_feed_list_view.dart';
+import 'package:feed/feeds/feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:tuple/tuple.dart';
 
-class SingleFeed extends StatefulWidget {
+class Feed extends StatefulWidget {
 
   final FeedLoader loader;
 
@@ -48,7 +48,7 @@ class SingleFeed extends StatefulWidget {
   /// Page that can be pushed on top of the single feed
   final Widget? page;
 
-  const SingleFeed({ 
+  const Feed({ 
     Key? key,
       required this.loader,
       this.controller,
@@ -67,10 +67,10 @@ class SingleFeed extends StatefulWidget {
       : super(key: key);
 
   @override
-  _SingleFeedState createState() => _SingleFeedState();
+  _FeedState createState() => _FeedState();
 }
 
-class _SingleFeedState extends State<SingleFeed> {
+class _FeedState extends State<Feed> {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -260,7 +260,7 @@ class _SingleFeedState extends State<SingleFeed> {
       child: SingleChildScrollView(
         physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
         controller: widget.controller,
-        child: SimpleMultiFeedListView(
+        child: FeedListView(
           sheetController: widget.sheetController,
           controller: widget.controller,
           itemsCubit: itemsCubit,

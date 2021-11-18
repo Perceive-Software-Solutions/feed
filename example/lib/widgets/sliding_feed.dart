@@ -19,7 +19,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
   late SheetController sheetController;
 
   ///Controller for the multifeed
-  late SimpleMultiFeedController feedController;
+  late MultiFeedController feedController;
 
   @override
   void initState(){
@@ -27,7 +27,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
     sheetController = SheetController();
 
     //Initialize the feed controller
-    feedController = SimpleMultiFeedController(
+    feedController = MultiFeedController(
       pageCount: 3,
       initialPage: 1,
       keepPage: true,

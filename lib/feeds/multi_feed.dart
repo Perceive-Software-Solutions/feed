@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:feed/feeds/simple_multi_feed_list_view.dart';
+import 'package:feed/feeds/feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
@@ -12,7 +12,7 @@ import 'package:tuple/tuple.dart';
 /// Allows the exsiatnce of multiple feeds with a preset header.
 /// All feeds maintain the same type.
 /// 
-/// [SimpleMultiFeed] functions exactly like a feed, without using [EasyRefresh]. 
+/// [MultiFeed] functions exactly like a feed, without using [EasyRefresh]. 
 /// The independent feeds will load more content however will not be able to call refresh. 
 /// 
 /// [childBuilders] - a list of builder, populate the specific index to build a custom child on that index
@@ -20,11 +20,11 @@ import 'package:tuple/tuple.dart';
 /// [childBuilder] - a builder that will populate the children in all feeds, is overriden by [childBuilders]
 /// 
 /// `Supports: Posts, Polls, All Objects if childBuilder is present`
-class SimpleMultiFeed extends StatefulWidget {
+class MultiFeed extends StatefulWidget {
 
   final List<FeedLoader> loaders;
 
-  final SimpleMultiFeedController? controller;
+  final MultiFeedController? controller;
 
   final SheetController? sheetController;
 
@@ -68,7 +68,7 @@ class SimpleMultiFeed extends StatefulWidget {
   ///Page that can be pushed ontop of the single-multi feed
   final Widget? page;
 
-  const SimpleMultiFeed(
+  const MultiFeed(
       {Key? key,
       required this.loaders,
       this.controller,
@@ -93,11 +93,11 @@ class SimpleMultiFeed extends StatefulWidget {
         super(key: key);
 
   @override
-  State<SimpleMultiFeed> createState() => _SimpleMultiFeedState();
+  State<MultiFeed> createState() => _MultiFeedState();
 }
 
 ///feed state used for displaying storable lists dynamically
-class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
+class _MultiFeedState extends State<MultiFeed> {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -375,7 +375,7 @@ class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
       } else {
         tabs.add(
           KeepAliveWidget(
-            child: SimpleMultiFeedListView(
+            child: FeedListView(
               sheetController: widget.sheetController,
               controller: widget.controller!.scrollControllers![j],
               itemsCubit: itemsCubit[j],
@@ -443,8 +443,8 @@ class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
 
 ///Controller for the simple multi feed. 
 ///Holds a nested Page, Tab and Scroll controllers
-class SimpleMultiFeedController extends ChangeNotifier {
-  late _SimpleMultiFeedState? _state;
+class MultiFeedController extends ChangeNotifier {
+  late _MultiFeedState? _state;
 
   ///The amount of pages in the multi feed
   int _pageCount;
@@ -459,11 +459,11 @@ class SimpleMultiFeedController extends ChangeNotifier {
   PageController? _pageController;
 
   ///Private constructor
-  SimpleMultiFeedController._(this._pageCount, this._pageController, this._tabController, this._scrollControllers);
+  MultiFeedController._(this._pageCount, this._pageController, this._tabController, this._scrollControllers);
 
   ///Default constuctor
   ///Creates the nested controllers
-  factory SimpleMultiFeedController({
+  factory MultiFeedController({
     required int pageCount,
     int initialPage = 0,
     bool keepPage = true,
@@ -476,7 +476,7 @@ class SimpleMultiFeedController extends ChangeNotifier {
     assert(initialOffsets == null || initialOffsets.length == pageCount);
     assert(keepScrollOffsets == null || keepScrollOffsets.length == pageCount);
     assert(debugLabels == null || debugLabels.length == pageCount);
-    return SimpleMultiFeedController._(
+    return MultiFeedController._(
       pageCount,
       PageController(initialPage: initialPage, keepPage: keepPage, viewportFraction: viewportFraction),
       vsync == null ? null : TabController(initialIndex: initialPage, length: pageCount, vsync: vsync),
@@ -489,7 +489,7 @@ class SimpleMultiFeedController extends ChangeNotifier {
   }
 
   ///Binds the feed state
-  void _bind(_SimpleMultiFeedState bind) => _state = bind;
+  void _bind(_MultiFeedState bind) => _state = bind;
 
   //Called to notify all listners
   void _update() => notifyListeners();
