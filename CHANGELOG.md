@@ -1,3 +1,9 @@
+## [0.1.0] v0.0.12
+
+* Added Single Feed
+* Added a Sliding Sheet Feed that can take a Multi-Feed
+* Added Compact Feed
+
 ## [0.0.10] v0.0.10
 
 * Added homepage

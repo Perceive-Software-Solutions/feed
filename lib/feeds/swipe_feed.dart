@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:feed/animated/neumorpic_percent_bar.dart';
-import 'package:feed/animated/poll_swipe_animated_icon.dart';
 import 'package:feed/animated/swipe_feed_card.dart';
 import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';

@@ -1,17 +1,18 @@
 import 'dart:math';
 
+import 'package:feed/feeds/feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:tuple/tuple.dart';
 
 /// Splits the feed widget into n parts allows for simultanious list of independant feeds.
 /// Allows the exsiatnce of multiple feeds with a preset header.
 /// All feeds maintain the same type.
 /// 
-/// [SimpleMultiFeed] functions exactly like a feed, without using [EasyRefresh]. 
+/// [MultiFeed] functions exactly like a feed, without using [EasyRefresh]. 
 /// The independent feeds will load more content however will not be able to call refresh. 
 /// 
 /// [childBuilders] - a list of builder, populate the specific index to build a custom child on that index
@@ -19,8 +20,13 @@ import 'package:tuple/tuple.dart';
 /// [childBuilder] - a builder that will populate the children in all feeds, is overriden by [childBuilders]
 /// 
 /// `Supports: Posts, Polls, All Objects if childBuilder is present`
-class SimpleMultiFeed extends StatefulWidget {
+class MultiFeed extends StatefulWidget {
+
   final List<FeedLoader> loaders;
+
+  final MultiFeedController? controller;
+
+  final SheetController? sheetController;
 
   final List<Widget>? headerSliver;
 
@@ -35,8 +41,6 @@ class SimpleMultiFeed extends StatefulWidget {
   final List<MultiFeedBuilder>? childBuilders;
 
   final MultiFeedBuilder? childBuilder;
-
-  final SimpleMultiFeedController? controller;
 
   ///defines the height to offset the body
   final double? footerHeight;
@@ -59,14 +63,20 @@ class SimpleMultiFeed extends StatefulWidget {
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
-  const SimpleMultiFeed(
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ///Page that can be pushed ontop of the single-multi feed
+  final Widget? page;
+
+  const MultiFeed(
       {Key? key,
       required this.loaders,
+      this.controller,
+      this.sheetController,
       this.headerSliver,
       this.lengthFactor,
       this.innitalLength,
       this.onRefresh,
-      this.controller,
       this.footerSliver,
       this.childBuilders,
       this.childBuilder,
@@ -76,17 +86,18 @@ class SimpleMultiFeed extends StatefulWidget {
       this.loading,
       this.condition = false, 
       this.disableScroll, 
-      this.headerBuilder})
+      this.headerBuilder,
+      this.page})
       : assert(childBuilders == null || childBuilders.length == loaders.length),
         assert(controller == null || controller.length == loaders.length),
         super(key: key);
 
   @override
-  State<SimpleMultiFeed> createState() => _SimpleMultiFeedState();
+  State<MultiFeed> createState() => _MultiFeedState();
 }
 
 ///feed state used for displaying storable lists dynamically
-class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
+class _MultiFeedState extends State<MultiFeed> {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -364,11 +375,13 @@ class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
       } else {
         tabs.add(
           KeepAliveWidget(
-            child: _SimpleMultiFeedListView(
-              controller: widget.controller?.scrollControllers![j],
+            child: FeedListView(
+              sheetController: widget.sheetController,
+              controller: widget.controller!.scrollControllers![j],
               itemsCubit: itemsCubit[j],
               disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
               footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
+              page: widget.page,
               onLoad: (){
                 // print(loadMore[j]);
                 if(loading[j] == false && loadMore[j] == true) {
@@ -430,8 +443,8 @@ class _SimpleMultiFeedState extends State<SimpleMultiFeed> {
 
 ///Controller for the simple multi feed. 
 ///Holds a nested Page, Tab and Scroll controllers
-class SimpleMultiFeedController extends ChangeNotifier {
-  late _SimpleMultiFeedState? _state;
+class MultiFeedController extends ChangeNotifier {
+  late _MultiFeedState? _state;
 
   ///The amount of pages in the multi feed
   int _pageCount;
@@ -446,11 +459,11 @@ class SimpleMultiFeedController extends ChangeNotifier {
   PageController? _pageController;
 
   ///Private constructor
-  SimpleMultiFeedController._(this._pageCount, this._pageController, this._tabController, this._scrollControllers);
+  MultiFeedController._(this._pageCount, this._pageController, this._tabController, this._scrollControllers);
 
   ///Default constuctor
   ///Creates the nested controllers
-  factory SimpleMultiFeedController({
+  factory MultiFeedController({
     required int pageCount,
     int initialPage = 0,
     bool keepPage = true,
@@ -463,7 +476,7 @@ class SimpleMultiFeedController extends ChangeNotifier {
     assert(initialOffsets == null || initialOffsets.length == pageCount);
     assert(keepScrollOffsets == null || keepScrollOffsets.length == pageCount);
     assert(debugLabels == null || debugLabels.length == pageCount);
-    return SimpleMultiFeedController._(
+    return MultiFeedController._(
       pageCount,
       PageController(initialPage: initialPage, keepPage: keepPage, viewportFraction: viewportFraction),
       vsync == null ? null : TabController(initialIndex: initialPage, length: pageCount, vsync: vsync),
@@ -476,7 +489,7 @@ class SimpleMultiFeedController extends ChangeNotifier {
   }
 
   ///Binds the feed state
-  void _bind(_SimpleMultiFeedState bind) => _state = bind;
+  void _bind(_MultiFeedState bind) => _state = bind;
 
   //Called to notify all listners
   void _update() => notifyListeners();
@@ -517,191 +530,5 @@ class SimpleMultiFeedController extends ChangeNotifier {
     }
 
     super.dispose();
-  }
-}
-
-///Defines the laoding state
-enum FeedLoadingState {
-  BLOCK, //Load but do not display
-  LOADED, //Loaded but do not display
-  DISPLAY, //Display item
-  FIRST, //Start the loading process
-}
-
-class _SimpleMultiFeedListView extends StatefulWidget {
-
-  //Weither to disable scrolling
-  final bool? disableScroll;
-
-  //The onload function when more items need to be loaded
-  final Function()? onLoad;
-
-  ///Cubit holding the items
-  final ConcreteCubit<List> itemsCubit;
-
-  ///Builder function for each item
-  final Widget Function(BuildContext context, int i, List items) builder;
-
-  //The scroll controller
-  final ScrollController? controller;
-
-  //The height of the footer
-  final double? footerHeight;
-
-  ///Loading widget
-  final Widget? loading;
-  
-  ///The header builder
-  final Widget Function(BuildContext context)? headerBuilder;
-
-  const _SimpleMultiFeedListView({ 
-    Key? key, 
-    this.disableScroll = false, 
-    this.onLoad, 
-    required this.builder, 
-    required this.itemsCubit, 
-    this.controller, 
-    this.footerHeight, 
-    this.headerBuilder, 
-    this.loading
-  }) : super(key: key);
-
-  @override
-  __SimpleMultiFeedListViewState createState() => __SimpleMultiFeedListViewState();
-}
-
-class __SimpleMultiFeedListViewState extends State<_SimpleMultiFeedListView> {
-
-
-  //Cubit for each list item
-  List<ConcreteCubit<FeedLoadingState>> itemLoadState = [];
-
-
-  @override
-  void initState() {
-    super.initState();
-
-    //Sync the providers
-    _syncProviders(widget.itemsCubit.state);
-  }
-
-  Widget get loading => widget.loading == null ? Container() : widget.loading!;
-
-
-  ///Adds new items to the list of loading cubits and sets the first one to display if not set
-  void _syncProviders(List items){
-
-    //Difference in the items and providers lengths
-    int newCubitLength = items.length - itemLoadState.length;
-
-    //Creates new cubits for non included items
-    List<ConcreteCubit<FeedLoadingState>> newCubits = List.generate(newCubitLength, (i){
-      return ConcreteCubit(FeedLoadingState.BLOCK);
-    });
-
-    //Add all the new cubits to the list
-    itemLoadState.addAll(newCubits);
-
-    for (var i = 0; i < itemLoadState.length; i++) {
-      bool startProcess = itemLoadState[i].state != FeedLoadingState.DISPLAY;
-
-      //If the first cubit is not set to display set it
-      if(startProcess){
-        return itemLoadState[i].emit(FeedLoadingState.FIRST);
-      }
-    }
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo) {
-        if (scrollInfo.metrics.pixels + 1 >= scrollInfo.metrics.maxScrollExtent - 50 - (widget.footerHeight ?? 0)) {
-          widget.onLoad!();
-        }
-        return false;
-      },
-      child: BlocConsumer<Cubit<List>, List>(
-        bloc: widget.itemsCubit,
-        listener: (context, items) {
-          //Adds cubits to the list if they are not defined
-          _syncProviders(items);
-        },
-        builder: (context, items) {
-
-          return SingleChildScrollView(
-            physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-            controller: widget.controller,
-            child: Column(
-              children: [
-                if(widget.headerBuilder != null)
-                  widget.headerBuilder!(context),
-
-                if(items.isEmpty)
-                  Center(child: loading),
-
-                for (var i = 0; i < items.length; i++)
-                  _buildChild(items, i),
-              ],
-            ),
-          );
-          
-          // return ListView.builder(
-          //   physics: (widget.disableScroll ?? false) ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-          //   controller: widget.controller != null ? widget.controller.scrollControllers[j] : null,
-          //   itemCount: items.length + 1,
-          //   itemBuilder: (context, i) {
-          //     if (i == items.length) {
-          //       return Column(
-          //         children: [
-          //           Container(
-          //             height: 100,
-          //             width: double.infinity,
-          //             child: Center(
-          //               child: PollarLoading(),
-          //             ),
-          //           ),
-          //           Container(
-          //             height: widget.footerHeight,
-          //             width: double.infinity,
-          //           ),
-          //         ],
-          //       );
-          //     } else if (widget.childBuilders != null && widget.childBuilders[j] != null) {
-          //       return widget.childBuilders[j](items[i], items.length - 1 == i);
-          //     }
-          //     else if(widget.childBuilder != null){
-          //       return widget.childBuilder(items[i], items.length - 1 == i);
-          //     }
-      
-          //     return _loadCard(items, i);
-          //   },
-          // );
-        }
-      ),
-    );
-  }
-
-  Widget _buildChild(List items, int i){
-    //The feed load state bloc
-    ConcreteCubit<FeedLoadingState> bloc = itemLoadState.length > i ? itemLoadState[i] : ConcreteCubit(FeedLoadingState.BLOCK);
-
-    return BlocListener(
-      key: ValueKey('key - ${i}'),
-      bloc: bloc,
-      listener: (context, state) {
-        try{
-          if(state == FeedLoadingState.DISPLAY){
-            itemLoadState[i + 1].emit(FeedLoadingState.FIRST);
-          }
-        // ignore: empty_catches
-        }catch(e){}
-      },
-      child: BlocProvider<ConcreteCubit<FeedLoadingState>>(
-        create: (context) => bloc,
-        child: widget.builder(context, i, items)
-      ),
-    );
   }
 }

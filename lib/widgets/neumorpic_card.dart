@@ -12,7 +12,6 @@ enum EECardMode {
   FLAT
 }
 
-@Deprecated('[REFACTOR] Ibtesam - Review Neumorphic Design')
 class NeumorpicCard extends StatelessWidget {
 
   final Widget child;

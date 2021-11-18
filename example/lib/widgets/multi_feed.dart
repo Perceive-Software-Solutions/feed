@@ -1,10 +1,17 @@
+import 'package:feed/feed.dart';
 import 'package:flutter/material.dart';
-import 'package:feed/feeds/simple_multi_feed.dart';
+import 'package:feed/feeds/multi_feed.dart';
 import 'package:tuple/tuple.dart';
+import 'package:sliding_sheet/sliding_sheet.dart';
 
 
 class MultiFeedExample extends StatefulWidget {
-  const MultiFeedExample({ Key? key }) : super(key: key);
+  final SheetController? sheetController;
+
+  const MultiFeedExample({ 
+    Key? key ,
+    this.sheetController
+  }) : super(key: key);
 
   @override
   _MultiFeedExampleState createState() => _MultiFeedExampleState();
@@ -13,14 +20,14 @@ class MultiFeedExample extends StatefulWidget {
 class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProviderStateMixin{
 
   ///Controller for the multifeed
-  late SimpleMultiFeedController feedController;
+  late MultiFeedController feedController;
 
   @override
   void initState() {
     super.initState();
 
     //Initialize the feed controller
-    feedController = SimpleMultiFeedController(
+    feedController = MultiFeedController(
       pageCount: 3,
       initialPage: 1,
       keepPage: true,
@@ -33,8 +40,9 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
-        child: SimpleMultiFeed(
+        child: MultiFeed(
           controller: feedController,
+          sheetController: widget.sheetController,
           headerBuilder: (context, i){
             return Column(
               children: [
@@ -79,7 +87,7 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
                     height: 1,
                     color: Colors.grey.withOpacity(0.2),
                   ),
-                  Container(
+                  SizedBox(
                     height: 75,
                     child: Center(
                       child: Text(list[item % 6], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))
