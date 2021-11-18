@@ -53,7 +53,7 @@ class PagedCompactList<T> extends StatefulWidget {
   final int loadSize;
 
   ///Controller for the [PagedCompactList]. 
-  final PagedCompactListController? controller;
+  final PagedCompactListController<T>? controller;
 
   ///Title of the list. 
   ///Does not build if not defined.

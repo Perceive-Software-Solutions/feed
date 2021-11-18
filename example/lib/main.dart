@@ -1,3 +1,4 @@
+import 'package:example/widgets/compact_feed.dart';
 import 'package:example/widgets/multi_feed.dart';
 import 'package:example/widgets/sliding_feed.dart';
 import 'package:example/widgets/swipe_feed.dart';
@@ -146,6 +147,30 @@ class _MyHomePageState extends State<MyHomePage> {
                         isDismissible: true,
                         useRootNavigator: false,
                         builder: (c) => const SlidingFeedExample(),
+                      );
+                    },
+                  ),
+                  Container(
+                    height: 1,
+                    color: Colors.grey.withOpacity(0.2),
+                  ),
+                  GestureDetector(
+                    child: Container(
+                      height: 75,
+                      child: const Center(
+                        child: Text(
+                          'Compact Feed', 
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)
+                        ),
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(32)
+                      ),
+                    ),
+                    onTap: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CompactFeedExample()),
                       );
                     },
                   ),
