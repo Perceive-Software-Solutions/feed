@@ -264,7 +264,7 @@ class _PagedCompactListState<T> extends State<PagedCompactList<T>> {
                   ///Only displays if [maxCapacity] is toggled off
                   if(!maxCapacity)
                     GestureDetector(
-                      onTap: () => isLoading ? fetchPage(nextSize) : null,
+                      onTap: () => !isLoading ? fetchPage(nextSize) : null,
                       child: widget.child,
                     )
                 ],

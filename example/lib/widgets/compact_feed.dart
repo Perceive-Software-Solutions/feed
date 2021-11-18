@@ -13,7 +13,7 @@ class _CompactFeedExampleState extends State<CompactFeedExample> {
 
   PagedCompactListController<List<int>> controller = PagedCompactListController();
 
-  var list = ['2', '59', '60', '61', '63', '64'];
+  var list = ['Title1', 'Title2', 'Title3', 'Title4', 'Title5', 'Title6'];
 
   @override
   void initState(){
@@ -60,15 +60,15 @@ class _CompactFeedExampleState extends State<CompactFeedExample> {
     List<Widget> children = [];
 
     ///Creates a [PagedCompactList] for each num contained in list
-    for (String num in list) {
+    for (String title in list) {
 
       ///Creates a [PagedCompactList] widget relative to the categories
       Widget pagedSliverList = PagedCompactList<List<int>>(
-        key: Key('pagedcompactlist-$num'),
-        title: num,
+        key: Key('pagedcompactlist-$title'),
+        title: title,
         controller: controller,
         loader: (size) async {
-          return List.filled(size, List.generate(size, (i) => i + size));
+          return List.filled(size, List.generate(10, (i) => i + size));
         },
         builder: (context, index, item) {
           return _buildTile(context, index);
