@@ -1,5 +1,6 @@
 import 'package:example/widgets/multi_feed.dart';
 import 'package:feed/feed.dart';
+import 'package:feed/feeds/sliding_sheet_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:tuple/tuple.dart';
