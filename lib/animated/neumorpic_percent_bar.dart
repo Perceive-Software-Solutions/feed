@@ -145,7 +145,6 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   }
 
   Future<void> fillBar(double newFill, IconPosition newDirection) async {
-    print(lockAnimation);
     if(lockAnimation == true) return;
 
     complete = false;

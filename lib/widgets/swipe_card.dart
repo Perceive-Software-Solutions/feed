@@ -598,8 +598,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     if (swipable != true) return;
 
-    print('pan start');
-
     //The point on the screen that determines the different angles
     double divider = MediaQuery.of(context).size.height / 2;
 
@@ -643,8 +641,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   void _onPanEnd(DragEndDetails d) async {
 
     if (swipable != true) return;
-
-    print('pan end: ${d.velocity.pixelsPerSecond.distance} >= $MIN_FLING_VELOCITY');
 
     //Calls the callback function if it's defined
     if(widget.onPanEnd != null)

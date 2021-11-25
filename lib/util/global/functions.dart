@@ -56,8 +56,7 @@ class Functions {
     if(value == null){
       return false;
     }
-    print(value >= start! && value <= end!);
-    return value >= start && value <= end!;
+    return value >= start! && value <= end!;
   }
 
   ///Dtermines if a value is between a marginal range from the value

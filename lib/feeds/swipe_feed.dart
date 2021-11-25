@@ -25,11 +25,19 @@ class SwipeFeed<T> extends StatefulWidget {
     this.loadManually = false, 
     this.controller, 
     this.onSwipe, 
-    this.onContinue
+    this.onContinue,
+    this.overlayBuilder,
+    this.swipeAlert,
   }): super(key: key);
 
   @override
   _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
+
+  /// The overlay to be shown
+  final Widget Function(Future<void> Function(int), Future<void> Function(int), int, T)? overlayBuilder;
+
+  /// If the overlay should be shown
+  final bool Function(int)? swipeAlert;
 
   ///A builder for the feed
   final FeedBuilder<T>? childBuilder;
@@ -329,6 +337,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         return KeyboardVisibilityBuilder(
           builder: (context, keyoard){
             return SwipeFeedCard(
+              overlay: (forwardAnimation, reverseAnimation, index){
+                if(widget.overlayBuilder != null)
+                  return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1);
+                return null;
+              },
+              swipeAlert: widget.swipeAlert,
               keyboardOpen: keyoard,
               show: show,
               onFill: (fill, position) {
@@ -341,7 +355,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                 _removeCard();
               },
               onSwipe: (dir) {
-                widget.onSwipe!(dir, itemCubit.item1);
+                if(widget.onSwipe != null){
+                  widget.onSwipe!(dir, itemCubit.item1);
+                }
               },
               onPanEnd: () {
                 fillBar(0.0, IconPosition.BOTTOM);

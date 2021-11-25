@@ -21,7 +21,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
 
   Future<Tuple2<List<dynamic>, String>> loadItems(int size, [String? token]) async {
     await Future.delayed(const Duration(seconds: 1));
-    return const Tuple2(['Testing', 'Testing1'], 'PageToken');
+    return const Tuple2(['Testing', 'Testing1', 'Testin2', 'Testing3', 'Testing4'], 'PageToken');
   }
 
   @override
@@ -53,6 +53,22 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 child: SwipeFeed<dynamic>(
                   controller: feedController,
                   loader: loadItems,
+                  swipeAlert: (index){
+                    return true;
+                  },
+                  overlayBuilder: (forwardAnimation, reverseAnimation, index, item){
+                    return Container(
+                      height: 300,
+                      width: 300,
+                      color: Colors.black,
+                      child: MaterialButton(
+                        child: Text(item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
+                        onPressed: (){
+                          forwardAnimation(index);
+                        }
+                      )
+                    );
+                  },
                   childBuilder: (value, isLast) {
                     return Container(
                       decoration: BoxDecoration(

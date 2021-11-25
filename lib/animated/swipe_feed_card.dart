@@ -38,7 +38,7 @@ class SwipeFeedCard extends StatefulWidget {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   /// Overlay that comes up when [swipeAlert] is true
-  final Widget? overlay;
+  final Widget? Function(Future<void> Function(int), Future<void> Function(int), int)? overlay;
 
   /// Blur that is produced on the background card
   final Widget? blur;
@@ -323,18 +323,20 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   }
 
   /// Forward animation
-  void forwardAnimation(int index) async{
+  Future<void> forwardAnimation(int index) async{
     if(mounted){
       await widget.onContinue!(_lastSwipe);
       await Future.delayed(Duration(milliseconds: 200));
       _lastSwipe = null;
       iconControllers[index].maximize(false);
-      widget.onDismiss!();
+      if(widget.onDismiss != null){
+        widget.onDismiss!();
+      }
     }
   }
 
   /// Reverse animation
-  void reverseAnimation(int index){
+  Future<void> reverseAnimation(int index) async {
     if(mounted){
       widget.onDismiss!();
       swipeController.setSwipe(true);
@@ -368,7 +370,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   Widget _buildIconAtIndex(BuildContext context, int index){
     Widget? child;
     if(swipeAlert(index)){
-      child = Container();
+      child = widget.overlay!(forwardAnimation, reverseAnimation, index);
     }
     // Widget? child = _buildSwipeAlert(index);
 
