@@ -57,7 +57,7 @@ class SwipeFeedCard extends StatefulWidget {
 
   /// The fill call back function.
   /// Returns the fill direction along with the value of fill
-  final void Function(double fill, IconPosition position)? onFill;
+  final void Function(double fill, IconPosition position, CardPosition cardPosition)? onFill;
 
   ///The on swipe function, run when the swiper is completed
   final void Function(DismissDirection direction)? onSwipe;
@@ -77,11 +77,6 @@ class SwipeFeedCard extends StatefulWidget {
 }
 
 class _SwipeFeedCardState extends State<SwipeFeedCard> {
-
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  ///The offset at which the swipe output becomes axially locked
-  final double SWIPE_LOCK_THRESHOLD = 100;
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Controllers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -123,7 +118,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Calls the onFillFunction if it is defined
-  void _onFill(double fill, IconPosition position) => widget.onFill!(fill, position);
+  void _onFill(double fill, IconPosition position, CardPosition cardPosition) => widget.onFill!(fill, position, cardPosition);
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Swipe Gestures ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -189,7 +184,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     // Diagonal slope of the screen
     final slope = height/width;
 
+    /// Vertical Length to the slope
     double verticalLength = slope*dx.abs();
+
+    /// Horizontal Length to the slope
+    double horizontalLength = slope*dy.abs();
 
     ///Overrides to the y direction
     bool horizontalAxisOverride = dy > (verticalLength*-1) && dy < verticalLength;
@@ -198,14 +197,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     double showValue = 0;
     double? maxSwipeDis;
 
-    if(dx.abs() >= maxX! && axisLock == null){
+    if(dx.abs() >= 0 && dy > verticalLength*-1 && dy < verticalLength){
       axisLock = Axis.horizontal;
     }
-    else if(dy.abs() > maxYTop! && axisLock == null){
+    else if(dy.abs() > 0 && dx > horizontalLength*-1 && dx < horizontalLength){
       axisLock = Axis.vertical;
-    }
-    else if(dx.abs() < maxYBot! * 0.05 && dy.abs() < maxYTop * 0.05){
-      axisLock = null;
     }
 
     if(axisLock != Axis.horizontal && !horizontalAxisOverride){
@@ -215,16 +211,25 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
           i = 2;
           showValue = dy.abs() / maxYBot!;
           maxSwipeDis = maxYBot;
-          // print('down');
-          _onFill(swipeController.down, IconPosition.BOTTOM);
+
+          if(dx > 0){
+            _onFill(swipeController.right, IconPosition.BOTTOM, CardPosition.Right);
+          } 
+          else{
+            _onFill(swipeController.left, IconPosition.BOTTOM, CardPosition.Left);
+          }
         }
         else{
           //Show top
           i = 3;
           showValue = dy.abs() / maxYTop!;
           maxSwipeDis = maxYTop;
-          // print('up');
-          _onFill(swipeController.up, IconPosition.TOP);
+          if(dx > 0){
+            _onFill(swipeController.right, IconPosition.TOP, CardPosition.Right);
+          }
+          else{
+            _onFill(swipeController.left, IconPosition.TOP, CardPosition.Left);
+          }
         }
       // }
       // else{
@@ -236,15 +241,15 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         if(dx > 0){
           //Show right
           i = 0;
-          _onFill(swipeController.right, IconPosition.RIGHT);
+          _onFill(swipeController.right, IconPosition.RIGHT, CardPosition.Right);
         }
         else{
           //Show left
           i = 1;
-          _onFill(swipeController.left, IconPosition.LEFT);
+          _onFill(swipeController.left, IconPosition.LEFT, CardPosition.Left);
         }
         maxSwipeDis = maxX;
-        showValue = dx.abs() / maxX;
+        showValue = dx.abs() / maxX!;
         // print('sides');
       // }
       // else{

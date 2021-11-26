@@ -114,7 +114,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   }
 
   Future<void> completeFillBar(double value, [IconPosition? direction]) async => await _fillController.completeFillBar(value, direction);
-  Future<void> fillBar(double value, IconPosition direction) async => await _fillController.fillBar(min(0.75, value * 0.94), direction);
+  Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition) async => await _fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition);
 
 
 
@@ -174,7 +174,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         }
         Future.delayed(Duration(milliseconds: 400)).then((value){
           // _switchCard(start: 1, end: 0);
-          fillBar(0.0, IconPosition.BOTTOM);
+          fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
           cubit.emit([...cubit.state]..removeAt(0));
           // items.removeAt(0); //Remove the item from the loaded list
           if(cubit.state.length <= LOAD_MORE_LIMIT){
@@ -196,7 +196,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     hasMore = true;
     loading = false;
     cubit.emit([]);
-    _fillController.fillBar(0, IconPosition.BOTTOM);
+    _fillController.fillBar(0, IconPosition.BOTTOM, CardPosition.Left);
 
     if(mounted){
       setState(() {});
@@ -345,8 +345,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
               swipeAlert: widget.swipeAlert,
               keyboardOpen: keyoard,
               show: show,
-              onFill: (fill, position) {
-                fillBar(fill, position);
+              onFill: (fill, iconPosition, cardPosition) {
+                fillBar(fill, iconPosition, cardPosition);
               },
               onContinue: (dir) async {
                 if(widget.onContinue != null){
@@ -360,7 +360,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                 }
               },
               onPanEnd: () {
-                fillBar(0.0, IconPosition.BOTTOM);
+                fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
               },
               child: _loadCard(itemCubit.item1, index),
             );
@@ -481,7 +481,7 @@ class SwipeFeedController<T> extends ChangeNotifier {
 
   Future<void> completeFillBar(double value, [IconPosition? direction]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, direction);
 
-  Future<void> fillBar(double value, IconPosition direction) async => _state == null ? _state!.items : await _state!.fillBar(value, direction);
+  Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition);
 
   //Disposes of the controller
   @override

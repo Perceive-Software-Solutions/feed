@@ -37,8 +37,12 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   ///An animation for the fill
   late AnimationController fillController;
 
-  ///The direction of the fill
-  late IconPosition direction;
+  ///Current quadrant
+  late IconPosition iconDirection;
+
+  ///Current fill
+  late CardPosition cardPosition;
+
 
   //Locks the animation
   bool lockAnimation = false;
@@ -51,54 +55,26 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
   //Retreives the fill percentage relative to the direction
   double get fill {
-    if(direction == IconPosition.BOTTOM){
-      return 0;
-    }
-    else if(direction == IconPosition.TOP){
-      return fillController.value;
-    }
-    else if(direction == IconPosition.LEFT){
-      return fillController.value;
-    }
-    else if(direction == IconPosition.RIGHT){
-      return fillController.value;
-    }
-    else{
-      throw 'Invalid Type for Icon Positioning';
-    }
+    return fillController.value;
   }
 
   //Retreives the fill percentage relative to the direction
   double get rawFill {
-    if(direction == IconPosition.BOTTOM){
-      return 0;
-    }
-    else if(direction == IconPosition.TOP){
-      return oldFill;
-    }
-    else if(direction == IconPosition.LEFT){
-      return oldFill;
-    }
-    else if(direction == IconPosition.RIGHT){
-      return oldFill;
-    }
-    else{
-      throw 'Invalid Type for Icon Positioning';
-    }
+    return oldFill;
   }
 
   ///Retreives the color based on the direction
   Color? fillColor(AppColor appColors) {
-    if(direction == IconPosition.BOTTOM){
+    if(iconDirection == IconPosition.BOTTOM){
       return Colors.transparent;
     }
-    else if(direction == IconPosition.TOP){
+    else if(iconDirection == IconPosition.TOP){
       return appColors.yellow;
     }
-    else if(direction == IconPosition.LEFT){
+    else if(iconDirection == IconPosition.LEFT){
       return appColors.red;
     }
-    else if(direction == IconPosition.RIGHT){
+    else if(iconDirection == IconPosition.RIGHT){
       return appColors.blue;
     }
     else{
@@ -108,16 +84,16 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
   ///Retreives the title based on the direction
   String get title {
-    if(direction == IconPosition.BOTTOM){
+    if(iconDirection == IconPosition.BOTTOM){
       return 'Skip';
     }
-    else if(direction == IconPosition.TOP){
+    else if(iconDirection == IconPosition.TOP){
       return 'Score';
     }
-    else if(direction == IconPosition.LEFT){
+    else if(iconDirection == IconPosition.LEFT){
       return 'Disagree';
     }
-    else if(direction == IconPosition.RIGHT){
+    else if(iconDirection == IconPosition.RIGHT){
       return 'Agree';
     }
     else{
@@ -128,9 +104,12 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   @override
   void initState(){
     super.initState();
+
+    //Get position
+    cardPosition = CardPosition.Left;
     
     //Get direction
-    direction = IconPosition.BOTTOM;
+    iconDirection = IconPosition.BOTTOM;
 
     //Bind controller
     widget.controller._bind(this);
@@ -144,12 +123,29 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       });
   }
 
-  Future<void> fillBar(double newFill, IconPosition newDirection) async {
+  Future<void> fillBar(double newFill, IconPosition newDirection, CardPosition newCardPosition) async {
     if(lockAnimation == true) return;
 
     complete = false;
 
-    if(direction != newDirection){
+    if(cardPosition != newCardPosition){
+
+      lockAnimation = true;
+
+      //Animate down
+      await fillController.animateTo(0, duration: FAST_FILL_DURATION);
+
+      setState(() {
+        cardPosition = newCardPosition;
+      });
+
+      lockAnimation = false;
+
+      //Animate up
+      await fillController.animateTo(newFill);
+    }
+
+    if(iconDirection != newDirection){
 
       lockAnimation = true;
 
@@ -158,7 +154,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
       
       setState(() {
-        direction = newDirection;
+        iconDirection = newDirection;
       });
 
       lockAnimation = false;
@@ -187,13 +183,14 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
     complete = true;
 
-    if(newDirection != null && newDirection != direction){
+    if(newDirection != null && newDirection != iconDirection){
       //Animate down
-      await fillController.animateTo(0, duration: FAST_FILL_DURATION);
+      // ~~~~~~~~~~~~ Testing Down Release IDK ~~~~~~~~~~~
+      await fillController.animateTo(max(0.01, newFill), duration: FAST_FILL_DURATION);
 
       
       setState(() {
-        direction = newDirection;
+        iconDirection = newDirection;
       });
     }
 
@@ -263,24 +260,24 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                             widthFactor: 1,
                             child: AnimatedAlign(
                               duration: Duration(milliseconds: 10),
-                              alignment: direction != IconPosition.LEFT ? 
+                              alignment: cardPosition != CardPosition.Left ? 
                               Alignment.centerLeft : 
                               Alignment.centerRight,
                               child: FractionallySizedBox(
                                 widthFactor: fill,
                                 child: AnimatedCrossFade(
-                                  crossFadeState: direction == IconPosition.TOP ? 
+                                  crossFadeState: iconDirection == IconPosition.TOP ? 
                                     CrossFadeState.showSecond : 
                                     CrossFadeState.showFirst,
                                   duration: Duration(milliseconds: 350),
                                   firstCurve: Curves.easeOutQuint,
                                   secondCurve: Curves.easeInQuint,
                                   firstChild: InnerShadow(
-                                    color: direction != IconPosition.LEFT
+                                    color: cardPosition != CardPosition.Left
                                     ? Color(0xFF8BA7C1).withOpacity(0.48)
                                     : Colors.white.withOpacity(0.5),
                                     blur: 7,
-                                    offset: direction != IconPosition.LEFT ? Offset(3, 3) : Offset(-3, -3),
+                                    offset: cardPosition != CardPosition.Left ? Offset(3, 3) : Offset(-3, -3),
                                     child: AnimatedContainer(
                                       duration: Duration(milliseconds: 10),
                                       decoration: BoxDecoration(
@@ -290,11 +287,11 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                                     ),
                                   ),
                                   secondChild: InnerShadow(
-                                    color: direction != IconPosition.LEFT
+                                    color: cardPosition != CardPosition.Left
                                     ? Color(0xFF8BA7C1).withOpacity(0.48)
                                     : Colors.white.withOpacity(0.5),
                                     blur: 7,
-                                    offset: direction != IconPosition.LEFT ? Offset(3, 3) : Offset(-3, -3),
+                                    offset: cardPosition != CardPosition.Left ? Offset(3, 3) : Offset(-3, -3),
                                     child: AnimatedContainer(
                                       duration: Duration(milliseconds: 10),
                                       decoration: BoxDecoration(
@@ -319,15 +316,14 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                     bottom: 15,
                     child: fillController.value != 0
                         ? Align(
-                            alignment: direction != IconPosition.LEFT ? 
+                            alignment: cardPosition != CardPosition.Left ? 
                             Alignment.centerRight : 
                             Alignment.centerLeft,
                             child: Opacity(
-                              opacity: direction != IconPosition.BOTTOM ? 
-                                complete ? 1 : Functions.animateOverFirst(fill, percent: 0.13) :
-                          0,//, end: 0.04),
+                              opacity:
+                                complete ? 1 : Functions.animateOverFirst(fill, percent: 0.13),//, end: 0.04),
                               child: Text(
-                                direction == IconPosition.BOTTOM ? '' :
+                                iconDirection == IconPosition.BOTTOM ? '' :
                                 '${(fill.abs() * 100).toStringAsFixed(0)}%',
                                 style: textStyles.headline5!.copyWith(
                                     color: Colors.black,
@@ -344,13 +340,11 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                     top: 15,
                     bottom: 15,
                     child: Align(
-                      alignment: direction != IconPosition.LEFT
-                          ? (direction == IconPosition.BOTTOM ? Alignment.center : Alignment.centerLeft)
+                      // ~~~~~~~~~~~~ Watch Out ~~~~~~~~~~~~
+                      alignment: cardPosition != CardPosition.Left ? Alignment.centerLeft
                           : Alignment.centerRight,
                       child: Opacity(
-                        // duration: Duration(milliseconds: 100),
-                        opacity: complete ? 1 : ( direction != IconPosition.BOTTOM ? Functions.animateRange(fill, start: 0, end: 0.13) :
-                          Functions.animateRange(fillController.value, start: 0.0, end: 0.25) ),
+                        opacity: complete ? 1 : ( Functions.animateRange(fill, start: 0, end: 0.13) ),
                         child: Container(
                           child: Text(
                             title,
@@ -383,7 +377,7 @@ class PercentBarController extends ChangeNotifier {
   //Called to notify all listners
   void _update() => notifyListeners();
 
-  Future<void> fillBar(double value, IconPosition direction) async => _state == null ? null : await _state!.fillBar(value, direction);
+  Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition) async => _state == null ? null : await _state!.fillBar(value, direction, cardPosition);
 
   Future<void> completeFillBar(double value, [IconPosition? direction]) async => _state == null ? null : await _state!.completeFillBar(value, direction);
 

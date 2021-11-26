@@ -224,9 +224,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Holds the y drag value that transforms the position of the card
   double yDrag = 0;
 
-  ///Holds the horizontal lock info
-  bool isHorz = true;
-
   ///Determines the angle
   SwipeCardAngle rotation = SwipeCardAngle.None;
 
@@ -470,20 +467,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Determines the max thresh holds for the swipe card based on its size. 
   ///Runs after innitial frame
   void _determineThresholds(){
-
-    //Is run after first brame so that media context is defined
-    //Set height and width
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
-
-    //Inner dimensions
-    double innerHeight = sqrt(SwipeCard.CARD_MINIMIZE_SCALE) * height;
-    double innerWidth = sqrt(SwipeCard.CARD_MINIMIZE_SCALE) * width;
-
     //Set the max horizaontal and vertial swipe thresholds
-    horizontalSwipeThresh = (width - innerWidth)/2 + SwipeCard.THRESHOLD_OFFSET;
-    bottomSwipeThresh = (height - innerHeight)/2 + SwipeCard.THRESHOLD_OFFSET + SwipeCard.THRESHOLD_VERTICAL_PADDING.top;
-    topSwipeThresh = (height - innerHeight)/2 + SwipeCard.THRESHOLD_OFFSET + SwipeCard.THRESHOLD_VERTICAL_PADDING.bottom;
+    horizontalSwipeThresh = 92.0;
+    bottomSwipeThresh = 157;
+    topSwipeThresh = 92.0;
 
   }
   
@@ -625,12 +612,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     _updateSwipers(d.delta.dx, d.delta.dy);
 
     //Updates the angle
-    if ((xDrag.abs() < 5 && yDrag.abs() < 5)) {
-      double radAngle = d.delta.direction;
-      isHorz = ((radAngle > -(pi / 6) && radAngle < (pi / 6)) ||
-          (radAngle > ((5 * pi) / 6) && radAngle < ((7 * pi) / 6)));
-      setState(() {});
-    }
+    // if ((xDrag.abs() < 5 && yDrag.abs() < 5)) {
+    //   double radAngle = d.delta.direction;
+    //   // isHorz = ((radAngle > -(pi / 6) && radAngle < (pi / 6)) ||
+    //   //     (radAngle > ((5 * pi) / 6) && radAngle < ((7 * pi) / 6)));
+    //   setState(() {});
+    // }
 
     //Calls any  binded call backs
     if(widget.onPanUpdate != null)

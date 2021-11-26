@@ -5,6 +5,10 @@ enum IconPosition {
   LEFT, RIGHT, TOP, BOTTOM
 }
 
+enum CardPosition{
+  Left, Right
+}
+
 extension IconPostionExtension on IconPosition{
 
   DismissDirection? get direction{
