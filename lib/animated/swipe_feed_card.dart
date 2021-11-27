@@ -6,6 +6,13 @@ import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/widgets/swipe_card.dart';
 import 'package:flutter/material.dart';
+import 'package:feed/util/global/functions.dart';
+
+enum SwipeFeedCardState{
+  HIDE,
+  SHOW,
+  EXPAND
+}
 
 ///The poll page card is a feed swipe card within a swippable card. 
 ///These are displayed on the poll page feed as swipable cards. 
@@ -152,9 +159,9 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     //   i = 2;
     // }
 
-    // bool hasAlert = widget.swipeAlert != null;
+    // // bool hasAlert = widget.swipeAlert != null;
 
-    // // print('ibte ${direction.toString()} ${IconPosition.values[i].toString()}');
+    // // // print('ibte ${direction.toString()} ${IconPosition.values[i].toString()}');
 
     // if(i >= 0){
     //   for (var j = 0; j < 4; j++) {
@@ -165,20 +172,43 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     //       iconControllers[j].maximize(false);
     //     }
     //   }
-    //   swipeController.setSwipe(false);
-    //   if(widget.onContinue != null && !hasAlert){
-    //     widget.onContinue!(direction);
-    //   }
-    //   else if(widget.onSwipe != null && hasAlert){
-    //     widget.onSwipe!(direction);
-    //   }
+    //   // swipeController.setSwipe(false);
+    //   // if(widget.onContinue != null && !hasAlert){
+    //   //   widget.onContinue!(direction);
+    //   // }
+    //   // else if(widget.onSwipe != null && hasAlert){
+    //   //   widget.onSwipe!(direction);
+    //   // }
     // }
+  }
+
+  int currentIndex(DismissDirection direction){
+    switch (direction) {
+      // Swipe Right
+      case DismissDirection.endToStart:
+        return 1;
+      // Swipe Left
+      case DismissDirection.startToEnd:
+        return 0;
+      // Swipe Bottom
+      case DismissDirection.down:
+        return 2;
+      // Swipe Up
+      case DismissDirection.up:
+        return 3;
+      default:
+        return -1;
+    }
   }
 
   void _onFlingUpdate(double dx, double dy, DismissDirection direction) async {
     
       fillLock = true;
       widget.onSwipe!(dx, dy, direction);
+
+      // Call Finish icon animation
+      iconControllers[currentIndex(direction)].maximize(true);
+
       // if(direction == DismissDirection.startToEnd){
       //   // iconControllers[0].setFillLock();
       //   _onFill(0.75, IconPosition.RIGHT, CardPosition.Right, true);
@@ -332,6 +362,24 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       //   maxSwipeDis = maxX;
       //   showValue = dx.abs() / maxX!;
       // }
+      if(i >= 0 && !swipeController.reversing){
+
+        // if(iconControllers[i].opacity){
+        iconControllers[i].show(Functions.animateOver(showValue, percent: 0.5));
+        // }
+        // Ensure current icon is shown
+        for (var j = 0; j < 4; j++) {
+          // double percent = (SwipeCard.THRESHOLD_OFFSET)/maxSwipeDis!;
+          iconControllers[j].move(showValue);
+          if(i != j){
+            // Hide Other Icon
+            iconControllers[j].show(0.0);
+          }
+          // else if(iconControllers[j].opacity > 0){
+          //   iconControllers[j].maximize(false);
+          // }
+        }
+      }
     }
 
     /*
@@ -381,18 +429,6 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       }
     }
     */
-
-    // if(i >= 0 && !swipeController.reversing){
-    //   for (var j = 0; j < 4; j++) {
-    //     if(i == j){
-    //       double percent = (SwipeCard.THRESHOLD_OFFSET)/maxSwipeDis!;
-    //       iconControllers[j].show(Functions.animateOver(showValue, percent: 0.5));
-    //     }
-    //     else if(iconControllers[j].opacity > 0){
-    //       iconControllers[j].maximize(false);
-    //     }
-    //   }
-    // }
 
   }
 
@@ -456,26 +492,26 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
   ///Builds the icon at the specified index
   Widget _buildIconAtIndex(BuildContext context, int index){
-    Widget? child;
+    // Widget? child;
     // if(swipeAlert(index)){
     //   child = widget.overlay!(forwardAnimation, reverseAnimation, index);
     // }
     // Widget? child = _buildSwipeAlert(index);
-    return Container();
+    // return Container();
 
-    // return PollPageAnimatedIcon(
-    //   controller: iconControllers[index],
-    //   position: IconPosition.values[index],
+    return PollPageAnimatedIcon(
+      controller: iconControllers[index],
+      position: IconPosition.values[index],
 
-    //   onContinue: () async {
-    //     //On cancel reverse the animation and minimize the icon
-    //     await widget.onContinue!(_lastSwipe);
-    //     await Future.delayed(Duration(milliseconds: 200));
-    //     _lastSwipe = null;
-    //     widget.onDismiss!();
-    //   },
-    //   child: child,
-    // );
+      onContinue: () async {
+        //On cancel reverse the animation and minimize the icon
+        // await widget.onContinue!(_lastSwipe);
+        // await Future.delayed(Duration(milliseconds: 200));
+        // _lastSwipe = null;
+        // widget.onDismiss!();
+      },
+      // child: child,
+    );
   }
 
   /// Builds the icon container in the packground of the poll card. 

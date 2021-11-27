@@ -28,6 +28,8 @@ class SwipeFeed<T> extends StatefulWidget {
     this.onContinue,
     this.overlayBuilder,
     this.swipeAlert,
+    this.padding,
+    this.duration
   }): super(key: key);
 
   @override
@@ -40,7 +42,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final bool Function(int)? swipeAlert;
 
   ///A builder for the feed
-  final FeedBuilder<T>? childBuilder;
+  final SwipeFeedBuilder<T>? childBuilder;
 
   ///Loading widget
   final Widget? loading;
@@ -59,6 +61,12 @@ class SwipeFeed<T> extends StatefulWidget {
 
   ///The on swipe function, run when a card is completed swiping away
   final Future<void> Function(DismissDirection direction, T item)? onContinue;
+
+  ///Padding for the swipe feed
+  final EdgeInsets? padding;
+
+  ///Duration for expanding the swipe car
+  final Duration? duration;
 }
 
 class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClientMixin{
@@ -82,12 +90,18 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   ///Prevents duplicate loadCalls
   bool loading = false;
 
-  ConcreteCubit<List<Tuple2<T, ConcreteCubit<bool>>>> cubit = ConcreteCubit<List<Tuple2<T, ConcreteCubit<bool>>>>([]);
+  ConcreteCubit<List<Tuple2<T, ConcreteCubit<SwipeFeedCardState>>>> cubit = ConcreteCubit<List<Tuple2<T, ConcreteCubit<SwipeFeedCardState>>>>([]);
 
   ///Percent Bar controller
   late PercentBarController _fillController;
 
   Widget get load => widget.loading == null ? Container() : widget.loading!;
+
+  EdgeInsets get padding => widget.padding ?? EdgeInsets.zero;
+
+  Duration get duration => widget.duration ?? Duration(milliseconds: 0);
+
+  bool get isExpandable => widget.duration != null;
 
   @override
   void initState(){
@@ -170,7 +184,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       Future.delayed(Duration(milliseconds: 400, seconds: 1)).then((value){
         // bottomCard.state.item2.emit(true);
         if(cubit.state.length >= 2) {
-          cubit.state[1].item2.emit(true);
+          cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
         }
         Future.delayed(Duration(milliseconds: 400)).then((value){
           // _switchCard(start: 1, end: 0);
@@ -220,7 +234,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     loading = false;
 
     List<T> newItems = loaded.item1;
-    List<Tuple2<T, ConcreteCubit<bool>>> oldItems = cubit.state;
+    List<Tuple2<T, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
 
     if(mounted) {
       setState(() {
@@ -237,11 +251,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         // items.addAll(newItems);
         //TODO emit
         //Cubit items
-        List<Tuple2<T, ConcreteCubit<bool>>> cubitItems = List<Tuple2<T, ConcreteCubit<bool>>>.generate(newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<bool>(false)));
+        List<Tuple2<T, ConcreteCubit<SwipeFeedCardState>>> cubitItems = List<Tuple2<T, ConcreteCubit<SwipeFeedCardState>>>.generate(newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
 
         if(cubit.state.isEmpty != false && cubitItems.isNotEmpty){
           Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(true);
+            cubitItems[0].item2.emit(SwipeFeedCardState.SHOW);
           });
         }
         
@@ -257,10 +271,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   ///Builds the type of item card based on the feed type. 
   ///If a custom child builder is present, uses the child builder instead
-  Widget _loadCard(T item, int index) {
+  Widget _loadCard(T item, int index, bool isExpanded, Function() close) {
     if(widget.childBuilder != null){
       //Builds custom child if childBuilder is defined
-      return widget.childBuilder!(item, index == 1);
+      return widget.childBuilder!(item, index == 1, isExpanded, close);
     }
     else {
       throw ('T is not supported by Feed');
@@ -329,45 +343,64 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       return Container();
     }
 
-    Tuple2<T, ConcreteCubit<bool>> itemCubit = cubit.state[index];
-    return BlocBuilder<ConcreteCubit<bool>, bool>(
+    var mediaQuery = MediaQuery.of(context);
+
+    Tuple2<T, ConcreteCubit<SwipeFeedCardState>> itemCubit = cubit.state[index];
+    return BlocBuilder<ConcreteCubit<SwipeFeedCardState>, SwipeFeedCardState>(
       key: Key('swipefeed - card - ${itemCubit.item1.hashCode}'),
       bloc: itemCubit.item2,
       builder: (context, show) {
         // print(show);
         return KeyboardVisibilityBuilder(
-          builder: (context, keyoard){
-            return SwipeFeedCard(
-              overlay: (forwardAnimation, reverseAnimation, index){
-                if(widget.overlayBuilder != null)
-                  return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1);
-                return null;
-              },
-              swipeAlert: widget.swipeAlert,
-              keyboardOpen: keyoard,
-              show: show,
-              onFill: (fill, iconPosition, cardPosition, overrideLock) {
-                fillBar(fill, iconPosition, cardPosition, overrideLock);
-              },
+          builder: (context, keyboard){
+            return Transform.translate(
+              offset: Offset(0, keyboard && show != SwipeFeedCardState.HIDE ? -1 * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
+              child: AnimatedPadding(
+                duration: duration,
+                padding: show == SwipeFeedCardState.EXPAND ? EdgeInsets.zero : padding,
+                child: GestureDetector(
+                  onTap: show == SwipeFeedCardState.SHOW && isExpandable ? (){
+                    itemCubit.item2.emit(SwipeFeedCardState.EXPAND);
+                  } : null,
+                  child: Opacity(
+                    opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
+                    child: SwipeFeedCard(
+                      overlay: (forwardAnimation, reverseAnimation, index){
+                        if(widget.overlayBuilder != null)
+                          return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1);
+                        return null;
+                      },
+                      swipeAlert: widget.swipeAlert,
+                      keyboardOpen: keyboard,
+                      show: show != SwipeFeedCardState.HIDE,
+                      onFill: (fill, iconPosition, cardPosition, overrideLock) {
+                        fillBar(fill, iconPosition, cardPosition, overrideLock);
+                      },
 
-              onContinue: (dir) async {
-                if(widget.onContinue != null){
-                  await widget.onContinue!(dir!, itemCubit.item1);
-                }
-                _removeCard();
-              },
-              onDismiss: (){
-                
-              },
-              onSwipe: (dx, dy, dir) {
-                if(widget.onSwipe != null){
-                  widget.onSwipe!(dx, dy, dir, itemCubit.item1);
-                }
-              },
-              onPanEnd: () {
-                // fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
-              },
-              child: _loadCard(itemCubit.item1, index),
+                      onContinue: (dir) async {
+                        if(widget.onContinue != null){
+                          await widget.onContinue!(dir!, itemCubit.item1);
+                        }
+                        _removeCard();
+                      },
+                      onDismiss: (){
+                        
+                      },
+                      onSwipe: (dx, dy, dir) {
+                        if(widget.onSwipe != null){
+                          widget.onSwipe!(dx, dy, dir, itemCubit.item1);
+                        }
+                      },
+                      onPanEnd: () {
+                        // fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
+                      },
+                      child: _loadCard(itemCubit.item1, index, show == SwipeFeedCardState.EXPAND, (){
+                        itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                      }),
+                    ),
+                  ),
+                ),
+              ),
             );
           },
         );
@@ -395,7 +428,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           
         //Percent bar displaying current vote
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 8 + padding.left, vertical: padding.top),
           child: KeepAliveWidget(
             key: Key('PollPage - Bar - KeepAlive'),
             child: NeumorpicPercentBar(
@@ -406,7 +439,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         ),
 
 
-        BlocBuilder<ConcreteCubit<List<Tuple2<T, ConcreteCubit<bool>>>>, List<Tuple2<T, ConcreteCubit<bool>>>>(
+        BlocBuilder<ConcreteCubit<List<Tuple2<T, ConcreteCubit<SwipeFeedCardState>>>>, List<Tuple2<T, ConcreteCubit<SwipeFeedCardState>>>>(
           bloc: cubit,
           builder: (context, state) {
             

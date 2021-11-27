@@ -95,9 +95,7 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
 
   //Retreive the icon color from the alignment
   Color? get color {
-
     AppColor colors = ColorProvider.of(context);
-
     if(widget.position == IconPosition.TOP) {
       return colors.onBackground;
     } else if(widget.position == IconPosition.BOTTOM) {
@@ -174,15 +172,13 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
 
   ///Updates the show animation value
   void show(double show){
-    // print(show / 25);
     showAnimation.animateTo(min(1.0, show), duration: Duration(milliseconds: 0));
-    if(show > 1.0){
-      if(!moveAnimation.isAnimating) {
-        moveAnimation.animateTo(lerpDouble(0, 0.5, show / 7)!, duration: Duration.zero);
-      }
-    }
-    else if(show < 0.05){
-      moveAnimation.animateTo(0);
+  }
+
+  ///Updates the show animation value
+  void moveIcon(double move){
+    if(!moveAnimation.isAnimating) {
+      moveAnimation.animateTo(lerpDouble(0, 0.5, move / 7)!, duration: Duration.zero);
     }
   }
 
@@ -190,16 +186,18 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   void maximize(bool move){
     this.move = move;
     if(this.move){
+      showAnimation.animateTo(1.0, duration: Duration(milliseconds: 0));
       moveAnimation.forward(from: moveAnimation.value);
-      Future.delayed(Duration(milliseconds: 250)).then((value){
-        showAnimation.animateTo(1.0, duration: Duration(milliseconds: 0));
+      Future.delayed(Duration(milliseconds: (800 * (1.0 - moveAnimation.value) - 160).toInt())).then((value){
+        showAnimation.animateTo(0.0, duration: Duration(milliseconds: 160));
       });
     }
     else{
       moveAnimation.animateTo(0, duration: Duration(milliseconds: 0));
       //After a delay make the icon disappear
       Future.delayed(Duration(milliseconds: 250)).then((_){
-        show(0);
+        show(0.0);
+        moveIcon(0.0);
       });
     }
     if(mounted) {
@@ -232,11 +230,11 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
         child: TrashCan(controller: moveAnimation)
       );
     } else if(widget.position == IconPosition.BOTTOM) {
-      return Icon(PollarIcons.trust_large_pressed, size: 36 * scaleSequence.value, color: color,);
+      return Icon(Icons.star, size: 36 * scaleSequence.value, color: color,);
     } else if(widget.position == IconPosition.LEFT) {
-      return Icon(PollarIcons.agree_large_pressed, size: 36 * scaleSequence.value, color: color);
+      return Icon(Icons.check, size: 36 * scaleSequence.value, color: color);
     } else if(widget.position == IconPosition.RIGHT) {
-      return Icon(PollarIcons.disagree_large_resting, size: 36 * scaleSequence.value, color: color,);
+      return Icon(Icons.cancel, size: 36 * scaleSequence.value, color: color,);
     } else {
       return null;
     }
@@ -323,7 +321,10 @@ class PollPageAnimatedIconController extends ChangeNotifier {
   void _update() => notifyListeners();
 
   ///Updates the show opacity animation value
-  void show([double opacity = 1.0]) => _retreiveState((s) => s.show(opacity));
+  void show([double show = 1.0]) => _retreiveState((s) => s.show(show));
+
+  ///Updates the show opacity animation value
+  void move([double move = 1.0]) => _retreiveState((s) => s.moveIcon(move));
 
   ///Updates the maximization of the icon
   void maximize([bool move = true]) => _retreiveState((s) => s.maximize(move));
