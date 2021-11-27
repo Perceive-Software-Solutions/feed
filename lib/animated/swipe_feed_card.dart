@@ -57,10 +57,10 @@ class SwipeFeedCard extends StatefulWidget {
 
   /// The fill call back function.
   /// Returns the fill direction along with the value of fill
-  final void Function(double fill, IconPosition position, CardPosition cardPosition)? onFill;
+  final void Function(double fill, IconPosition position, CardPosition cardPosition, bool overrideLock)? onFill;
 
   ///The on swipe function, run when the swiper is completed
-  final void Function(DismissDirection direction)? onSwipe;
+  final void Function(double dx, double dy, DismissDirection direction)? onSwipe;
 
   ///The on dismiss function is run when the poll card requests to be dismissed
   final void Function()? onDismiss;
@@ -90,7 +90,10 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Locks the output from sending to any other axis when locked
-  Axis? axisLock;
+  Axis? axisLock = Axis.horizontal;
+
+  /// No more filling
+  bool fillLock = false;
 
   ///The direction of the last swipe
   DismissDirection? _lastSwipe;
@@ -118,7 +121,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Calls the onFillFunction if it is defined
-  void _onFill(double fill, IconPosition position, CardPosition cardPosition) => widget.onFill!(fill, position, cardPosition);
+  void _onFill(double fill, IconPosition position, CardPosition cardPosition, [bool overrideLock = false]) => widget.onFill!(fill, position, cardPosition, overrideLock);
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Swipe Gestures ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -134,42 +137,81 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
   ///Called when the swipe card is starting to be swiped in any one of the 4 [DismissDirection]
   void _onSwipeStart(DismissDirection direction) {
-    int i = -1;
-    _lastSwipe = direction;
-    if(direction == DismissDirection.startToEnd){
-      i = 0;
-    }
-    else if(direction == DismissDirection.endToStart){
-      i = 1;
-    }
-    else if(direction == DismissDirection.up){
-      i = 3;
-    }
-    else if(direction == DismissDirection.down){
-      i = 2;
-    }
+    // int i = -1;
+    // _lastSwipe = direction;
+    // if(direction == DismissDirection.startToEnd){
+    //   i = 0;
+    // }
+    // else if(direction == DismissDirection.endToStart){
+    //   i = 1;
+    // }
+    // else if(direction == DismissDirection.up){
+    //   i = 3;
+    // }
+    // else if(direction == DismissDirection.down){
+    //   i = 2;
+    // }
 
-    bool hasAlert = widget.swipeAlert != null;
+    // bool hasAlert = widget.swipeAlert != null;
 
-    // print('ibte ${direction.toString()} ${IconPosition.values[i].toString()}');
+    // // print('ibte ${direction.toString()} ${IconPosition.values[i].toString()}');
 
-    if(i >= 0){
-      for (var j = 0; j < 4; j++) {
-        if(i == j) {
-          iconControllers[j].maximize(true);
-        }
-        else{
-          iconControllers[j].maximize(false);
-        }
-      }
-      swipeController.setSwipe(false);
-      if(widget.onContinue != null && !hasAlert){
-        widget.onContinue!(direction);
-      }
-      else if(widget.onSwipe != null && hasAlert){
-        widget.onSwipe!(direction);
-      }
-    }
+    // if(i >= 0){
+    //   for (var j = 0; j < 4; j++) {
+    //     if(i == j) {
+    //       iconControllers[j].maximize(true);
+    //     }
+    //     else{
+    //       iconControllers[j].maximize(false);
+    //     }
+    //   }
+    //   swipeController.setSwipe(false);
+    //   if(widget.onContinue != null && !hasAlert){
+    //     widget.onContinue!(direction);
+    //   }
+    //   else if(widget.onSwipe != null && hasAlert){
+    //     widget.onSwipe!(direction);
+    //   }
+    // }
+  }
+
+  void _onFlingUpdate(double dx, double dy, DismissDirection direction) async {
+    
+      fillLock = true;
+      widget.onSwipe!(dx, dy, direction);
+      // if(direction == DismissDirection.startToEnd){
+      //   // iconControllers[0].setFillLock();
+      //   _onFill(0.75, IconPosition.RIGHT, CardPosition.Right, true);
+      // }
+      // else if(direction == DismissDirection.endToStart){
+      //   // iconControllers[1].setFillLock();
+      //   _onFill(0.75, IconPosition.LEFT, CardPosition.Left, true);
+      // }
+      // else if(direction == DismissDirection.down){
+      //   if(dx > 0){
+      //     // iconControllers[2].setFillLock();
+      //     _onFill(1.0, IconPosition.BOTTOM, CardPosition.Right, true);
+      //   }
+      //   else{
+      //     // iconControllers[2].setFillLock();
+      //     _onFill(1.0, IconPosition.BOTTOM, CardPosition.Left, true);
+      //   }
+      // }
+      // else if(direction == DismissDirection.up){
+      //   if(dx > 0){
+      //     // iconControllers[3].setFillLock();
+      //     _onFill(1.0, IconPosition.TOP, CardPosition.Right, true);
+      //   }
+      //   else{
+      //     // iconControllers[3].setFillLock();
+      //     _onFill(1.0, IconPosition.TOP, CardPosition.Left, true);
+      //   }
+      // }
+
+    await widget.onContinue!(_lastSwipe);
+    await Future.delayed(Duration(milliseconds: 200));
+    _lastSwipe = null;
+    widget.onDismiss!();
   }
 
   ///Called while the swipe card is being panned
@@ -204,7 +246,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       axisLock = Axis.vertical;
     }
 
-    if(axisLock != Axis.horizontal && !horizontalAxisOverride){
+    if(!fillLock){
+      if(axisLock != Axis.horizontal && !horizontalAxisOverride){
       // if(!horizontalAxisOverride){
         if(dy > 0){
           //Show bottom
@@ -212,6 +255,14 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
           showValue = dy.abs() / maxYBot!;
           maxSwipeDis = maxYBot;
 
+          // if(axisLock == null && dx > 0){
+          //   _onFill(1.0, IconPosition.BOTTOM, CardPosition.Right, true);
+          //   fillLock = true;
+          // }
+          // else if(axisLock == null && dx < 0){
+          //   _onFill(1.0, IconPosition.BOTTOM, CardPosition.Left, true);
+          //   fillLock = true;
+          // }
           if(dx > 0){
             _onFill(swipeController.right, IconPosition.BOTTOM, CardPosition.Right);
           } 
@@ -224,6 +275,14 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
           i = 3;
           showValue = dy.abs() / maxYTop!;
           maxSwipeDis = maxYTop;
+          // if(axisLock == null && dx > 0){
+          //   _onFill(1.0, IconPosition.TOP, CardPosition.Right, true);
+          //   fillLock = true;
+          // }
+          // else if(axisLock == null && dx < 0){
+          //   _onFill(1.0, IconPosition.TOP, CardPosition.Left, true);
+          //   fillLock = true;
+          // }
           if(dx > 0){
             _onFill(swipeController.right, IconPosition.TOP, CardPosition.Right);
           }
@@ -235,25 +294,43 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       // else{
       //   axisLock = Axis.horizontal;
       // }
-    }
-    else if(axisLock != Axis.vertical){
-      // if(horizontalAxisOverride){
-        if(dx > 0){
-          //Show right
-          i = 0;
-          _onFill(swipeController.right, IconPosition.RIGHT, CardPosition.Right);
-        }
-        else{
-          //Show left
-          i = 1;
-          _onFill(swipeController.left, IconPosition.LEFT, CardPosition.Left);
-        }
-        maxSwipeDis = maxX;
-        showValue = dx.abs() / maxX!;
-        // print('sides');
-      // }
-      // else{
-      //   axisLock = Axis.vertical;
+      }
+      // else if(axisLock != Axis.vertical && axisLock != null){
+        else if(axisLock != Axis.vertical){
+        // if(horizontalAxisOverride){
+          if(dx > 0){
+            //Show right
+            i = 0;
+            _onFill(swipeController.right, IconPosition.RIGHT, CardPosition.Right);
+          }
+          else{
+            //Show left
+            i = 1;
+            _onFill(swipeController.left, IconPosition.LEFT, CardPosition.Left);
+          }
+          maxSwipeDis = maxX;
+          showValue = dx.abs() / maxX!;
+          // print('sides');
+        // }
+        // else{
+        //   axisLock = Axis.vertical;
+        // }
+      }
+      // else if(axisLock == null){
+      //   if(dx > 0){
+      //     //Show right
+      //     i = 0;
+      //     _onFill(0.75, IconPosition.RIGHT, CardPosition.Right, true);
+      //     fillLock = true;
+      //   }
+      //   else{
+      //     //Show left
+      //     i = 1;
+      //     _onFill(0.75, IconPosition.LEFT, CardPosition.Left, true);
+      //     fillLock = true;
+      //   }
+      //   maxSwipeDis = maxX;
+      //   showValue = dx.abs() / maxX!;
       // }
     }
 
@@ -305,17 +382,17 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     }
     */
 
-    if(i >= 0 && !swipeController.reversing){
-      for (var j = 0; j < 4; j++) {
-        if(i == j){
-          double percent = (SwipeCard.THRESHOLD_OFFSET)/maxSwipeDis!;
-          iconControllers[j].show(Functions.animateOver(showValue, percent: 0.5));
-        }
-        else if(iconControllers[j].opacity > 0){
-          iconControllers[j].maximize(false);
-        }
-      }
-    }
+    // if(i >= 0 && !swipeController.reversing){
+    //   for (var j = 0; j < 4; j++) {
+    //     if(i == j){
+    //       double percent = (SwipeCard.THRESHOLD_OFFSET)/maxSwipeDis!;
+    //       iconControllers[j].show(Functions.animateOver(showValue, percent: 0.5));
+    //     }
+    //     else if(iconControllers[j].opacity > 0){
+    //       iconControllers[j].maximize(false);
+    //     }
+    //   }
+    // }
 
   }
 
@@ -324,12 +401,14 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     //Reset the axis lock
     // print('lock O');
     widget.onPanEnd!();
-    axisLock = null;
+    // axisLock = null;
   }
 
   /// Forward animation
   Future<void> forwardAnimation(int index) async{
     if(mounted){
+      axisLock = Axis.horizontal;
+      fillLock = false;
       await widget.onContinue!(_lastSwipe);
       await Future.delayed(Duration(milliseconds: 200));
       _lastSwipe = null;
@@ -343,7 +422,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   /// Reverse animation
   Future<void> reverseAnimation(int index) async {
     if(mounted){
-      widget.onDismiss!();
+      axisLock = Axis.horizontal;
+      fillLock = false;
+      if(widget.onDismiss != null){
+        widget.onDismiss!();
+      }
       swipeController.setSwipe(true);
       _lastSwipe = null;
       swipeController.reverse();
@@ -374,24 +457,25 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   ///Builds the icon at the specified index
   Widget _buildIconAtIndex(BuildContext context, int index){
     Widget? child;
-    if(swipeAlert(index)){
-      child = widget.overlay!(forwardAnimation, reverseAnimation, index);
-    }
+    // if(swipeAlert(index)){
+    //   child = widget.overlay!(forwardAnimation, reverseAnimation, index);
+    // }
     // Widget? child = _buildSwipeAlert(index);
+    return Container();
 
-    return PollPageAnimatedIcon(
-      controller: iconControllers[index],
-      position: IconPosition.values[index],
-      onContinue: () async {
-        //On cancel reverse the animation and minimize the icon
-        await widget.onContinue!(_lastSwipe);
-        await Future.delayed(Duration(milliseconds: 200));
-        _lastSwipe = null;
-        iconControllers[index].maximize(false);
-        widget.onDismiss!();
-      },
-      child: child,
-    );
+    // return PollPageAnimatedIcon(
+    //   controller: iconControllers[index],
+    //   position: IconPosition.values[index],
+
+    //   onContinue: () async {
+    //     //On cancel reverse the animation and minimize the icon
+    //     await widget.onContinue!(_lastSwipe);
+    //     await Future.delayed(Duration(milliseconds: 200));
+    //     _lastSwipe = null;
+    //     widget.onDismiss!();
+    //   },
+    //   child: child,
+    // );
   }
 
   /// Builds the icon container in the packground of the poll card. 
@@ -443,12 +527,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
     //Creates the swipe card swidget
     Widget swipeCard = IgnorePointer(
-      ignoring: widget.show != true,
+      ignoring: !widget.show,
       child: SwipeCard(
         controller: swipeController,
         swipable: widget.show == true && widget.keyboardOpen == false,
         opacityChange: true,
-        // onSwipe: _onSwipe,
         onStartSwipe: _onSwipeStart,
         onPanEnd: _onPanEnd,
         onPanUpdate: _onPanUpdate,
@@ -460,7 +543,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
             ],
           )
         ),
-        onSwipe: (direction){},
+        onSwipe: (dx, dy, direction, fling){
+          if(!fillLock){
+            _onFlingUpdate(dx, dy, direction);
+          }
+        },
       ),
     );
 

@@ -89,7 +89,7 @@ class SwipeCard extends StatefulWidget {
   final bool swipable;
 
   ///Call back function that calls the onSwipe with the DismissDirection
-  final Function(DismissDirection)? onSwipe;
+  final Function(double dx, double dy, DismissDirection, bool fling)? onSwipe;
 
   ///Call back function that calls the onSwipe with the DismissDirection
   final Function(DismissDirection)? onStartSwipe;
@@ -492,7 +492,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed && rightSwiper.value == 1.0) {
           //on complete send signal
-          widget.onSwipe!(DismissDirection.startToEnd);
+          // widget.onSwipe!(DismissDirection.startToEnd);
 
           //Reset duration
           rightSwiper.duration = Duration.zero;
@@ -515,7 +515,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed && leftSwiper.value == 1.0) {
           //on complete send signal
-          widget.onSwipe!(DismissDirection.endToStart);
+          // widget.onSwipe!(DismissDirection.endToStart);
 
           //Reset duration
           leftSwiper.duration = Duration.zero;
@@ -538,7 +538,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       ..addStatusListener((status) { 
         if(status == AnimationStatus.completed && downSwiper.value == 1.0){
           //on complete send signal
-          widget.onSwipe!(DismissDirection.down);
+          // widget.onSwipe!(DismissDirection.down);
 
           //Reset duration
           downSwiper.duration = Duration.zero;
@@ -561,7 +561,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       ..addStatusListener((status) { 
         if(status == AnimationStatus.completed && upSwiper.value == 1.0){
           //on complete send signal
-          widget.onSwipe!(DismissDirection.up);
+          // widget.onSwipe!(DismissDirection.up);
 
           //Reset duration
           upSwiper.duration = Duration.zero;
@@ -674,12 +674,16 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         rightSwiper.duration = FLING_DURATION_X;
         rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
         // _haptic(startSwipeSignal, 1000, 1);
+        widget.onSwipe!(flingX, flingY, DismissDirection.startToEnd, true);
+        swipable = false;
         return DismissDirection.startToEnd; //set signal
       }
       else{
         leftSwiper.duration = FLING_DURATION_X;
         leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
         // _haptic(startSwipeSignal, 1000, 1);
+        widget.onSwipe!(flingX, flingY, DismissDirection.endToStart, true);
+        swipable = false;
         return DismissDirection.endToStart; //set signal
       }
     }
@@ -689,12 +693,16 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         downSwiper.duration = FLING_DURATION_Y;
         downSwiper.forward(from: yDrag / cardSwipeLimitY); //animate
         // _haptic(startSwipeSignal, 1000, 1);
+        widget.onSwipe!(flingX, flingY, DismissDirection.down, true);
+        swipable = false;
         return DismissDirection.down; //set signal
       }
       else{
         upSwiper.duration = FLING_DURATION_Y;
         upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY); //animate
         // _haptic(startSwipeSignal, 1000, 1);
+        widget.onSwipe!(flingX, flingY, DismissDirection.up, true);
+        swipable = false;
         return DismissDirection.up; //set signal
       }
     }
@@ -704,32 +712,55 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   ///Manages swiping gestures on the card
   DismissDirection? _swipeCard(){
+    //Height of the screen
+    final height = MediaQuery.of(context).size.height;
+
+    //Width of the screen
+    final width = MediaQuery.of(context).size.width;
+
+    // Diagonal slope of the screen
+    final slope = height/width;
+
+    /// Vertical Length to the slope
+    double verticalLength = slope*xDrag.abs();
+
+    /// Horizontal Length to the slope
+    double horizontalLength = slope*yDrag.abs();
+
     //Right swipe after threshhold
-    if (xDrag >= horizontalSwipeThresh) {
+    if (xDrag >= horizontalSwipeThresh && yDrag >= verticalLength*-1 && yDrag <= verticalLength) {
       rightSwiper.duration = SWIPE_DURATION_X;
 
       rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.startToEnd, false);
+      swipable = false;
       return DismissDirection.startToEnd; //set signal
     }
     //Left swipe after threshhold
-    else if (xDrag <= -1 * horizontalSwipeThresh) {
+    else if (xDrag <= -1 * horizontalSwipeThresh && yDrag >= verticalLength*-1 && yDrag <= verticalLength) {
       leftSwiper.duration = SWIPE_DURATION_X;
 
       leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.endToStart, false);
+      swipable = false;
       return DismissDirection.endToStart; //set signal
     }
     //Down Swipe after threshold
-    else if (yDrag >= bottomSwipeThresh) {
+    else if (yDrag >= bottomSwipeThresh && xDrag > horizontalLength*-1 && xDrag < horizontalLength) {
       downSwiper.duration = SWIPE_DURATION_Y;
 
       downSwiper.forward(from: yDrag / cardSwipeLimitY); //animate
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.down, false);
+      swipable = false;
       return DismissDirection.down; //set signal
     } 
     //Up Swipe after threshold
-    else if(yDrag <= -1 * topSwipeThresh) {
+    else if(yDrag <= -1 * topSwipeThresh && xDrag > horizontalLength*-1 && xDrag < horizontalLength) {
       upSwiper.duration = SWIPE_DURATION_Y;
 
       upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY); //animate
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.up, false);
+      swipable = false;
       return DismissDirection.up; //set signal
     }
 

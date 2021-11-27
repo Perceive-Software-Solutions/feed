@@ -58,6 +58,9 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   ///Controls moving the icon into the center
   bool move = false;
 
+  ///If the poll has been swiped away
+  bool fillLock = false;
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Getters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   // //Retreive the padding from the alignment
@@ -164,6 +167,11 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  void setFillLock(){
+    fillLock = true;
+    setState(() {});
+  }
+
   ///Updates the show animation value
   void show(double show){
     // print(show / 25);
@@ -205,9 +213,13 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   ///When `null` the icon is displayed
   Widget? _buildCompleteView(BuildContext context){
 
-    // if(widget.child == null && widget.onContinue != null){
-    //   widget.onContinue();
-    // }
+    print("~~~~~~~~ Complete View Called ~~~~~~~~");
+
+    if(widget.child == null && widget.onContinue != null){
+      fillLock = false;
+      widget.onContinue!();
+    }
+
 
     return widget.child ?? Container();
   }
@@ -251,9 +263,7 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
           },
           child: scaleSequence.status == AnimationStatus.reverse 
             ? SizedBox.shrink() 
-            : moveAnimation.value == 1.0 ? 
-              (_buildCompleteView(context) ?? _buildIcon(context)) 
-              : _buildIcon(context)
+            : fillLock ? (_buildCompleteView(context) ?? _buildIcon(context)) : _buildIcon(context)
         );
       }
     );
@@ -317,6 +327,10 @@ class PollPageAnimatedIconController extends ChangeNotifier {
 
   ///Updates the maximization of the icon
   void maximize([bool move = true]) => _retreiveState((s) => s.maximize(move));
+
+  void setFillLock() => _retreiveState((s) => s.setFillLock());
+
+
 
   ///Getter for the opacity level
   double get opacity => _retreiveState((s) => s.showAnimation.value);

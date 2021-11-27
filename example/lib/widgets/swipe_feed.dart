@@ -1,4 +1,5 @@
 import 'package:feed/feeds/swipe_feed.dart';
+import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
@@ -79,7 +80,31 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                         child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
                       ),
                     );
-                  }
+                  },
+                  onSwipe: (dx, dy, direction, item) async{
+                    if(direction == DismissDirection.startToEnd){
+                      feedController.completeFillBar(0.75, IconPosition.RIGHT, CardPosition.Right);
+                    }
+                    else if(direction == DismissDirection.endToStart){
+                      feedController.completeFillBar(0.75, IconPosition.LEFT, CardPosition.Left);
+                    }
+                    else if(direction == DismissDirection.up){
+                      if(dx >= 0){
+                        feedController.completeFillBar(0.75, IconPosition.TOP, CardPosition.Right);
+                      }
+                      else{
+                        feedController.completeFillBar(0.75, IconPosition.TOP, CardPosition.Left);
+                      }
+                    }
+                    else if(direction == DismissDirection.down){
+                      if(dx >= 0){
+                        feedController.completeFillBar(1.0, IconPosition.BOTTOM, CardPosition.Right);
+                      }
+                      else{
+                        feedController.completeFillBar(1.0, IconPosition.BOTTOM, CardPosition.Left);
+                      }
+                    }
+                  },
                 ),
               ),
             ),
