@@ -21,7 +21,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
   }
 
   Future<Tuple2<List<dynamic>, String>> loadItems(int size, [String? token]) async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 5));
     return const Tuple2(['Testing', 'Testing1', 'Testin2', 'Testing3', 'Testing4'], 'PageToken');
   }
 
@@ -111,7 +111,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     ),
                   );
                 },
-                onSwipe: (dx, dy, direction, item) async{
+                onSwipe: (dx, dy, direction, item) async {
                   if(direction == DismissDirection.startToEnd){
                     feedController.completeFillBar(0.75, IconPosition.RIGHT, CardPosition.Right);
                   }
@@ -135,6 +135,15 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     }
                   }
                 },
+                placeholder: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.amber, width: 3)
+                    ),
+                  )
+                ),
               ),
             ),
           ],
