@@ -118,9 +118,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     //Initlaize the fill controller
     _fillController = PercentBarController();
 
-    // topCard = ConcreteCubit<Tuple2<Widget, ConcreteCubit<bool>>>(null);
-    // bottomCard = ConcreteCubit<Tuple2<Widget, ConcreteCubit<bool>>>(null);
-
     if(!widget.loadManually) {
       _loadMore();
     }
@@ -134,79 +131,22 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     widget.controller?._bind(this);
   }
 
-  Future<void> completeFillBar(double value, [IconPosition? direction, CardPosition? cardPosition]) async => await _fillController.completeFillBar(value, direction, cardPosition);
+  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await _fillController.completeFillBar(value, duration, direction, cardPosition);
   Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => await _fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
-
-
-
-  // void _addCard(){
-
-  //   //Load more if there are not enough items
-  //   if(items.length <= LOAD_MORE_LIMIT){
-  //     _loadMore();
-  //   }
-
-  //   //Remove first index
-
-  //   // int index = topCard.state == null ? 0 : 1;
-
-  //   // //Checks if card is empty
-  //   // if(index == 1 && bottomCard.state != null){
-  //   //   return;
-  //   // }
-
-  //   // //Create the cubit for the card.
-  //   // //The cubit is active if this is the first card
-  //   // ConcreteCubit<bool> cubit = ConcreteCubit<bool>(false);
-
-  //   // //Start a delayed animation to open the card
-  //   // if(index == 0){
-  //   //   Future.delayed(Duration(milliseconds: 300)).then((value){
-  //   //     cubit.emit(true);
-  //   //   });
-  //   // }
-
-  //   // Widget card;
-  //   // try{
-  //   //   card = _buildCard(cubit, index);
-  //   // }catch(e){
-  //   //   //Index out of bounds
-  //   //   _loadMore();
-  //   //   return;
-  //   // }
-
-  //   // //Create the card and cubit tuple
-  //   // Tuple2<Widget, ConcreteCubit<bool>> cardCubit = Tuple2<Widget, ConcreteCubit<bool>>(
-  //   //   card,
-  //   //   cubit
-  //   // );
-
-  //   // //Add the card cubit to the list
-  //   // _setCard(cardCubit, index);
-
-  // }
   
   void _removeCard(){
-    // if(bottomCard.state != null){
-      Future.delayed(Duration(milliseconds: 400, seconds: 1)).then((value){
-        // bottomCard.state.item2.emit(true);
-        if(cubit.state.length >= 2) {
-          cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
+    Future.delayed(Duration(milliseconds: 400, seconds: 1)).then((value){
+      if(cubit.state.length >= 2) {
+        cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
+      }
+      Future.delayed(Duration(milliseconds: 400)).then((value){
+        fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
+        cubit.emit([...cubit.state]..removeAt(0));
+        if(cubit.state.length <= LOAD_MORE_LIMIT){
+          _loadMore();
         }
-        Future.delayed(Duration(milliseconds: 400)).then((value){
-          // _switchCard(start: 1, end: 0);
-          fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
-          cubit.emit([...cubit.state]..removeAt(0));
-          // items.removeAt(0); //Remove the item from the loaded list
-          if(cubit.state.length <= LOAD_MORE_LIMIT){
-            _loadMore();
-          }
-          // Future.delayed(Duration(milliseconds: 100)).then((value){
-          //   _addCard();
-          // });
-        });
       });
-    // }
+    });
   }
 
   //Resets the page and loads more
@@ -225,6 +165,26 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     await _loadMore();
 
+  }
+
+  /// Get current index
+  int currentIndex(DismissDirection direction){
+    switch (direction) {
+      // Swipe Right
+      case DismissDirection.endToStart:
+        return 1;
+      // Swipe Left
+      case DismissDirection.startToEnd:
+        return 0;
+      // Swipe Bottom
+      case DismissDirection.down:
+        return 2;
+      // Swipe Up
+      case DismissDirection.up:
+        return 3;
+      default:
+        return -1;
+    }
   }
 
   Future<void> _loadMore() async {
@@ -254,8 +214,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           hasMore = false;
         }
 
-        //Add all Loaded items
-        // items.addAll(newItems);
         //TODO emit
         //Cubit items
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
@@ -275,10 +233,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         }
         
         cubit.emit([...oldItems, ...cubitItems]);
-
-        //If there are items addCard
-        // _addCard();
-        // _addCard();
       });
     }
 
@@ -299,63 +253,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     }
   }
 
-  // void _setCard(Tuple2<Widget, ConcreteCubit<bool>> cardCubit, int index){
-  //   assert(index == 0 || index == 1);
-
-  //   if(index == 0){
-  //     topCard.emit(cardCubit);
-  //   }else{
-  //     bottomCard.emit(cardCubit);
-  //   }
-
-  // }
-
-  // void _switchCard({int start, int end}){
-  //   assert(start == 0 || start == 1);
-  //   assert(end == 0 || end == 1);
-
-  //   if(start == end){
-  //     return;
-  //   }
-    
-  //   if(end == 0){
-  //     _setCard(bottomCard.state, 0);
-  //     bottomCard.emit(null);
-  //   }else{
-  //     _setCard(topCard.state, 1);
-  //     topCard.emit(null);
-  //   }
-
-  // }
-
-  // Widget _buildCard(ConcreteCubit<bool> cubit, int index){
-  //   assert(index < items.length);
-
-  //   Key key = UniqueKey();
-  //   T item = items[index];
-  //   return BlocBuilder<ConcreteCubit<bool>, bool>(
-  //     key: key,
-  //     bloc: cubit,
-  //     builder: (context, show) {
-  //       return SwipeFeedCard(
-  //         key: key,
-  //         show: show,
-  //         onFill: (fill, position) {
-  //           fillCubit.emit(Tuple2(fill, position));
-  //         },
-  //         onContinue: (dir) async {
-  //           _removeCard();
-  //           if(widget.onSwipe != null) {
-  //             await widget.onSwipe(dir, item, fillCubit);
-  //           }
-  //           return;
-  //         },
-  //         child: _loadCard(item, index),
-  //       );
-  //     }
-  //   );
-  // }
-
   Widget _buildCard(int index){
     if(index >= cubit.state.length){
       return Container();
@@ -368,7 +265,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       key: Key('swipefeed - card - ${itemCubit.item1 == null ? UniqueKey().toString() : itemCubit.item1.hashCode}'),
       bloc: itemCubit.item2,
       builder: (context, show) {
-        // print(show);
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard){
             return Transform.translate(
@@ -388,6 +284,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
                         return null;
                       },
+                      
                       swipeAlert: widget.swipeAlert,
                       keyboardOpen: keyboard,
                       show: show != SwipeFeedCardState.HIDE,
@@ -402,7 +299,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                         _removeCard();
                       } : null,
                       onDismiss: (){
-                        
+                        // Nothing
                       },
                       onSwipe: (dx, dy, dir) {
                         if(widget.onSwipe != null && itemCubit.item1 != null){
@@ -410,7 +307,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                         }
                       },
                       onPanEnd: () {
-                        // fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
+                        // Nothing
                       },
                       child: _loadCard(itemCubit.item1, index, show == SwipeFeedCardState.EXPAND, (){
                         itemCubit.item2.emit(SwipeFeedCardState.SHOW);
@@ -474,40 +371,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
           },
         ),
-
-        // BlocBuilder<ConcreteCubit<Tuple2<Widget, ConcreteCubit<bool>>>, Tuple2<Widget, ConcreteCubit<bool>>>(
-        //   bloc: bottomCard,
-        //   builder: (context, bottom) {
-            
-        //     // if(bottom?.item1 != null){
-        //     //   print('Bottom - ${bottom.item1.key.toString()}');
-        //     // }
-            
-        //     return bottom?.item1 != null ? bottom.item1 : Center(
-        //       child: Container(
-        //         height: 200,
-        //         width: 200,
-        //         color: loading ? Colors.transparent : Colors.purple,
-        //       ),
-        //     );
-
-        //   },
-        // ),
-        // BlocBuilder<ConcreteCubit<Tuple2<Widget, ConcreteCubit<bool>>>, Tuple2<Widget, ConcreteCubit<bool>>>(
-        //   bloc: topCard,
-        //   builder: (context, top) {
-
-        //     // if(top?.item1 != null){
-        //     //   print('Top - ${top.item1.key.toString()}');
-        //     // }
-            
-        //     return top?.item1 != null ? top.item1 : Center(
-        //       key: Key('poll - page - loader'),
-        //       child: PollarLoading(),
-        //     );
-
-        //   },
-        // ),
       ],
     );
   }
@@ -536,7 +399,7 @@ class SwipeFeedController<T> extends ChangeNotifier {
   ///Reloads the feed state based on the original size parameter
   void reset() => _state!._reset();
 
-  Future<void> completeFillBar(double value, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, direction, cardPosition);
+  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
 

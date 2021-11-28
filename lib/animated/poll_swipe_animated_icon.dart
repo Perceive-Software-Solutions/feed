@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';
-import 'package:feed/util/global/pollar_icons.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,7 +14,7 @@ class PollPageAnimatedIcon extends StatefulWidget {
 
   const PollPageAnimatedIcon({ 
     Key? key, 
-    this.controller, 
+    this.controller,
     required this.position, this.child, this.onContinue, 
   }): assert(position != null),
       super(key: key);
@@ -49,6 +48,10 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   ///When completed the icon swites into the defined inner widget
   late AnimationController moveAnimation;
 
+  /// Animated changing size of the overlay
+  /// Runs when the onSwipe is completed and after forwardAnimation
+  static late AnimationController overlayAnimationScale;
+
   ///The sequence of animations that happen in accorance to moving the icon
   late Animation<double> scaleSequence;
 
@@ -59,7 +62,11 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   bool move = false;
 
   ///If the poll has been swiped away
-  bool fillLock = false;
+  static bool moveAnimationFinished = false;
+
+  double opacity = 1.0;
+
+
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Getters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -118,7 +125,8 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
     //Initialize the show opacity animation
     showAnimation = AnimationController(
       vsync: this,
-      value: 0
+      value: 0,
+      lowerBound: 0
     );
 
     //Initialize the move animation
@@ -126,25 +134,46 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
       vsync: this,
       value: 0.07,
       lowerBound: 0.07,
-      duration: Duration(milliseconds: 800)
+      duration: Duration(milliseconds: 600)
+    );
+
+    overlayAnimationScale = AnimationController(
+      vsync: this,
+      value: 0.8,
     );
 
     //Initialize the scale sequence
     scaleSequence = TweenSequence<double>([
-
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.0),
+        weight: 0.2
+      ),
       TweenSequenceItem(
         tween: Tween<double>(begin: 1.0, end: 3.0),
         weight: 0.4
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 3.0, end: 3.0),
+        tween: Tween<double>(begin: 3.0, end: 1.0),
         weight: 0.4
       ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 3.0, end: 1.0),
-        weight: 0.2
-      ),
     ]).animate(moveAnimation);
+
+    moveAnimation.addListener(() { 
+      if(moveAnimation.value >= 0.814){
+        showAnimation.animateTo(0.0, duration: Duration(milliseconds: 120));
+      }
+      if(moveAnimation.value == 1.0 && !moveAnimationFinished){
+        moveAnimationFinished = true;
+        print(moveAnimationFinished);
+        setState(() {});
+      }
+    });
+
+    showAnimation.addListener(() { 
+      if(moveAnimationFinished && showAnimation.value == 0){
+        showAnimation.animateTo(1.0, duration: Duration(seconds: 0));
+      }
+    });
   }
 
   @override
@@ -165,11 +194,6 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  void setFillLock(){
-    fillLock = true;
-    setState(() {});
-  }
-
   ///Updates the show animation value
   void show(double show){
     showAnimation.animateTo(min(1.0, show), duration: Duration(milliseconds: 0));
@@ -178,29 +202,25 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   ///Updates the show animation value
   void moveIcon(double move){
     if(!moveAnimation.isAnimating) {
-      moveAnimation.animateTo(lerpDouble(0, 0.5, move / 7)!, duration: Duration.zero);
+      moveAnimation.animateTo(lerpDouble(0, 0.5, move / 6)!, duration: Duration.zero);
     }
   }
 
   ///Updates moving the icon
   void maximize(bool move){
     this.move = move;
-    if(this.move){
+    if(move){
       showAnimation.animateTo(1.0, duration: Duration(milliseconds: 0));
       moveAnimation.forward(from: moveAnimation.value);
-      Future.delayed(Duration(milliseconds: (800 * (1.0 - moveAnimation.value) - 160).toInt())).then((value){
-        showAnimation.animateTo(0.0, duration: Duration(milliseconds: 160));
-      });
+      overlayAnimationScale.animateTo(1.0, duration: Duration(milliseconds: 200));
     }
     else{
-      moveAnimation.animateTo(0, duration: Duration(milliseconds: 0));
-      //After a delay make the icon disappear
-      Future.delayed(Duration(milliseconds: 250)).then((_){
-        show(0.0);
-        moveIcon(0.0);
-      });
+      moveAnimationFinished = false;
+      overlayAnimationScale.animateTo(0.8, duration: Duration(milliseconds: 200));
+      show(0.0);
+      moveIcon(0.0);
     }
-    if(mounted) {
+    if(mounted){
       setState(() {});
     }
   }
@@ -210,16 +230,19 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   ///Builds the widget that is displayed whent he animation is done moving. 
   ///When `null` the icon is displayed
   Widget? _buildCompleteView(BuildContext context){
-
-    print("~~~~~~~~ Complete View Called ~~~~~~~~");
-
-    if(widget.child == null && widget.onContinue != null){
-      fillLock = false;
-      widget.onContinue!();
-    }
-
-
-    return widget.child ?? Container();
+    return AnimatedBuilder(
+        animation: overlayAnimationScale,
+        builder: (BuildContext context, Widget? child) {
+          return ScaleTransition(
+            scale: overlayAnimationScale,
+            child: AnimatedOpacity(
+            duration: Duration(milliseconds: 200),
+            opacity: moveAnimationFinished ? 1.0 : 0.0,
+            child: widget.child ?? Container(),
+          )
+        );
+      },
+    );
   }
 
   ///Builds the inner icon
@@ -241,30 +264,8 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   }
 
   ///Creates the inner widget which is shown within the animated opacity change
-  Widget _buildMovingIcon(BuildContext context){
-    return AnimatedBuilder(
-      animation: scaleSequence,
-      builder: (context, _) {
-        return AnimatedSwitcher(
-          duration: Duration(milliseconds: 800),
-          transitionBuilder: (child, animation) {
-            if(widget.position == IconPosition.TOP){
-              return child;
-            }
-            return FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(
-                scale: animation,
-                child: child
-              ),
-            );
-          },
-          child: scaleSequence.status == AnimationStatus.reverse 
-            ? SizedBox.shrink() 
-            : fillLock ? (_buildCompleteView(context) ?? _buildIcon(context)) : _buildIcon(context)
-        );
-      }
-    );
+  Widget _buildMovingIcon(BuildContext context, AlignmentGeometry align){
+    return !moveAnimationFinished ? _buildIcon(context)! : Container(); 
   }
 
 
@@ -272,40 +273,52 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: moveAnimation,
-      builder: (context, child) {
-        //move ? Alignment.center : (position ?? Alignment.center),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        _buildCompleteView(context)!,
+        AnimatedBuilder(
+          animation: moveAnimation,
+          builder: (context, child) {
+            //move ? Alignment.center : (position ?? Alignment.center),
 
-        double animation = Functions.animateOverFirst(moveAnimation.value, percent: 0.5);
+            double animation = Functions.animateOverFirst(moveAnimation.value, percent: 0.5);
 
-        // AlignmentGeometry algin = _alignByOffset(position, animation) ?? Alignment.center;
-        // if(widget.position == IconPosition.BOTTOM) {
-        //   print('ibte ${widget.position.toString()} ${moveAnimation.value}');
-        // }
+            // AlignmentGeometry algin = _alignByOffset(position, animation) ?? Alignment.center;
+            // if(widget.position == IconPosition.BOTTOM) {
+            //   print('ibte ${widget.position.toString()} ${moveAnimation.value}');
+            // }
 
-        AlignmentGeometry align = (position! * (1.0 - animation)) - Alignment.center;
+            AlignmentGeometry align;
 
-        if(widget.position == IconPosition.TOP || widget.position == IconPosition.BOTTOM){
-          AlignmentGeometry offset =  Alignment(0, 0.06 * (widget.position == IconPosition.TOP ? -1.0 : 1.0));
-          align = align.add(offset);
-        }
+            if(!moveAnimationFinished){
+              align = (position! * (1.0 - animation)) - Alignment.center;
+              if(widget.position == IconPosition.TOP || widget.position == IconPosition.BOTTOM){
+                AlignmentGeometry offset =  Alignment(0, 0.06 * (widget.position == IconPosition.TOP ? -1.0 : 1.0));
+                align = align.add(offset);
+              }
+            }
+            else{
+              align = Alignment.center;
+            }
 
-        return Align(
-          alignment: align,
-          child: child
-        );
-      },
-      child: AnimatedBuilder(
-        animation: showAnimation,
-        builder: (context, child) {
-          return Opacity(
-            opacity: showAnimation.value,
-            child: child,
-          );
-        },
-        child: _buildMovingIcon(context),
-      ),
+            return Align(
+              alignment: align,
+              child: AnimatedBuilder(
+                animation: showAnimation,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: showAnimation.value,
+                    child: child,
+                  );
+                },
+                child: _buildMovingIcon(context, align),
+              ),
+            );
+          }, 
+        ),
+
+      ],
     );
   }
 }
@@ -328,8 +341,6 @@ class PollPageAnimatedIconController extends ChangeNotifier {
 
   ///Updates the maximization of the icon
   void maximize([bool move = true]) => _retreiveState((s) => s.maximize(move));
-
-  void setFillLock() => _retreiveState((s) => s.setFillLock());
 
 
 

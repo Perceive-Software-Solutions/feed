@@ -1,3 +1,12 @@
+## [0.1.3] v0.1.3
+
+* Fixed bugs with SwipeFeed
+* Added new swiping functionality for the SwipeCard
+* Fixed bugs with SwipeIcons
+* Added overlayBuilder to SwipeFeed
+* Added placeholder to SwipeFeed
+* Added new design to PercentBar
+
 ## [0.1.0] v0.1.0
 
 * Added Single Feed

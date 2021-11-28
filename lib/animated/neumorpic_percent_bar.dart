@@ -1,10 +1,8 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
-import 'package:feed/util/render/inner_shadow.dart';
 import 'package:flutter/material.dart';
 
 ///NeumorpicPercentBar widget is a percent bar that is not bounded horizontally.
@@ -14,6 +12,7 @@ class NeumorpicPercentBar extends StatefulWidget {
 
   ///Controller for the percent bar
   final PercentBarController controller;
+
 
   const NeumorpicPercentBar({Key? key, required this.controller}) :
   super(key: key);
@@ -29,9 +28,6 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
   ///The duration for the animator when switching sides
   static const Duration FAST_FILL_DURATION = Duration(milliseconds: 0);
-
-  ///The duration for the animator when completeing a result
-  static const Duration COMPLETE_FILL_DURATION = Duration(milliseconds: 600);
 
   ///An animation for the fill
   late AnimationController fillController;
@@ -177,7 +173,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     }
   }
 
-  Future<void> completeFillBar(double newFill, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
+  Future<void> completeFillBar(double newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
     lockAnimation = true;
 
     complete = true;
@@ -190,7 +186,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       cardPosition = newCardPosition;
     }
     Future.delayed(Duration.zero).then((value) {
-      fillController.animateTo(newFill, duration: COMPLETE_FILL_DURATION).then((value) {
+      fillController.animateTo(newFill, duration: duration).then((value) {
         lockAnimation = false;
       });
     });
@@ -394,7 +390,7 @@ class PercentBarController extends ChangeNotifier {
 
   Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? null : await _state!.fillBar(value, direction, cardPosition);
 
-  Future<void> completeFillBar(double value, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, direction, cardPosition);
+  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   //Disposes of the controller
   @override
