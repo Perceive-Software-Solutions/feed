@@ -675,7 +675,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     rightSwiper.duration = FLING_DURATION_X;
     rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
     // _haptic(startSwipeSignal, 1000, 1);
-    widget.onSwipe!(0, 0, DismissDirection.startToEnd, true);
+    widget.onSwipe!(100, 0, DismissDirection.startToEnd, true);
     swipable = false;
   }
 
@@ -683,7 +683,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     leftSwiper.duration = FLING_DURATION_X;
     leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
     // _haptic(startSwipeSignal, 1000, 1);
-    widget.onSwipe!(0, 0, DismissDirection.endToStart, true);
+    widget.onSwipe!(-100, 0, DismissDirection.endToStart, true);
     swipable = false;
   }
 
@@ -916,7 +916,7 @@ class SwipeCardController extends ChangeNotifier {
 
   ///Sets the swipable state
   void setSwipe(bool swipe) => _state!.setSwipeable(swipe);
-  
+
   void swipeRight() => _state!.swipeRight();
 
   void swipeLeft() => _state!.swipeLeft();

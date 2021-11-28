@@ -1,4 +1,6 @@
+import 'package:feed/animated/neumorpic_percent_bar.dart';
 import 'package:feed/animated/poll_swipe_animated_icon.dart';
+import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
@@ -34,7 +36,9 @@ class SwipeFeedCard extends StatefulWidget {
     this.overlay,
     this.blur,
     required this.swipeFeedCardController,
-    required this.keyboardOpen
+    required this.keyboardOpen,
+    required this.fillController,
+    required this.swipeFeedController,
   }) : super(key: key);
 
   @override
@@ -44,6 +48,8 @@ class SwipeFeedCard extends StatefulWidget {
 
   /// Controls automating swipe in the [SwipeController]
   final SwipeFeedCardController swipeFeedCardController;
+
+  final SwipeFeedController swipeFeedController;
 
   /// Overlay that comes up when [swipeAlert] is true
   final Widget? Function(Future<void> Function(int), Future<void> Function(int), int)? overlay;
@@ -59,6 +65,8 @@ class SwipeFeedCard extends StatefulWidget {
   
   ///Shows and expands the card
   final bool show;
+
+  final PercentBarController fillController;
 
   ///Current Poll
   // final Poll poll;
@@ -172,7 +180,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   }
 
   void _onFlingUpdate(double dx, double dy, DismissDirection direction) async {
-    
+    widget.swipeFeedController.setLock(true);
     fillLock = true;
     widget.onSwipe!(dx, dy, direction);
 
@@ -267,6 +275,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       }
       if(i >= 0 && !swipeController.reversing){
 
+        // print(showValue);
+
         iconControllers[i].show(Functions.animateOver(showValue, percent: 0.5));
 
         // Ensure current icon is shown
@@ -289,6 +299,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   /// Forward animation
   Future<void> forwardAnimation(int index) async{
     if(mounted){
+      widget.swipeFeedController.setLock(false);
+      widget.fillController.unlockAnimation();
       axisLock = Axis.horizontal;
       fillLock = false;
       await Future.delayed(Duration(milliseconds: 200));
@@ -304,6 +316,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   /// Reverse animation
   Future<void> reverseAnimation(int index) async {
     if(mounted){
+      widget.swipeFeedController.setLock(false);
+      widget.fillController.unlockAnimation();
       iconControllers[index].maximize(false);
       widget.onDismiss!();
       swipeController.setSwipe(true);

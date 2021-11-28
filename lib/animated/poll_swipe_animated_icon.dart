@@ -104,9 +104,9 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   Color? get color {
     AppColor colors = ColorProvider.of(context);
     if(widget.position == IconPosition.TOP) {
-      return colors.onBackground;
+      return colors.yellow;
     } else if(widget.position == IconPosition.BOTTOM) {
-      return Colors.yellow;
+      return colors.onBackground;
     } else if(widget.position == IconPosition.LEFT) {
       return colors.blue;
     } else if(widget.position == IconPosition.RIGHT) {
@@ -170,6 +170,7 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
     });
 
     showAnimation.addListener(() { 
+      print(showAnimation.value);
       if(moveAnimationFinished && showAnimation.value == 0){
         showAnimation.animateTo(1.0, duration: Duration(seconds: 0));
       }
@@ -197,6 +198,7 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   ///Updates the show animation value
   void show(double show){
     showAnimation.animateTo(min(1.0, show), duration: Duration(milliseconds: 0));
+
   }
 
   ///Updates the show animation value
@@ -217,8 +219,8 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
     else{
       moveAnimationFinished = false;
       overlayAnimationScale.animateTo(0.8, duration: Duration(milliseconds: 200));
-      show(0.0);
-      moveIcon(0.0);
+      // show(0.0);
+      // moveIcon(0.0);
     }
     if(mounted){
       setState(() {});
@@ -247,12 +249,12 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
 
   ///Builds the inner icon
   Widget? _buildIcon(BuildContext context){
-    if(widget.position == IconPosition.TOP) {
+    if(widget.position == IconPosition.BOTTOM) {
       return ScaleTransition(
         scale: scaleSequence,
         child: TrashCan(controller: moveAnimation)
       );
-    } else if(widget.position == IconPosition.BOTTOM) {
+    } else if(widget.position == IconPosition.TOP) {
       return Icon(Icons.star, size: 36 * scaleSequence.value, color: color,);
     } else if(widget.position == IconPosition.LEFT) {
       return Icon(Icons.check, size: 36 * scaleSequence.value, color: color);

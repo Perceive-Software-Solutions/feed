@@ -21,9 +21,9 @@ class SwipeFeed<T> extends StatefulWidget {
     Key? key, 
     this.childBuilder,
     this.loading,
-    required this.loader, 
+    required this.loader,
+    required this.controller,  
     this.loadManually = false, 
-    this.controller, 
     this.onSwipe, 
     this.onContinue,
     this.overlayBuilder,
@@ -55,7 +55,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final bool loadManually;
 
   ///Controller for the swipe feed
-  final SwipeFeedController? controller;
+  final SwipeFeedController controller;
 
   ///The on swipe function, run when a card is swiped
   final Future<void> Function(double dx, double dy, DismissDirection direction, T item)? onSwipe;
@@ -101,7 +101,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   ]);
 
   ///Percent Bar controller
-  late PercentBarController _fillController;
+  late PercentBarController fillController;
 
   ///Controls automating swipes
   List<SwipeFeedCardController> swipeFeedCardControllers = [];
@@ -123,7 +123,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     super.initState();
 
     // Initialize Controllers
-    _fillController = PercentBarController();
+    fillController = PercentBarController();
     swipeFeedCardControllers.add(SwipeFeedCardController());
     swipeFeedCardControllers.add(SwipeFeedCardController());
 
@@ -137,15 +137,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     super.didChangeDependencies();
 
     //Bind the controller
-    widget.controller?._bind(this);
+    widget.controller._bind(this);
   }
 
-  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await _fillController.completeFillBar(value, duration, direction, cardPosition);
-  Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => await _fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
+  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await fillController.completeFillBar(value, duration, direction, cardPosition);
+  Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => await fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
 
   void swipeRight(){
     if(!lock){
       lock = true;
+      fillController.setDirection(IconPosition.LEFT, CardPosition.Left);
       swipeFeedCardControllers[0].swipeRight();
     }
   }
@@ -153,8 +154,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   void swipeLeft(){
     if(!lock){
       lock = true;
+      fillController.setDirection(IconPosition.RIGHT, CardPosition.Right);
       swipeFeedCardControllers[0].swipeLeft();
     }
+  }
+
+  void setLock(bool newLock){
+    lock = newLock;
   }
   
   void _removeCard(){
@@ -183,7 +189,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     hasMore = true;
     loading = false;
     cubit.emit([]);
-    _fillController.fillBar(0, IconPosition.BOTTOM, CardPosition.Left);
+    fillController.fillBar(0, IconPosition.BOTTOM, CardPosition.Left);
 
     if(mounted){
       setState(() {});
@@ -307,6 +313,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                   child: Opacity(
                     opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
                     child: SwipeFeedCard(
+                      swipeFeedController: widget.controller,
+                      fillController: fillController,
                       swipeFeedCardController: swipeFeedCardControllers[index],
                       overlay: (forwardAnimation, reverseAnimation, index){
                         if(widget.overlayBuilder != null && itemCubit.item1 != null)
@@ -377,7 +385,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             key: Key('PollPage - Bar - KeepAlive'),
             child: NeumorpicPercentBar(
               key: Key('PollPage - Bar'),
-              controller: _fillController,
+              controller: fillController,
             ),
           ),
         ),
@@ -435,6 +443,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
   void swipeRight() => _state != null ? _state!.swipeRight() : null;
 
   void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
+
+  void setLock(bool lock) => _state != null ? _state!.setLock(lock) : null;
 
   //Disposes of the controller
   @override

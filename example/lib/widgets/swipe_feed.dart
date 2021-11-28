@@ -84,7 +84,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 controller: feedController,
                 loader: loadItems,
                 swipeAlert: (index){
-                  return false;
+                  return true;
                 },
                 overlayBuilder: (forwardAnimation, reverseAnimation, index, item){
                   return Container(
@@ -134,18 +134,18 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                   }
                   else if(direction == DismissDirection.up){
                     if(dx >= 0){
-                      feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.TOP, CardPosition.Right);
+                      feedController.completeFillBar(1.0, const Duration(milliseconds: 800), IconPosition.TOP, CardPosition.Right);
                     }
                     else{
-                      feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.TOP, CardPosition.Left);
+                      feedController.completeFillBar(1.0, const Duration(milliseconds: 800), IconPosition.TOP, CardPosition.Left);
                     }
                   }
                   else if(direction == DismissDirection.down){
                     if(dx >= 0){
-                      feedController.completeFillBar(1.0, const Duration(milliseconds: 800), IconPosition.BOTTOM, CardPosition.Right);
+                      feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.BOTTOM, CardPosition.Right);
                     }
                     else{
-                      feedController.completeFillBar(1.0, const Duration(milliseconds: 800), IconPosition.BOTTOM, CardPosition.Left);
+                      feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.BOTTOM, CardPosition.Left);
                     }
                   }
                 },

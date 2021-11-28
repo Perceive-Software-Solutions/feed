@@ -38,7 +38,6 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   ///Current fill
   late CardPosition cardPosition;
 
-
   //Locks the animation
   static bool lockAnimation = false;
 
@@ -61,10 +60,10 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   ///Retreives the color based on the direction
   Color? fillColor(AppColor appColors) {
     if(iconDirection == IconPosition.BOTTOM){
-      return appColors.grey;
+      return appColors.yellow;
     }
     else if(iconDirection == IconPosition.TOP){
-      return appColors.yellow;
+      return appColors.grey;
     }
     else if(iconDirection == IconPosition.LEFT){
       return appColors.red;
@@ -80,10 +79,10 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   ///Retreives the title based on the direction
   String get title {
     if(iconDirection == IconPosition.BOTTOM){
-      return 'Skip';
+      return 'Score';
     }
     else if(iconDirection == IconPosition.TOP){
-      return 'Score';
+      return 'Skip';
     }
     else if(iconDirection == IconPosition.LEFT){
       return 'Disagree';
@@ -104,7 +103,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     cardPosition = CardPosition.Left;
     
     //Get direction
-    iconDirection = IconPosition.BOTTOM;
+    iconDirection = IconPosition.TOP;
 
     //Bind controller
     widget.controller._bind(this);
@@ -116,6 +115,10 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
           oldFill = fillController.value;
         }
       });
+  }
+
+  void unlockAnimation(){
+    lockAnimation = false;
   }
 
   Future<void> fillBar(double newFill, IconPosition newDirection, CardPosition newCardPosition, [bool overrideLock = false]) async {
@@ -179,16 +182,28 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     complete = true;
 
     if(newDirection != null && newDirection != iconDirection){
-      iconDirection = newDirection;
+      setState(() {
+        iconDirection = newDirection;
+      });
     }
 
     if(newCardPosition != null && cardPosition != newCardPosition){
-      cardPosition = newCardPosition;
+      setState(() {
+        cardPosition = newCardPosition;
+      });
     }
     Future.delayed(Duration.zero).then((value) {
       fillController.animateTo(newFill, duration: duration).then((value) {
         lockAnimation = false;
       });
+    });
+  }
+
+  void setDirection(IconPosition newIconPosition, CardPosition newCardPosition){
+    setState(() {
+      lockAnimation = true;
+      iconDirection = newIconPosition;
+      cardPosition = newCardPosition;
     });
   }
 
@@ -250,7 +265,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                           opacity:
                             complete ? 1 : Functions.animateOverFirst(fill, percent: 0.13),//, end: 0.04),
                           child: Text(
-                            iconDirection == IconPosition.BOTTOM ? '' :
+                            iconDirection == IconPosition.TOP ? '' :
                             '${(fill.abs() * 100).toStringAsFixed(0)}%',
                             style: textStyles.headline5!.copyWith(
                               fontSize: 16,
@@ -391,6 +406,10 @@ class PercentBarController extends ChangeNotifier {
   Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? null : await _state!.fillBar(value, direction, cardPosition);
 
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
+
+  void setDirection(IconPosition iconPosition, CardPosition cardPosition) => _state == null ? null : _state!.setDirection(iconPosition, cardPosition);
+
+  void unlockAnimation() => _state == null ? null : _state == null ? null : _state!.unlockAnimation();
 
   //Disposes of the controller
   @override
