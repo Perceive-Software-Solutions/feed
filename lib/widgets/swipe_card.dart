@@ -402,15 +402,23 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //List of animation controllers for this widget
     List<AnimationController> animations = [leftSwiper, rightSwiper, downSwiper, upSwiper];
+    List<Duration> durations = [];
 
-    //itterates through each, reserving any non-dismissed animations
-    for (AnimationController animation in animations) {
-      if((animation.value) > 0){
-        animation.duration = SWIPE_DURATION_X;
-        animation.reverse();
-        // animation.animateBack(0, duration: SWIPE_DURATION_X);
+    ///Find out durations
+    for(AnimationController animation in animations){
+      if(animation.value != 0){
+        animation.duration = Duration(milliseconds: (200 ~/ animation.value));
+      }
+      else{
+        durations.add(Duration(milliseconds: 0));
       }
     }
+
+    ///Reverse Animations
+    leftSwiper.reverse();
+    rightSwiper.reverse();
+    downSwiper.reverse();
+    upSwiper.reverse();
   }
 
   void _haptic(DismissDirection direction, double value, double delta){
@@ -478,7 +486,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   void _defineAnimations(){
     //Define Right Swipe animation
     rightSwiper = AnimationController(duration: Duration.zero, vsync: this);
-    rightAnimation = Tween<double>(begin: 0, end: cardSwipeLimitX).animate(CurvedAnimation(parent: rightSwiper, curve: SWIPE_CURVE, reverseCurve: SPRING_CURVE))
+    rightAnimation = Tween<double>(begin: 0, end: cardSwipeLimitX).animate(CurvedAnimation(parent: rightSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener(() {
         setState(() {
           //Update the xdrag
@@ -501,7 +509,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //Define Left Swipe animation
     leftSwiper = AnimationController(duration: Duration.zero, vsync: this);
-    leftAnimation = Tween<double>(begin: 0, end: -1 * cardSwipeLimitX).animate(CurvedAnimation(parent: leftSwiper, curve: SWIPE_CURVE, reverseCurve: SPRING_CURVE))
+    leftAnimation = Tween<double>(begin: 0, end: -1 * cardSwipeLimitX).animate(CurvedAnimation(parent: leftSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener(() {
         setState(() {
           //Update the xdrag
@@ -524,7 +532,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //Define Down Swipe animation
     downSwiper = AnimationController(duration: Duration.zero, vsync: this);
-    downAnimation = Tween<double>(begin: 0, end: cardSwipeLimitY).animate(CurvedAnimation(parent: downSwiper, curve: SWIPE_CURVE, reverseCurve: SPRING_CURVE))
+    downAnimation = Tween<double>(begin: 0, end: cardSwipeLimitY).animate(CurvedAnimation(parent: downSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener((){
         setState(() {
           //Update the ydrag
@@ -547,7 +555,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //Define Up Swipe animation
     upSwiper = AnimationController(duration: Duration.zero, vsync: this);
-    upAnimation = Tween<double>(begin: 0, end: cardSwipeLimitY * -1).animate(CurvedAnimation(parent: upSwiper, curve: SWIPE_CURVE, reverseCurve: SPRING_CURVE))
+    upAnimation = Tween<double>(begin: 0, end: cardSwipeLimitY * -1).animate(CurvedAnimation(parent: upSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener(() { 
         setState(() {
           //Update the ydrag

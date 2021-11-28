@@ -278,15 +278,12 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   /// Reverse animation
   Future<void> reverseAnimation(int index) async {
     if(mounted){
-      axisLock = Axis.horizontal;
-      fillLock = false;
-      if(widget.onDismiss != null){
-        widget.onDismiss!();
-      }
+      iconControllers[index].maximize(false);
+      widget.onDismiss!();
       swipeController.setSwipe(true);
       _lastSwipe = null;
       swipeController.reverse();
-      iconControllers[index].maximize(false);
+      fillLock = false;
     }
   }
 

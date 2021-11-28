@@ -80,7 +80,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     child: MaterialButton(
                       child: Text(item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
                       onPressed: (){
-                        forwardAnimation(index);
+                        reverseAnimation(index);
                       }
                     )
                   );
