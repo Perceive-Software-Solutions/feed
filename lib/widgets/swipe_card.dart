@@ -671,6 +671,22 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     }
   }
 
+  void swipeRight(){
+    rightSwiper.duration = FLING_DURATION_X;
+    rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
+    // _haptic(startSwipeSignal, 1000, 1);
+    widget.onSwipe!(0, 0, DismissDirection.startToEnd, true);
+    swipable = false;
+  }
+
+  void swipeLeft(){
+    leftSwiper.duration = FLING_DURATION_X;
+    leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
+    // _haptic(startSwipeSignal, 1000, 1);
+    widget.onSwipe!(0, 0, DismissDirection.endToStart, true);
+    swipable = false;
+  }
+
   ///Manages flinding gestures on the card
   DismissDirection? _flingCard(Offset velocity){
     double flingX = velocity.dx;
@@ -900,6 +916,10 @@ class SwipeCardController extends ChangeNotifier {
 
   ///Sets the swipable state
   void setSwipe(bool swipe) => _state!.setSwipeable(swipe);
+  
+  void swipeRight() => _state!.swipeRight();
+
+  void swipeLeft() => _state!.swipeLeft();
 
   ///Gets the largest active swiper value
   double get largetSwiperValue => _state!.getActiveValue;

@@ -93,6 +93,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   ///Prevents duplicate loadCalls
   bool loading = false;
 
+  bool lock = false;
+
   ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>> cubit = ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>>([
     Tuple2(null, ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.SHOW)),
     Tuple2(null, ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)),
@@ -100,6 +102,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   ///Percent Bar controller
   late PercentBarController _fillController;
+
+  ///Controls automating swipes
+  List<SwipeFeedCardController> swipeFeedCardControllers = [];
+
+  
 
   Widget get load => widget.loading == null ? Container() : widget.loading!;
 
@@ -115,8 +122,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   void initState(){
     super.initState();
 
-    //Initlaize the fill controller
+    // Initialize Controllers
     _fillController = PercentBarController();
+    swipeFeedCardControllers.add(SwipeFeedCardController());
+    swipeFeedCardControllers.add(SwipeFeedCardController());
 
     if(!widget.loadManually) {
       _loadMore();
@@ -133,8 +142,24 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await _fillController.completeFillBar(value, duration, direction, cardPosition);
   Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => await _fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
+
+  void swipeRight(){
+    if(!lock){
+      lock = true;
+      swipeFeedCardControllers[0].swipeRight();
+    }
+  }
+
+  void swipeLeft(){
+    if(!lock){
+      lock = true;
+      swipeFeedCardControllers[0].swipeLeft();
+    }
+  }
   
   void _removeCard(){
+    swipeFeedCardControllers.removeAt(0);
+    swipeFeedCardControllers.add(SwipeFeedCardController());
     Future.delayed(Duration(milliseconds: 400, seconds: 1)).then((value){
       if(cubit.state.length >= 2) {
         cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
@@ -145,6 +170,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         if(cubit.state.length <= LOAD_MORE_LIMIT){
           _loadMore();
         }
+        lock = false;
       });
     });
   }
@@ -233,6 +259,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         }
         
         cubit.emit([...oldItems, ...cubitItems]);
+        lock = false;
       });
     }
 
@@ -246,6 +273,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       return widget.childBuilder!(item, index == 1, isExpanded, close);
     }
     else if(item == null){
+      lock = true;
       return placeholder ?? SizedBox.shrink();
     }
     else {
@@ -279,6 +307,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                   child: Opacity(
                     opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
                     child: SwipeFeedCard(
+                      swipeFeedCardController: swipeFeedCardControllers[index],
                       overlay: (forwardAnimation, reverseAnimation, index){
                         if(widget.overlayBuilder != null && itemCubit.item1 != null)
                           return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
@@ -402,6 +431,10 @@ class SwipeFeedController<T> extends ChangeNotifier {
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
+
+  void swipeRight() => _state != null ? _state!.swipeRight() : null;
+
+  void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
 
   //Disposes of the controller
   @override

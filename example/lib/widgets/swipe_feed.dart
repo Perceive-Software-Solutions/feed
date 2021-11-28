@@ -31,6 +31,20 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
       bottom: true,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
+        floatingActionButton: GestureDetector(
+          child: Container(
+            height: 40,
+            width: 40,
+            child: const Icon(Icons.plus_one, size: 20),
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(40)
+            ),
+          ),
+          onTap: (){
+            feedController.swipeRight();
+          }
+        ),
         body: Stack(
           children: [
             Align(
@@ -70,7 +84,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 controller: feedController,
                 loader: loadItems,
                 swipeAlert: (index){
-                  return true;
+                  return false;
                 },
                 overlayBuilder: (forwardAnimation, reverseAnimation, index, item){
                   return Container(

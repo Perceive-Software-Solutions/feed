@@ -33,6 +33,7 @@ class SwipeFeedCard extends StatefulWidget {
     this.onPanEnd,
     this.overlay,
     this.blur,
+    required this.swipeFeedCardController,
     required this.keyboardOpen
   }) : super(key: key);
 
@@ -40,6 +41,9 @@ class SwipeFeedCard extends StatefulWidget {
   _SwipeFeedCardState createState() => _SwipeFeedCardState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  /// Controls automating swipe in the [SwipeController]
+  final SwipeFeedCardController swipeFeedCardController;
 
   /// Overlay that comes up when [swipeAlert] is true
   final Widget? Function(Future<void> Function(int), Future<void> Function(int), int)? overlay;
@@ -122,7 +126,23 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     widget.swipeAlert!(index);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    //Bind the controller if it is defined
+    widget.swipeFeedCardController._bind(this);
+  }
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  void swipeRight(){
+    swipeController.swipeRight();
+  }
+
+  void swipeLeft(){
+    swipeController.swipeLeft();
+  }
 
   ///Calls the onFillFunction if it is defined
   void _onFill(double fill, IconPosition position, CardPosition cardPosition, [bool overrideLock = false]) => widget.onFill!(fill, position, cardPosition, overrideLock);
@@ -155,6 +175,12 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     
     fillLock = true;
     widget.onSwipe!(dx, dy, direction);
+
+    for(int i = 0; i < 4; i++){
+      if(i != currentIndex(direction)){
+        iconControllers[i].show(0.0);
+      }
+    }
 
     // Call Finish icon animation
     iconControllers[currentIndex(direction)].maximize(true);
@@ -419,5 +445,24 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         ],
       ),
     );
+  }
+}
+
+///Controller for the feed
+class SwipeFeedCardController extends ChangeNotifier {
+  late _SwipeFeedCardState? _state;
+
+  ///Binds the feed state
+  void _bind(_SwipeFeedCardState bind) => _state = bind;
+
+  void swipeRight() => _state != null ? _state!.swipeRight() : null;
+
+  void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
+
+  //Disposes of the controller
+  @override
+  void dispose() {
+    _state = null;
+    super.dispose();
   }
 }
