@@ -295,7 +295,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     if(mounted){
 
       widget.swipeFeedController.setLock(false);
-      widget.fillController.unlockAnimation();
+      // widget.fillController.unlockAnimation();
       fillLock = false;
       await Future.delayed(Duration(milliseconds: 200));
       iconControllers[index].maximize(false);
@@ -310,7 +310,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   Future<void> reverseAnimation(int index) async {
     if(mounted){
       widget.swipeFeedController.setLock(false);
-      widget.fillController.unlockAnimation();
+      // widget.fillController.unlockAnimation();
       iconControllers[index].maximize(false);
       widget.onDismiss!();
       swipeController.setSwipe(true);

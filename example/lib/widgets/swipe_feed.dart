@@ -22,7 +22,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
 
   Future<Tuple2<List<dynamic>, String>> loadItems(int size, [String? token]) async {
     await Future.delayed(const Duration(seconds: 5));
-    return const Tuple2(['Testing', 'Testing1', 'Testin2', 'Testing3', 'Testing4'], 'PageToken');
+    return const Tuple2(['Testing', 'Testing1', 'Testin2', 'Testing3', 'Testing4', 'Testing5', 'Testing6', 'Testing7', 'Testing8', 'Testing9'], 'PageToken');
   }
 
   @override

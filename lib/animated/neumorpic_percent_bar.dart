@@ -117,10 +117,6 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       });
   }
 
-  void unlockAnimation(){
-    lockAnimation = false;
-  }
-
   Future<void> fillBar(double newFill, IconPosition newDirection, CardPosition newCardPosition, [bool overrideLock = false]) async {
     if(lockAnimation) return;
 
@@ -177,24 +173,25 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   }
 
   Future<void> completeFillBar(double newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
-    lockAnimation = true;
+    Future.delayed(Duration.zero).then((value){
+      lockAnimation = true;
 
-    complete = true;
+      fillController.stop();
 
-    if(newDirection != null && newDirection != iconDirection){
-      setState(() {
+      complete = true;
+
+      if(newDirection != null && newDirection != iconDirection){
         iconDirection = newDirection;
-      });
-    }
+      }
 
-    if(newCardPosition != null && cardPosition != newCardPosition){
-      setState(() {
+      if(newCardPosition != null && cardPosition != newCardPosition){
         cardPosition = newCardPosition;
-      });
-    }
-    Future.delayed(Duration.zero).then((value) {
+      }
       fillController.animateTo(newFill, duration: duration).then((value) {
         lockAnimation = false;
+      });
+      setState(() {
+        
       });
     });
   }
@@ -408,8 +405,6 @@ class PercentBarController extends ChangeNotifier {
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   void setDirection(IconPosition iconPosition, CardPosition cardPosition) => _state == null ? null : _state!.setDirection(iconPosition, cardPosition);
-
-  void unlockAnimation() => _state == null ? null : _state == null ? null : _state!.unlockAnimation();
 
   //Disposes of the controller
   @override
