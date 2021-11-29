@@ -183,7 +183,6 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     widget.swipeFeedController.setLock(true);
     fillLock = true;
     widget.onSwipe!(dx, dy, direction);
-
     for(int i = 0; i < 4; i++){
       if(i != currentIndex(direction)){
         iconControllers[i].show(0.0);
@@ -194,10 +193,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     iconControllers[currentIndex(direction)].maximize(true);
 
     if(widget.swipeAlert == null || widget.overlay == null || !widget.swipeAlert!(currentIndex(direction))){
-      await widget.onContinue!(_lastSwipe);
-      await Future.delayed(Duration(milliseconds: 200));
-      _lastSwipe = null;
-      widget.onDismiss!();
+      forwardAnimation(currentIndex(direction));
     }
   }
 
@@ -275,8 +271,6 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       }
       if(i >= 0 && !swipeController.reversing){
 
-        // print(showValue);
-
         iconControllers[i].show(Functions.animateOver(showValue, percent: 0.5));
 
         // Ensure current icon is shown
@@ -299,17 +293,16 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   /// Forward animation
   Future<void> forwardAnimation(int index) async{
     if(mounted){
+
       widget.swipeFeedController.setLock(false);
       widget.fillController.unlockAnimation();
-      axisLock = Axis.horizontal;
       fillLock = false;
       await Future.delayed(Duration(milliseconds: 200));
       iconControllers[index].maximize(false);
+      iconControllers[index].setMoveAnimationFinished(false);
       widget.onContinue!(_lastSwipe);
       _lastSwipe = null;
-      if(widget.onDismiss != null){
-        widget.onDismiss!();
-      }
+      widget.onDismiss!();
     }
   }
 

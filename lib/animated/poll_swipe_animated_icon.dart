@@ -163,14 +163,18 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
         showAnimation.animateTo(0.0, duration: Duration(milliseconds: 120));
       }
       if(moveAnimation.value == 1.0 && !moveAnimationFinished){
+        overlayAnimationScale.animateTo(1.0, duration: Duration(milliseconds: 200));
         moveAnimationFinished = true;
-        print(moveAnimationFinished);
+        print("Set True");
         setState(() {});
+      }
+      if(moveAnimation.value == 0.07){
+        print("Set False");
+        moveAnimationFinished = false;
       }
     });
 
     showAnimation.addListener(() { 
-      print(showAnimation.value);
       if(moveAnimationFinished && showAnimation.value == 0){
         showAnimation.animateTo(1.0, duration: Duration(seconds: 0));
       }
@@ -198,7 +202,6 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   ///Updates the show animation value
   void show(double show){
     showAnimation.animateTo(min(1.0, show), duration: Duration(milliseconds: 0));
-
   }
 
   ///Updates the show animation value
@@ -214,17 +217,18 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
     if(move){
       showAnimation.animateTo(1.0, duration: Duration(milliseconds: 0));
       moveAnimation.forward(from: moveAnimation.value);
-      overlayAnimationScale.animateTo(1.0, duration: Duration(milliseconds: 200));
     }
     else{
       moveAnimationFinished = false;
       overlayAnimationScale.animateTo(0.8, duration: Duration(milliseconds: 200));
-      // show(0.0);
-      // moveIcon(0.0);
     }
     if(mounted){
       setState(() {});
     }
+  }
+
+  void setMoveAnimationFinished(bool value){
+    moveAnimationFinished = false;
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Build Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -343,6 +347,8 @@ class PollPageAnimatedIconController extends ChangeNotifier {
 
   ///Updates the maximization of the icon
   void maximize([bool move = true]) => _retreiveState((s) => s.maximize(move));
+
+  void setMoveAnimationFinished(bool value) => _retreiveState((s) => s.setMoveAnimationFinished(value));
 
 
 

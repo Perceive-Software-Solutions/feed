@@ -84,7 +84,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 controller: feedController,
                 loader: loadItems,
                 swipeAlert: (index){
-                  return true;
+                  return false;
                 },
                 overlayBuilder: (forwardAnimation, reverseAnimation, index, item){
                   return Container(
@@ -94,7 +94,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     child: MaterialButton(
                       child: Text(item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
                       onPressed: (){
-                        reverseAnimation(index);
+                        forwardAnimation(index);
                       }
                     )
                   );
