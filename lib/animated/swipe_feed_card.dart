@@ -26,6 +26,7 @@ class SwipeFeedCard extends StatefulWidget {
   const SwipeFeedCard({ 
     Key? key, 
     this.show = true,
+    this.swipeOverride,
     this.swipeAlert,
     this.onFill, 
     this.onSwipe, 
@@ -47,6 +48,7 @@ class SwipeFeedCard extends StatefulWidget {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  final bool? swipeOverride;
 
   final List<IconData> icons;
 
@@ -393,7 +395,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       ignoring: !widget.show,
       child: SwipeCard(
         controller: swipeController,
-        swipable: widget.show == true && widget.keyboardOpen == false,
+        swipable: (widget.swipeOverride != null && !widget.swipeOverride!) ? widget.swipeOverride! : (widget.show == true && widget.keyboardOpen == false),
         opacityChange: true,
         onStartSwipe: _onSwipeStart,
         onPanEnd: _onPanEnd,
