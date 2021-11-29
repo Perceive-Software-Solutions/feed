@@ -1,3 +1,12 @@
+## [0.2.0] v0.2.0
+
+* Fixed Bugs
+* Added custom icons inside SwipeFeed
+* Adjusted animation durations inside SwipeFeed
+* Optamized PercentBar inside SwipeFeed
+* New animation for swipeing down in percentBar inside SwipeFeed
+* Added isExpanded Function inside SwipeFeed
+
 ## [0.1.3] v0.1.3
 
 * Fixed bugs with SwipeFeed
@@ -5,7 +14,7 @@
 * Fixed bugs with SwipeIcons
 * Added overlayBuilder to SwipeFeed
 * Added placeholder to SwipeFeed
-* Added new design to PercentBar
+* Added new design to PercentBar inside SwipeFeed
 
 ## [0.1.0] v0.1.0
 
