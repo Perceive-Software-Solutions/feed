@@ -35,6 +35,7 @@ class SwipeFeedCard extends StatefulWidget {
     this.onPanEnd,
     this.overlay,
     this.blur,
+    required this.icons,
     required this.swipeFeedCardController,
     required this.keyboardOpen,
     required this.fillController,
@@ -45,6 +46,9 @@ class SwipeFeedCard extends StatefulWidget {
   _SwipeFeedCardState createState() => _SwipeFeedCardState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+  final List<IconData> icons;
 
   /// Controls automating swipe in the [SwipeController]
   final SwipeFeedCardController swipeFeedCardController;
@@ -294,7 +298,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   Future<void> forwardAnimation(int index) async{
     if(mounted){
 
-      widget.swipeFeedController.setLock(false);
+      // widget.swipeFeedController.setLock(false);
       // widget.fillController.unlockAnimation();
       fillLock = false;
       await Future.delayed(Duration(milliseconds: 200));
@@ -330,6 +334,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       child = widget.overlay!(forwardAnimation, reverseAnimation, index);
     }
     return PollPageAnimatedIcon(
+      icons: widget.icons,
       controller: iconControllers[index],
       position: IconPosition.values[index],
       child: child,

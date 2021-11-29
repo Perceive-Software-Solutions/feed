@@ -79,12 +79,16 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
             ),
             Positioned.fill(
               child: SwipeFeed<dynamic>(
+                icons: const [Icons.star, Icons.check, Icons.cancel],
                 padding: const EdgeInsets.only(top: 57 + 16, left: 8, right: 8, bottom: 49 + 13),
                 duration: const Duration(milliseconds: 300),
                 controller: feedController,
                 loader: loadItems,
                 swipeAlert: (index){
-                  return false;
+                  return true;
+                },
+                canExpand: (item){
+                  return true;
                 },
                 overlayBuilder: (forwardAnimation, reverseAnimation, index, item){
                   return Container(

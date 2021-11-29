@@ -14,7 +14,7 @@ class NeumorpicPercentBar extends StatefulWidget {
   final PercentBarController controller;
 
 
-  const NeumorpicPercentBar({Key? key, required this.controller}) :
+  const NeumorpicPercentBar({Key? key, required this.controller}) : 
   super(key: key);
 
   @override

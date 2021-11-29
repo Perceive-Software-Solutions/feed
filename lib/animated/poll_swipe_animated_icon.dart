@@ -16,7 +16,8 @@ class PollPageAnimatedIcon extends StatefulWidget {
     Key? key, 
     this.controller,
     required this.position, this.child, this.onContinue, 
-  }): assert(position != null),
+    required this.icons
+  }): assert(icons.length == 3),
       super(key: key);
 
   @override
@@ -35,6 +36,9 @@ class PollPageAnimatedIcon extends StatefulWidget {
 
   ///Function that is automatically run when there is no child
   final Function()? onContinue;
+
+
+  final List<IconData> icons;
 }
 
 class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with TickerProviderStateMixin {
@@ -165,11 +169,9 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
       if(moveAnimation.value == 1.0 && !moveAnimationFinished){
         overlayAnimationScale.animateTo(1.0, duration: Duration(milliseconds: 200));
         moveAnimationFinished = true;
-        print("Set True");
         setState(() {});
       }
       if(moveAnimation.value == 0.07){
-        print("Set False");
         moveAnimationFinished = false;
       }
     });
@@ -259,11 +261,11 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
         child: TrashCan(controller: moveAnimation)
       );
     } else if(widget.position == IconPosition.TOP) {
-      return Icon(Icons.star, size: 36 * scaleSequence.value, color: color,);
+      return Icon(widget.icons[0], size: 36 * scaleSequence.value, color: color,);
     } else if(widget.position == IconPosition.LEFT) {
-      return Icon(Icons.check, size: 36 * scaleSequence.value, color: color);
+      return Icon(widget.icons[1], size: 36 * scaleSequence.value, color: color);
     } else if(widget.position == IconPosition.RIGHT) {
-      return Icon(Icons.cancel, size: 36 * scaleSequence.value, color: color,);
+      return Icon(widget.icons[2], size: 36 * scaleSequence.value, color: color,);
     } else {
       return null;
     }

@@ -23,6 +23,7 @@ class SwipeFeed<T> extends StatefulWidget {
     this.loading,
     required this.loader,
     required this.controller, 
+    required this.icons,
     this.background,
     this.loadManually = false, 
     this.onSwipe, 
@@ -31,11 +32,16 @@ class SwipeFeed<T> extends StatefulWidget {
     this.swipeAlert,
     this.padding,
     this.duration,
-    this.placeholder
+    this.placeholder,
+    this.canExpand,
   }): super(key: key);
 
   @override
   _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
+
+  final bool Function(T)? canExpand;
+
+  final List<IconData> icons;
 
   /// The overlay to be shown
   final Widget Function(Future<void> Function(int), Future<void> Function(int), int, T)? overlayBuilder;
@@ -76,7 +82,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final Widget? placeholder;
 }
 
-class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClientMixin{
+class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin{
 
   static const int LENGTH_INCREASE_FACTOR = 10;
 
@@ -110,6 +116,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   ///Controls automating swipes
   List<SwipeFeedCardController> swipeFeedCardControllers = [];
 
+  late AnimationController controller;
+  late Animation<double> animation;
+
   
 
   Widget get load => widget.loading == null ? Container() : widget.loading!;
@@ -134,6 +143,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     if(!widget.loadManually) {
       _loadMore();
     }
+
+    controller = new AnimationController(vsync: this);
   }
 
   @override
@@ -308,62 +319,74 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       builder: (context, show) {
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard){
-            return Transform.translate(
-              offset: Offset(0, keyboard && show != SwipeFeedCardState.HIDE ? -1 * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
-              child: AnimatedPadding(
-                duration: duration,
-                padding: show == SwipeFeedCardState.EXPAND ? EdgeInsets.zero : padding,
-                child: GestureDetector(
-                  onTap: show == SwipeFeedCardState.SHOW && isExpandable ? (){
-                    itemCubit.item2.emit(SwipeFeedCardState.EXPAND);
-                  } : null,
-                  child: Opacity(
-                    opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
-                    child: SwipeFeedCard(
-                      swipeFeedController: widget.controller,
-                      fillController: fillController,
-                      swipeFeedCardController: swipeFeedCardControllers[index],
-                      overlay: (forwardAnimation, reverseAnimation, index){
-                        if(widget.overlayBuilder != null && itemCubit.item1 != null)
-                          return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
-                        return null;
-                      },
-                      
-                      swipeAlert: widget.swipeAlert,
-                      keyboardOpen: keyboard,
-                      show: show != SwipeFeedCardState.HIDE,
-                      onFill: (fill, iconPosition, cardPosition, overrideLock) {
-                        fillBar(fill, iconPosition, cardPosition, overrideLock);
-                      },
-
-                      onContinue: itemCubit.item1 != null ? (dir) async {
-                        if(widget.onContinue != null){
-                          await widget.onContinue!(dir!, itemCubit.item1!);
-                        }
-                        _removeCard();
+            if(keyboard){
+              controller.animateTo(1.0, duration: Duration(milliseconds: 200), curve: Curves.easeInOutCubic);
+            }
+            else{
+              controller.animateTo(0.0, duration: Duration(milliseconds: 200), curve: Curves.easeInOutCubic);
+            }
+            return AnimatedBuilder(
+              animation: controller,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, keyboard && show != SwipeFeedCardState.HIDE ? -1 * controller.value * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
+                  child: AnimatedPadding(
+                    duration: duration,
+                    padding: show == SwipeFeedCardState.EXPAND ? EdgeInsets.zero : padding,
+                    child: GestureDetector(
+                      onTap: itemCubit.item1 != null && widget.canExpand != null && widget.canExpand!(itemCubit.item1!) && show == SwipeFeedCardState.SHOW && isExpandable ? (){
+                        itemCubit.item2.emit(SwipeFeedCardState.EXPAND);
                       } : null,
-                      onDismiss: (){
-                        // Nothing
-                      },
-                      onSwipe: (dx, dy, dir) {
-                        if(widget.onSwipe != null && itemCubit.item1 != null){
-                          widget.onSwipe!(dx, dy, dir, itemCubit.item1!);
-                        }
-                      },
-                      onPanEnd: () {
-                        // Nothing
-                      },
-                      child: AnimatedSwitcher(
-                        duration: Duration(seconds: 4),
-                        child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
-                          itemCubit.item2.emit(SwipeFeedCardState.SHOW);
-                        },
+                      child: Opacity(
+                        opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
+                        child: SwipeFeedCard(
+                          icons: widget.icons,
+                          swipeFeedController: widget.controller,
+                          fillController: fillController,
+                          swipeFeedCardController: swipeFeedCardControllers[index],
+                          overlay: (forwardAnimation, reverseAnimation, index){
+                            if(widget.overlayBuilder != null && itemCubit.item1 != null)
+                              return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
+                            return null;
+                          },
+                          
+                          swipeAlert: widget.swipeAlert,
+                          keyboardOpen: keyboard,
+                          show: show != SwipeFeedCardState.HIDE,
+                          onFill: (fill, iconPosition, cardPosition, overrideLock) {
+                            fillBar(fill, iconPosition, cardPosition, overrideLock);
+                          },
+
+                          onContinue: itemCubit.item1 != null ? (dir) async {
+                            if(widget.onContinue != null){
+                              await widget.onContinue!(dir!, itemCubit.item1!);
+                            }
+                            _removeCard();
+                          } : null,
+                          onDismiss: (){
+                            // Nothing
+                          },
+                          onSwipe: (dx, dy, dir) {
+                            if(widget.onSwipe != null && itemCubit.item1 != null){
+                              widget.onSwipe!(dx, dy, dir, itemCubit.item1!);
+                            }
+                          },
+                          onPanEnd: () {
+                            // Nothing
+                          },
+                          child: AnimatedSwitcher(
+                            duration: Duration(seconds: 4),
+                            child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
+                              itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ));
+                ));
+              }
+            );
           },
         );
       }
