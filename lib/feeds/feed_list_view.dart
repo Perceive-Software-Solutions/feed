@@ -83,8 +83,6 @@ class _FeedListViewState extends State<FeedListView> {
     //Sync the providers
     _syncProviders(widget.itemsCubit.state);
 
-    controller = ScrollController();
-
     widget.sheetController != null ? scrollController.addListener(() {
       if(scrollController.offset <= -80 && !snapping){
         if(widget.sheetController!.state!.extent == 1.0){

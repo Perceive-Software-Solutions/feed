@@ -56,8 +56,7 @@ class Functions {
     if(value == null){
       return false;
     }
-    print(value >= start! && value <= end!);
-    return value >= start && value <= end!;
+    return value >= start! && value <= end!;
   }
 
   ///Dtermines if a value is between a marginal range from the value
@@ -75,8 +74,9 @@ class Functions {
 ///Loader for the feed returns a tuple of lst items with a token
 typedef FeedLoader<T> = Future<Tuple2<List<T>, String?>> Function(int size, [String? token]);
 
-///A Builder for the feed
-typedef FeedBuilder<T> = Widget Function(T value, bool isLast);
+///A Builder for the swipe feed
+///The close function shrinks the card
+typedef SwipeFeedBuilder<T> = Widget Function(T value, bool isLast, bool expanded, void Function() close);
 
 ///Builder for the multi feed items
 typedef MultiFeedBuilder = Widget Function(dynamic item, bool isLast);

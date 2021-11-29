@@ -1,11 +1,8 @@
-import 'dart:math';
 import 'dart:ui';
 
-import 'package:feed/animated/poll_swipe_animated_icon.dart';
 import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
-import 'package:feed/util/render/inner_shadow.dart';
 import 'package:flutter/material.dart';
 
 ///NeumorpicPercentBar widget is a percent bar that is not bounded horizontally.
@@ -16,7 +13,8 @@ class NeumorpicPercentBar extends StatefulWidget {
   ///Controller for the percent bar
   final PercentBarController controller;
 
-  const NeumorpicPercentBar({Key? key, required this.controller}) :
+
+  const NeumorpicPercentBar({Key? key, required this.controller}) : 
   super(key: key);
 
   @override
@@ -29,19 +27,19 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   static const Duration FILL_DURATION = Duration(milliseconds: 200);
 
   ///The duration for the animator when switching sides
-  static const Duration FAST_FILL_DURATION = Duration(milliseconds: 100);
-
-  ///The duration for the animator when completeing a result
-  static const Duration COMPLETE_FILL_DURATION = Duration(milliseconds: 600);
+  static const Duration FAST_FILL_DURATION = Duration(milliseconds: 0);
 
   ///An animation for the fill
   late AnimationController fillController;
 
-  ///The direction of the fill
-  late IconPosition direction;
+  ///Current quadrant
+  late IconPosition iconDirection;
+
+  ///Current fill
+  late CardPosition cardPosition;
 
   //Locks the animation
-  bool lockAnimation = false;
+  static bool lockAnimation = false;
 
   ///The value of the last fill
   double oldFill = 0;
@@ -49,56 +47,30 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   //Set to true on complete fill
   bool complete = false;
 
+  Duration alignmentDuration = Duration(milliseconds: 0);
+
   //Retreives the fill percentage relative to the direction
   double get fill {
-    if(direction == IconPosition.BOTTOM){
-      return 0;
-    }
-    else if(direction == IconPosition.TOP){
-      return fillController.value;
-    }
-    else if(direction == IconPosition.LEFT){
-      return fillController.value;
-    }
-    else if(direction == IconPosition.RIGHT){
-      return fillController.value;
-    }
-    else{
-      throw 'Invalid Type for Icon Positioning';
-    }
+    return fillController.value;
   }
 
   //Retreives the fill percentage relative to the direction
   double get rawFill {
-    if(direction == IconPosition.BOTTOM){
-      return 0;
-    }
-    else if(direction == IconPosition.TOP){
-      return oldFill;
-    }
-    else if(direction == IconPosition.LEFT){
-      return oldFill;
-    }
-    else if(direction == IconPosition.RIGHT){
-      return oldFill;
-    }
-    else{
-      throw 'Invalid Type for Icon Positioning';
-    }
+    return oldFill;
   }
 
   ///Retreives the color based on the direction
   Color? fillColor(AppColor appColors) {
-    if(direction == IconPosition.BOTTOM){
-      return Colors.transparent;
-    }
-    else if(direction == IconPosition.TOP){
+    if(iconDirection == IconPosition.BOTTOM){
       return appColors.yellow;
     }
-    else if(direction == IconPosition.LEFT){
+    else if(iconDirection == IconPosition.TOP){
+      return appColors.grey;
+    }
+    else if(iconDirection == IconPosition.LEFT){
       return appColors.red;
     }
-    else if(direction == IconPosition.RIGHT){
+    else if(iconDirection == IconPosition.RIGHT){
       return appColors.blue;
     }
     else{
@@ -108,16 +80,16 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
   ///Retreives the title based on the direction
   String get title {
-    if(direction == IconPosition.BOTTOM){
-      return 'Skip';
-    }
-    else if(direction == IconPosition.TOP){
+    if(iconDirection == IconPosition.BOTTOM){
       return 'Score';
     }
-    else if(direction == IconPosition.LEFT){
+    else if(iconDirection == IconPosition.TOP){
+      return 'Skip';
+    }
+    else if(iconDirection == IconPosition.LEFT){
       return 'Disagree';
     }
-    else if(direction == IconPosition.RIGHT){
+    else if(iconDirection == IconPosition.RIGHT){
       return 'Agree';
     }
     else{
@@ -128,9 +100,12 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   @override
   void initState(){
     super.initState();
+
+    //Get position
+    cardPosition = CardPosition.Left;
     
     //Get direction
-    direction = IconPosition.BOTTOM;
+    iconDirection = IconPosition.TOP;
 
     //Bind controller
     widget.controller._bind(this);
@@ -144,13 +119,29 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       });
   }
 
-  Future<void> fillBar(double newFill, IconPosition newDirection) async {
-    print(lockAnimation);
-    if(lockAnimation == true) return;
+  Future<void> fillBar(double newFill, IconPosition newDirection, CardPosition newCardPosition, [bool overrideLock = false]) async {
+    if(lockAnimation) return;
 
     complete = false;
 
-    if(direction != newDirection){
+    if(cardPosition != newCardPosition){
+
+      lockAnimation = true;
+
+      //Animate down
+      await fillController.animateTo(0, duration: FAST_FILL_DURATION);
+
+      setState(() {
+        cardPosition = newCardPosition;
+      });
+
+      lockAnimation = false;
+
+      //Animate up
+      await fillController.animateTo(newFill);
+    }
+
+    if(iconDirection != newDirection){
 
       lockAnimation = true;
 
@@ -159,7 +150,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
       
       setState(() {
-        direction = newDirection;
+        iconDirection = newDirection;
       });
 
       lockAnimation = false;
@@ -183,23 +174,41 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     }
   }
 
-  Future<void> completeFillBar(double newFill, [IconPosition? newDirection]) async {
-    lockAnimation = true;
+  Future<void> completeFillBar(double newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
+    Future.delayed(Duration.zero).then((value){
 
-    complete = true;
+      lockAnimation = true;
 
-    if(newDirection != null && newDirection != direction){
-      //Animate down
-      await fillController.animateTo(0, duration: FAST_FILL_DURATION);
+      fillController.stop();
 
-      
-      setState(() {
-        direction = newDirection;
+      complete = true;
+
+      if(newDirection != null && newDirection == IconPosition.TOP){
+        
+      }
+
+      if(newDirection != null && newDirection != iconDirection){
+        iconDirection = newDirection;
+      }
+
+      if(newCardPosition != null && cardPosition != newCardPosition){
+        cardPosition = newCardPosition;
+      }
+      fillController.animateTo(newFill, duration: duration).then((value) {
+        lockAnimation = false;
       });
-    }
+      setState(() {
+        
+      });
+    });
+  }
 
-    await fillController.animateTo(max(0.01, newFill), duration: COMPLETE_FILL_DURATION);
-    lockAnimation = false;
+  void setDirection(IconPosition newIconPosition, CardPosition newCardPosition){
+    setState(() {
+      lockAnimation = true;
+      iconDirection = newIconPosition;
+      cardPosition = newCardPosition;
+    });
   }
 
   @override
@@ -210,164 +219,172 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     //Text style provider
     final textStyles = Theme.of(context).textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: LinearGradient(colors: [
-            Colors.white,
-            Colors.white.withOpacity(0.9),
-            Colors.white.withOpacity(0.25),
-            Color(0xFF3F5E7E).withOpacity(0.10)
-          ], begin: Alignment.topLeft, end: Alignment.bottomRight)),
-      child: Padding(
-        padding: const EdgeInsets.all(1),
-        child: Container(
-          decoration: BoxDecoration(
-              color: appColors.background,
-              borderRadius: BorderRadius.circular(16)),
-          child: AnimatedBuilder(
-            animation: fillController,
-            builder: (context, _) {
-              return Stack(
-                children: [
-                  //Neumorphic inner shadow
-                  Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: InnerShadow(
-                      color: Color(0xFF95AFC6).withOpacity(0.48),
-                      offset: Offset(3, 3),
-                      blur: 7,
-                      child: InnerShadow(
-                        color: Colors.white,
-                        offset: Offset(-3, -3),
-                        blur: 7,
-                        child: Container(
-                          height: 52,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                              color: Color(0xFFEBF2F9),
-                              borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
-                    ),
-                  ),
-          
-                  //Percent bar fill
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
+    return Padding(
+      padding: const EdgeInsets.all(1),
+      child: Container(
+        decoration: BoxDecoration(
+          color: appColors.background,
+          borderRadius: BorderRadius.circular(16)),
+        child: AnimatedBuilder(
+          animation: fillController,
+          builder: (context, _) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Container(
+                height: 52,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: fillColor(appColors)!.withOpacity(0.15),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: FractionallySizedBox(
+                        widthFactor: 1,
+                        child: AnimatedAlign(
+                          duration: Duration(milliseconds: 10),
+                          alignment: cardPosition != CardPosition.Left ? Alignment.centerLeft : Alignment.centerRight,
                           child: FractionallySizedBox(
-                            widthFactor: 1,
-                            child: AnimatedAlign(
+                            widthFactor: fill,
+                            child: AnimatedContainer(
                               duration: Duration(milliseconds: 10),
-                              alignment: direction != IconPosition.LEFT ? 
-                              Alignment.centerLeft : 
-                              Alignment.centerRight,
-                              child: FractionallySizedBox(
-                                widthFactor: fill,
-                                child: AnimatedCrossFade(
-                                  crossFadeState: direction == IconPosition.TOP ? 
-                                    CrossFadeState.showSecond : 
-                                    CrossFadeState.showFirst,
-                                  duration: Duration(milliseconds: 350),
-                                  firstCurve: Curves.easeOutQuint,
-                                  secondCurve: Curves.easeInQuint,
-                                  firstChild: InnerShadow(
-                                    color: direction != IconPosition.LEFT
-                                    ? Color(0xFF8BA7C1).withOpacity(0.48)
-                                    : Colors.white.withOpacity(0.5),
-                                    blur: 7,
-                                    offset: direction != IconPosition.LEFT ? Offset(3, 3) : Offset(-3, -3),
-                                    child: AnimatedContainer(
-                                      duration: Duration(milliseconds: 10),
-                                      decoration: BoxDecoration(
-                                        color: fillColor(appColors)!.withOpacity(0.7),
-                                        borderRadius: BorderRadius.circular(14)
-                                      ),
-                                    ),
-                                  ),
-                                  secondChild: InnerShadow(
-                                    color: direction != IconPosition.LEFT
-                                    ? Color(0xFF8BA7C1).withOpacity(0.48)
-                                    : Colors.white.withOpacity(0.5),
-                                    blur: 7,
-                                    offset: direction != IconPosition.LEFT ? Offset(3, 3) : Offset(-3, -3),
-                                    child: AnimatedContainer(
-                                      duration: Duration(milliseconds: 10),
-                                      decoration: BoxDecoration(
-                                        color: fillColor(appColors),
-                                        borderRadius: BorderRadius.circular(14)
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                              decoration: BoxDecoration(
+                                color: fillColor(appColors)!.withOpacity(0.7),
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-          
-                  Positioned(
-                    right: 15,
-                    left: 15,
-                    top: 15,
-                    bottom: 15,
-                    child: fillController.value != 0
-                        ? Align(
-                            alignment: direction != IconPosition.LEFT ? 
-                            Alignment.centerRight : 
-                            Alignment.centerLeft,
-                            child: Opacity(
-                              opacity: direction != IconPosition.BOTTOM ? 
-                                complete ? 1 : Functions.animateOverFirst(fill, percent: 0.13) :
-                          0,//, end: 0.04),
-                              child: Text(
-                                direction == IconPosition.BOTTOM ? '' :
-                                '${(fill.abs() * 100).toStringAsFixed(0)}%',
-                                style: textStyles.headline5!.copyWith(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          )
-                        : Container(),
-                  ),
-          
-                  Positioned(
-                    right: 15,
-                    left: 15,
-                    top: 15,
-                    bottom: 15,
-                    child: Align(
-                      alignment: direction != IconPosition.LEFT
-                          ? (direction == IconPosition.BOTTOM ? Alignment.center : Alignment.centerLeft)
-                          : Alignment.centerRight,
-                      child: Opacity(
-                        // duration: Duration(milliseconds: 100),
-                        opacity: complete ? 1 : ( direction != IconPosition.BOTTOM ? Functions.animateRange(fill, start: 0, end: 0.13) :
-                          Functions.animateRange(fillController.value, start: 0.0, end: 0.25) ),
+                    Positioned(
+                      right: 15,
+                      left: 15,
+                      top: 15,
+                      bottom: 15,
+                      child: fillController.value != 0 ? Align(
+                        alignment: cardPosition != CardPosition.Left ? 
+                        Alignment.centerRight : 
+                        Alignment.centerLeft,
+                        child: Text(
+                          iconDirection == IconPosition.TOP ? '' :
+                          '${(fill.abs() * 100).toStringAsFixed(0)}%',
+                          style: textStyles.headline5!.copyWith(
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600
+                          ),
+                        ),
+                      ) : Container(),
+                    ),
+
+                    // Other Text
+                    Positioned(
+                      right: 15,
+                      left: 15,
+                      top: 15,
+                      bottom: 15,
+                      child: AnimatedAlign(
+                        duration: iconDirection == IconPosition.TOP && complete ? Duration(milliseconds: 600) : Duration(milliseconds: 0),
+                        alignment: (complete && iconDirection == IconPosition.TOP) ? Alignment.center : cardPosition != CardPosition.Left ? Alignment.centerLeft : Alignment.centerRight,
                         child: Container(
                           child: Text(
                             title,
                             style: textStyles.headline5!.copyWith(
+                              fontSize: 16,
                               color: Colors.black,
                               fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
                     ),
-                  )
-          
-                ],
-              );
-            }
-          ),
+                  ],
+                ) 
+              ),
+            );
+            // return Stack(
+            //   children: [
+            //     // Background Color
+            //     Container(
+            //       height: 52,
+            //       width: double.infinity,
+            //       decoration: BoxDecoration(
+            //         color: fillColor(appColors)!.withOpacity(0.15),
+            //         borderRadius: BorderRadius.circular(28)),
+            //     ),
+            //     //Percent bar fill
+            //     Positioned.fill(
+            //       child: FractionallySizedBox(
+            //         widthFactor: 1,
+            //         child: AnimatedAlign(
+            //           duration: Duration(milliseconds: 10),
+            //           alignment: cardPosition != CardPosition.Left ? 
+            //           Alignment.centerLeft : 
+            //           Alignment.centerRight,
+            //           child: FractionallySizedBox(
+            //             widthFactor: fill,
+            //             child: AnimatedContainer(
+            //               duration: Duration(milliseconds: 10),
+            //               decoration: BoxDecoration(
+            //                 color: fillColor(appColors)!.withOpacity(0.7),
+            //                 borderRadius: cardPosition == CardPosition.Left ? 
+            //                 BorderRadius.only(topRight: Radius.circular(28), bottomRight: Radius.circular(28)) : 
+            //                 BorderRadius.only(topLeft: Radius.circular(28), bottomLeft: Radius.circular(28))
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+                
+            //     // Skip Text
+            //     Positioned(
+            //       right: 15,
+            //       left: 15,
+            //       top: 15,
+            //       bottom: 15,
+            //       child: fillController.value != 0 ? Align(
+            //         alignment: cardPosition != CardPosition.Left ? 
+            //         Alignment.centerRight : 
+            //         Alignment.centerLeft,
+            //         child: Opacity(
+            //           opacity:
+            //             complete ? 1 : Functions.animateOverFirst(fill, percent: 0.13),//, end: 0.04),
+            //           child: Text(
+            //             iconDirection == IconPosition.BOTTOM ? '' :
+            //             '${(fill.abs() * 100).toStringAsFixed(0)}%',
+            //             style: textStyles.headline5!.copyWith(
+            //                 color: Colors.black,
+            //                 fontWeight: FontWeight.w600),
+            //           ),
+            //         ),
+            //       ) : Container(),
+            //     ),
+
+            //     // Other Text
+            //     Positioned(
+            //       right: 15,
+            //       left: 15,
+            //       top: 15,
+            //       bottom: 15,
+            //       child: Align(
+            //         alignment: cardPosition != CardPosition.Left ? Alignment.centerLeft : Alignment.centerRight,
+            //         child: Opacity(
+            //           opacity: complete ? 1 : ( Functions.animateRange(fill, start: 0, end: 0.13) ),
+            //           child: Container(
+            //             child: Text(
+            //               title,
+            //               style: textStyles.headline5!.copyWith(
+            //                 color: Colors.black,
+            //                 fontWeight: FontWeight.w600),
+            //             ),
+            //           ),
+            //         ),
+            //       ),
+            //     )
+        
+            //   ],
+            // );
+          }
         ),
       ),
     );
@@ -384,9 +401,11 @@ class PercentBarController extends ChangeNotifier {
   //Called to notify all listners
   void _update() => notifyListeners();
 
-  Future<void> fillBar(double value, IconPosition direction) async => _state == null ? null : await _state!.fillBar(value, direction);
+  Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? null : await _state!.fillBar(value, direction, cardPosition);
 
-  Future<void> completeFillBar(double value, [IconPosition? direction]) async => _state == null ? null : await _state!.completeFillBar(value, direction);
+  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
+
+  void setDirection(IconPosition iconPosition, CardPosition cardPosition) => _state == null ? null : _state!.setDirection(iconPosition, cardPosition);
 
   //Disposes of the controller
   @override
