@@ -22,7 +22,8 @@ class SwipeFeed<T> extends StatefulWidget {
     this.childBuilder,
     this.loading,
     required this.loader,
-    required this.controller,  
+    required this.controller, 
+    this.background,
     this.loadManually = false, 
     this.onSwipe, 
     this.onContinue,
@@ -44,6 +45,9 @@ class SwipeFeed<T> extends StatefulWidget {
 
   ///A builder for the feed
   final SwipeFeedBuilder<T>? childBuilder;
+
+  /// Background behind the card
+  final Widget? background;
 
   ///Loading widget
   final Widget? loading;
@@ -273,14 +277,17 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   ///Builds the type of item card based on the feed type. 
   ///If a custom child builder is present, uses the child builder instead
-  Widget _loadCard(T? item, int index, bool isExpanded, Function() close) {
-    if(widget.childBuilder != null && item != null){
-      //Builds custom child if childBuilder is defined
-      return widget.childBuilder!(item, index == 1, isExpanded, close);
-    }
-    else if(item == null){
+  Widget _loadCard(T? item, bool show, int index, bool isExpanded, Function() close) {
+    if(item == null){
       lock = true;
       return placeholder ?? SizedBox.shrink();
+    }
+    else if(!show && widget.background != null){
+      return widget.background!;
+    }
+    else if(widget.childBuilder != null && item != null){
+      //Builds custom child if childBuilder is defined
+      return widget.childBuilder!(item, index == 1, isExpanded, close);
     }
     else {
       throw ('T is not supported by Feed');
@@ -346,14 +353,17 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                       onPanEnd: () {
                         // Nothing
                       },
-                      child: _loadCard(itemCubit.item1, index, show == SwipeFeedCardState.EXPAND, (){
-                        itemCubit.item2.emit(SwipeFeedCardState.SHOW);
-                      }),
+                      child: AnimatedSwitcher(
+                        duration: Duration(seconds: 4),
+                        child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
+                          itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                        },
+                      ),
                     ),
                   ),
                 ),
               ),
-            );
+            ));
           },
         );
       }
@@ -364,12 +374,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
-    //Color provider
-    final appColors = ColorProvider.of(context);
-
-    //Text style provider
-    final textStyles = Theme.of(context).textTheme;
     
     return Stack(
     key: Key('NeumorpicPercentBar'),

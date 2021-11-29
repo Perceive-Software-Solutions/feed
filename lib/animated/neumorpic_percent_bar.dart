@@ -47,6 +47,8 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   //Set to true on complete fill
   bool complete = false;
 
+  Duration alignmentDuration = Duration(milliseconds: 0);
+
   //Retreives the fill percentage relative to the direction
   double get fill {
     return fillController.value;
@@ -174,11 +176,16 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
   Future<void> completeFillBar(double newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
     Future.delayed(Duration.zero).then((value){
+
       lockAnimation = true;
 
       fillController.stop();
 
       complete = true;
+
+      if(newDirection != null && newDirection == IconPosition.TOP){
+        
+      }
 
       if(newDirection != null && newDirection != iconDirection){
         iconDirection = newDirection;
@@ -258,17 +265,13 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                         alignment: cardPosition != CardPosition.Left ? 
                         Alignment.centerRight : 
                         Alignment.centerLeft,
-                        child: Opacity(
-                          opacity:
-                            complete ? 1 : Functions.animateOverFirst(fill, percent: 0.13),//, end: 0.04),
-                          child: Text(
-                            iconDirection == IconPosition.TOP ? '' :
-                            '${(fill.abs() * 100).toStringAsFixed(0)}%',
-                            style: textStyles.headline5!.copyWith(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600
-                            ),
+                        child: Text(
+                          iconDirection == IconPosition.TOP ? '' :
+                          '${(fill.abs() * 100).toStringAsFixed(0)}%',
+                          style: textStyles.headline5!.copyWith(
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600
                           ),
                         ),
                       ) : Container(),
@@ -280,18 +283,16 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                       left: 15,
                       top: 15,
                       bottom: 15,
-                      child: Align(
-                        alignment: cardPosition != CardPosition.Left ? Alignment.centerLeft : Alignment.centerRight,
-                        child: Opacity(
-                          opacity: complete ? 1 : ( Functions.animateRange(fill, start: 0, end: 0.13) ),
-                          child: Container(
-                            child: Text(
-                              title,
-                              style: textStyles.headline5!.copyWith(
-                                fontSize: 16,
-                                color: Colors.black,
-                                fontWeight: FontWeight.w600),
-                            ),
+                      child: AnimatedAlign(
+                        duration: iconDirection == IconPosition.TOP && complete ? Duration(milliseconds: 600) : Duration(milliseconds: 0),
+                        alignment: (complete && iconDirection == IconPosition.TOP) ? Alignment.center : cardPosition != CardPosition.Left ? Alignment.centerLeft : Alignment.centerRight,
+                        child: Container(
+                          child: Text(
+                            title,
+                            style: textStyles.headline5!.copyWith(
+                              fontSize: 16,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),

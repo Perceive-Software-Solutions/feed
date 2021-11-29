@@ -94,11 +94,18 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     child: MaterialButton(
                       child: Text(item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
                       onPressed: (){
-                        forwardAnimation(index);
+                        reverseAnimation(index);
                       }
                     )
                   );
                 },
+                background: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black, width: 3)
+                  ),
+                ),
                 childBuilder: (dynamic value, bool isLast, bool isExpanded, void Function() close ) {
                   return Container(
                     decoration: BoxDecoration(
@@ -127,25 +134,25 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 },
                 onSwipe: (dx, dy, direction, item) async {
                   if(direction == DismissDirection.startToEnd){
-                    feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.RIGHT, CardPosition.Right);
+                    feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.RIGHT, CardPosition.Right);
                   }
                   else if(direction == DismissDirection.endToStart){
-                    feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.LEFT, CardPosition.Left);
+                    feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.LEFT, CardPosition.Left);
                   }
                   else if(direction == DismissDirection.up){
                     if(dx >= 0){
-                      feedController.completeFillBar(1.0, const Duration(milliseconds: 800), IconPosition.TOP, CardPosition.Right);
+                      feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Right);
                     }
                     else{
-                      feedController.completeFillBar(1.0, const Duration(milliseconds: 800), IconPosition.TOP, CardPosition.Left);
+                      feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Left);
                     }
                   }
                   else if(direction == DismissDirection.down){
                     if(dx >= 0){
-                      feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.BOTTOM, CardPosition.Right);
+                      feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Right);
                     }
                     else{
-                      feedController.completeFillBar(0.75, const Duration(milliseconds: 800), IconPosition.BOTTOM, CardPosition.Left);
+                      feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Left);
                     }
                   }
                 },
