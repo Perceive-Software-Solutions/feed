@@ -1,3 +1,4 @@
+import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,6 +37,9 @@ class FeedListView extends StatefulWidget {
 
   ///Loading widget
   final Widget? loading;
+
+  ///The optional function used to wrap the list view
+  final WidgetWrapper? wrapper;
   
   ///The header builder
   final Widget Function(BuildContext context)? headerBuilder;
@@ -54,6 +58,7 @@ class FeedListView extends StatefulWidget {
     this.controller, 
     this.footerHeight, 
     this.headerBuilder, 
+    this.wrapper, 
     this.loading,
     this.page
   }) : super(key: key);
@@ -143,6 +148,13 @@ class _FeedListViewState extends State<FeedListView> {
     }
   }
 
+  Widget wrapperBuilder({required BuildContext context, required Widget child}){
+    if(widget.wrapper != null){
+      return widget.wrapper!(context, child);
+    }
+    return child;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -172,23 +184,28 @@ class _FeedListViewState extends State<FeedListView> {
                   Center(child: loading),
 
                 Expanded(
-                  child: ListView(
+                  child: SingleChildScrollView(
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                     controller: scrollController,
-                    children: [
-                      for (var i = 0; i < items.length; i++)
-                        GestureDetector(
-                          child: _buildChild(items, i),
-                          onTap: widget.page != null ? (){
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => widget.page!
-                              ),
-                            );
-                          } : null,
-                        ),
-                    ],
+                    child: wrapperBuilder(
+                      context: context,
+                      child: Column(
+                        children: [
+                          for (var i = 0; i < items.length; i++)
+                            GestureDetector(
+                              child: _buildChild(items, i),
+                              onTap: widget.page != null ? (){
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => widget.page!
+                                  ),
+                                );
+                              } : null,
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 )
               ],

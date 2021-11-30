@@ -113,6 +113,9 @@ class SlidingSheetFeed extends StatefulWidget {
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
+  ///The optional function used to wrap the list view
+  final WidgetWrapper? wrapper;
+
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   /// Page that can be pushed on top of the [SlidingSheet]
@@ -150,6 +153,7 @@ class SlidingSheetFeed extends StatefulWidget {
     this.condition = false, 
     this.disableScroll, 
     this.headerBuilder,
+    this.wrapper,
     this.page
   }) : super(key: key);
 
@@ -217,6 +221,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                     condition: widget.condition,
                     disableScroll: widget.disableScroll,
                     headerBuilder: widget.headerBuilder,
+                    wrapper: widget.wrapper,
                     page: widget.page,
                   );
                 }

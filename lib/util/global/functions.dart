@@ -80,3 +80,6 @@ typedef SwipeFeedBuilder<T> = Widget Function(T value, bool isLast, bool expande
 
 ///Builder for the multi feed items
 typedef MultiFeedBuilder = Widget Function(dynamic item, bool isLast);
+
+///A function that returns an wrapper for a widget
+typedef WidgetWrapper = Widget Function(BuildContext context, Widget child);

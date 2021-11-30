@@ -88,10 +88,32 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
             color: Colors.white,
           ),
           Container(
-            color: Colors.white,
+            // color: Colors.white,
             height: 75,
             child: Center(
               child: Text(list[item % 6], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget wrapper(BuildContext context, Widget child) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(bottom: 20.0),
+            child: Center(child: Text('Wrapper')),
+          ),
+
+          Container(
+            child: child,
+            decoration: BoxDecoration(
+              color: Colors.red[200],
+              borderRadius: BorderRadius.circular(32)
             ),
           ),
         ],
@@ -127,6 +149,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       },
       //Widgets
       page: MultiFeedExample(sheetController: sheetController),
+      wrapper: wrapper,
     );
   }
 }

@@ -1,4 +1,8 @@
-## [0.2.4]
+## [0.2.5] v0.2.5
+
+* Added wrapper for Sliding Sheet Feed, Multi Feed, and Feed List View.
+
+## [0.2.4] v0.2.4
 
 * Added objectKey to generate unique keys to SwipeFeed
 

@@ -63,6 +63,9 @@ class MultiFeed extends StatefulWidget {
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
+  ///The optional function used to wrap the list view
+  final WidgetWrapper? wrapper;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Page that can be pushed ontop of the single-multi feed
@@ -87,6 +90,7 @@ class MultiFeed extends StatefulWidget {
       this.condition = false, 
       this.disableScroll, 
       this.headerBuilder,
+      this.wrapper,
       this.page})
       : assert(childBuilders == null || childBuilders.length == loaders.length),
         assert(controller == null || controller.length == loaders.length),
@@ -382,6 +386,7 @@ class _MultiFeedState extends State<MultiFeed> {
               disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
               footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
               page: widget.page,
+              wrapper: widget.wrapper,
               onLoad: (){
                 // print(loadMore[j]);
                 if(loading[j] == false && loadMore[j] == true) {
