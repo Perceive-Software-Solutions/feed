@@ -130,7 +130,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   static const Duration SWIPE_DURATION_X = Duration(milliseconds: 300); 
 
   ///The Duration Y for swiping
-  static const Duration SWIPE_DURATION_Y = Duration(milliseconds: 400); 
+  static const Duration SWIPE_DURATION_Y = Duration(milliseconds: 300); 
 
   ///The Duration X for swiping
   static const Duration FLING_DURATION_X = Duration(milliseconds: 120); 
@@ -139,7 +139,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   static const Duration FLING_DURATION_Y = Duration(milliseconds: 200); 
 
   ///Pan delay, ratio of the pan delta
-  static const double PAN_DELAY_RATIO = 1.0; 
+  static const double PAN_DELAY_RATIO = 0.65; 
 
   ///Ratio of the screen that determines the X Swipe Limit
   static const double SWIPE_LIMIT_X = 439.5/375; 
