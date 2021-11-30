@@ -20,9 +20,8 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
     feedController = SwipeFeedController();
   }
 
-  Future<Tuple2<List<dynamic>, String>> loadItems(int size, [String? token]) async {
-    await Future.delayed(const Duration(seconds: 5));
-    return const Tuple2(['Testing', 'Testing1', 'Testing2', '3', '4', '5', '6'], 'PageToken');
+  Future<Tuple2<List<dynamic>, String?>> loadItems(int size, [String? token]) async {
+    return const Tuple2(['Testing1', 'Testing2', 'Testing3'], null);
   }
 
   @override
