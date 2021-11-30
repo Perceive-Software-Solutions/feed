@@ -427,7 +427,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         );
       },
       child: Padding(
-        padding: widget.show == false ? const EdgeInsets.only(top: 47, bottom: 5) : EdgeInsets.symmetric(horizontal: 5),
+        padding: widget.show == false ? const EdgeInsets.only(top: 47, bottom: 5) : EdgeInsets.zero,
         child: swipeCard,
       ),
     );

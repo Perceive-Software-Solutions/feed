@@ -416,9 +416,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             
             return Stack(
               children: [
-
                 _buildCard(1),
-
 
                 _buildCard(0),
 
