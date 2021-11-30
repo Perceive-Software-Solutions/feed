@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:feed/animated/neumorpic_percent_bar.dart';
 import 'package:feed/animated/swipe_feed_card.dart';
-import 'package:feed/providers/color_provider.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
@@ -20,10 +19,10 @@ class SwipeFeed<T> extends StatefulWidget {
   const SwipeFeed({ 
     Key? key, 
     this.childBuilder,
-    this.loading,
     required this.loader,
     required this.controller, 
     required this.icons,
+    required this.objectKey,
     this.background,
     this.loadManually = false, 
     this.onSwipe, 
@@ -43,6 +42,8 @@ class SwipeFeed<T> extends StatefulWidget {
 
   final List<IconData> icons;
 
+  final String Function(T item) objectKey;
+
   /// The overlay to be shown
   final Widget Function(Future<void> Function(int), Future<void> Function(int), int, T)? overlayBuilder;
 
@@ -54,9 +55,6 @@ class SwipeFeed<T> extends StatefulWidget {
 
   /// Background behind the card
   final Widget? background;
-
-  ///Loading widget
-  final Widget? loading;
 
   ///A loader for the feed
   final FeedLoader<T> loader;
@@ -118,10 +116,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   late AnimationController controller;
   late Animation<double> animation;
-
-  
-
-  Widget get load => widget.loading == null ? Container() : widget.loading!;
 
   EdgeInsets get padding => widget.padding ?? EdgeInsets.zero;
 
@@ -266,7 +260,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
 
 
-        for (var i = 0; i < min(2, oldItems.length); i++) {
+        for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
           if(oldItems[i].item1 == null){
             oldItems[i] = Tuple2(cubitItems[0].item1, oldItems[i].item2);
             cubitItems.removeAt(0);
@@ -314,7 +308,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     Tuple2<T?, ConcreteCubit<SwipeFeedCardState>> itemCubit = cubit.state[index];
     return BlocBuilder<ConcreteCubit<SwipeFeedCardState>, SwipeFeedCardState>(
-      key: Key('swipefeed - card - ${itemCubit.item1 == null ? UniqueKey().toString() : itemCubit.item1.hashCode}'),
+      key: Key('swipefeed - card - ${itemCubit.item1 == null ? UniqueKey().toString() : widget.objectKey(itemCubit.item1!)}'),
       bloc: itemCubit.item2,
       builder: (context, show) {
         return KeyboardVisibilityBuilder(
@@ -340,6 +334,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                       child: Opacity(
                         opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
                         child: SwipeFeedCard(
+                          swipeOverride: itemCubit.item1 != null,
                           icons: widget.icons,
                           swipeFeedController: widget.controller,
                           fillController: fillController,
@@ -401,9 +396,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     return Stack(
     key: Key('NeumorpicPercentBar'),
     children: [
-        //Loader
-        if(cubit.state.isEmpty)
-          Positioned.fill(child: Center(child: load)),
           
         //Percent bar displaying current vote
         Padding(

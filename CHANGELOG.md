@@ -1,3 +1,19 @@
+## [0.2.4]
+
+* Added objectKey to generate unique keys to SwipeFeed
+
+## [0.2.3] v0.2.3
+
+* Fixed Bugs
+
+## [0.2.2] v0.2.2
+
+* Hotfix+2
+
+## [0.2.1] v0.2.1
+
+* Hotfix+1
+
 ## [0.2.0] v0.2.0
 
 * Fixed Bugs
