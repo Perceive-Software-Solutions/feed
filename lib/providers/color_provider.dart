@@ -42,9 +42,9 @@ class AppColor {
 final AppColor lightTheme = AppColor(
   primary: Color(0xFF192A56),
   primaryVariant: Color(0xFF273C75),
-  red: Color(0xFFC23616),
+  red: Color(0xFFFE3650),
   redVariant: Color(0xFFE84118),
-  blue: Color(0xFF285FD7),
+  blue: Color(0xFF4295F6),
   background: Color(0xFFEFF5FA),
   surface: Color(0xFFF7FAFD),
   onPrimary: Colors.white,

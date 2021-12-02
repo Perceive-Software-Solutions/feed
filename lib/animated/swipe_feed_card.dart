@@ -36,6 +36,7 @@ class SwipeFeedCard extends StatefulWidget {
     this.onPanEnd,
     this.overlay,
     this.blur,
+    this.onPanUpdate,
     required this.icons,
     required this.swipeFeedCardController,
     required this.keyboardOpen,
@@ -51,6 +52,8 @@ class SwipeFeedCard extends StatefulWidget {
   final bool? swipeOverride;
 
   final List<IconData> icons;
+
+  final Function(double dx, double dy, [double? maxX, double? maxYTop, double? maxYBot])? onPanUpdate;
 
   /// Controls automating swipe in the [SwipeController]
   final SwipeFeedCardController swipeFeedCardController;
@@ -205,6 +208,10 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
   ///Called while the swipe card is being panned
   void _onPanUpdate(double dx, double dy, [double? maxX, double? maxYTop, double? maxYBot]) {
+
+    if(widget.onPanUpdate != null){
+      widget.onPanUpdate!(dx, dy, maxX, maxYTop, maxYBot);
+    }
 
     //Height of the screen
     final height = MediaQuery.of(context).size.height;

@@ -33,6 +33,7 @@ class SwipeFeed<T> extends StatefulWidget {
     this.duration,
     this.placeholder,
     this.canExpand,
+    this.style
   }): super(key: key);
 
   @override
@@ -78,6 +79,8 @@ class SwipeFeed<T> extends StatefulWidget {
   final Duration? duration;
 
   final Widget? placeholder;
+
+  final TextStyle? style;
 }
 
 class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin{
@@ -323,7 +326,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
               animation: controller,
               builder: (context, child) {
                 return Transform.translate(
-                  offset: Offset(0, keyboard && show != SwipeFeedCardState.HIDE ? -1 * controller.value * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
+                  offset: Offset(0, (keyboard && show != SwipeFeedCardState.HIDE) ? (show == SwipeFeedCardState.EXPAND) ? 0 : -1 * controller.value * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
                   child: AnimatedPadding(
                     duration: duration,
                     padding: show == SwipeFeedCardState.EXPAND ? EdgeInsets.zero : padding,
@@ -346,7 +349,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                               return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
                             return null;
                           },
-                          
+                          onPanUpdate: (double dx, double dy, [double? maxX, double? maxYTop, double? maxYBot]) {
+                            if(show == SwipeFeedCardState.EXPAND){
+                              itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                            }
+                          },
                           swipeAlert: widget.swipeAlert,
                           keyboardOpen: keyboard,
                           show: show != SwipeFeedCardState.HIDE,
@@ -404,6 +411,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             child: NeumorpicPercentBar(
               key: Key('PollPage - Bar'),
               controller: fillController,
+              style: widget.style,
             ),
           ),
         ),

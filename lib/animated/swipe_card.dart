@@ -151,13 +151,13 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   static const double MIN_FLING_VELOCITY = 20;
 
   ///The minimum distance to be considered a fling
-  static const double MIN_FLING_DISTANCE = 40;
+  static const double MIN_FLING_DISTANCE = 92;
 
   ///The minimum distance to be considered a fling
   static const Curve SWIPE_CURVE = Curves.linear;
 
   ///The minimum distance to be considered a fling
-  static const Curve SPRING_CURVE = ElasticInCurve(0.4);
+  // static const Curve SPRING_CURVE = ElasticInCurve(0.4);
 
   /*
  
