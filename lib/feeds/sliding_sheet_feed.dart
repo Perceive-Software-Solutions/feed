@@ -114,7 +114,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
   ///The optional function used to wrap the list view
-  final WidgetWrapper? wrapper;
+  final IndexWidgetWrapper? wrapper;
 
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

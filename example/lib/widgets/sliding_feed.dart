@@ -99,7 +99,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
     );
   }
 
-  Widget wrapper(BuildContext context, Widget child) {
+  Widget wrapper(BuildContext context, Widget child, int index) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
@@ -138,6 +138,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       //Loaders
       loaders: List.filled(3, (int size, [String? token]) async {
         int index = int.parse(token ?? '0');
+        await Future.delayed(const Duration(seconds: 3));
         return Tuple2(List.generate(size, (i) => i + index), (index + size).toString());
       }),
       //Builders
@@ -147,6 +148,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       childBuilder: (item, isLast) {
         return childBuilder(item);
       },
+      
       //Widgets
       page: MultiFeedExample(sheetController: sheetController),
       wrapper: wrapper,

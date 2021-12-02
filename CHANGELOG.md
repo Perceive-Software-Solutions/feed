@@ -1,3 +1,7 @@
+## [0.2.7] v0.2.7
+
+* Added index widget wrapper to Sliding Sheet Feed
+
 ## [0.2.6] v0.2.6
 
 * Added weight coefficent for the swipe feed

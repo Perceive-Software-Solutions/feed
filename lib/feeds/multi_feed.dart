@@ -442,6 +442,9 @@ class _MultiFeedState extends State<MultiFeed> {
       onPageChanged: (value) {
         widget.controller?.tabController!.animateTo(value, duration: Duration(milliseconds: 300));
         feedIndex = value;
+        if(itemsCubit[feedIndex].state.isEmpty){
+          _refresh(feedIndex);
+        }
       },
       children: _loadTabs(),
     );
