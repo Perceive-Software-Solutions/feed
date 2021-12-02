@@ -1,3 +1,7 @@
+## [0.2.6] v0.2.6
+
+* Added weight coefficent for the swipe feed
+
 ## [0.2.5] v0.2.5
 
 * Added wrapper for Sliding Sheet Feed, Multi Feed, and Feed List View.

@@ -64,7 +64,7 @@ class MultiFeed extends StatefulWidget {
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
   ///The optional function used to wrap the list view
-  final WidgetWrapper? wrapper;
+  final IndexWidgetWrapper? wrapper;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -386,7 +386,9 @@ class _MultiFeedState extends State<MultiFeed> {
               disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
               footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
               page: widget.page,
-              wrapper: widget.wrapper,
+              wrapper: widget.wrapper == null ? null : (BuildContext context, Widget child){
+                return widget.wrapper!(context, child, j);
+              },
               onLoad: (){
                 // print(loadMore[j]);
                 if(loading[j] == false && loadMore[j] == true) {
