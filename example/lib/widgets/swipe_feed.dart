@@ -109,7 +109,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black, width: 3)
+                    border: Border.all(color: Colors.black, width: 3),
                   ),
                 ),
                 childBuilder: (dynamic value, bool isLast, bool isExpanded, void Function() close ) {
@@ -117,7 +117,11 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     decoration: BoxDecoration(
                       color: isExpanded ? Colors.red : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 3)
+                      border: Border.all(color: Colors.black, width: 3),
+                      image: const DecorationImage(
+                        fit: BoxFit.fill,
+                        image: NetworkImage('https://i.imgur.com/DKmvjwi.gif')
+                      )
                     ),
                     child: Center(
                       child: Container(

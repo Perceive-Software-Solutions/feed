@@ -328,7 +328,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                     duration: duration,
                     padding: show == SwipeFeedCardState.EXPAND ? EdgeInsets.zero : padding,
                     child: GestureDetector(
-                      onTap: itemCubit.item1 != null && widget.canExpand != null && widget.canExpand!(itemCubit.item1!) && show == SwipeFeedCardState.SHOW && isExpandable && !keyboard ? (){
+                      onTap: itemCubit.item1 != null && widget.canExpand != null && 
+                      widget.canExpand!(itemCubit.item1!) && show == SwipeFeedCardState.SHOW && 
+                      isExpandable && !keyboard ? (){
                         itemCubit.item2.emit(SwipeFeedCardState.EXPAND);
                       } : null,
                       child: Opacity(
@@ -369,13 +371,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           onPanEnd: () {
                             // Nothing
                           },
-                          child: AnimatedSwitcher(
-                            duration: Duration(milliseconds: 300),
-                            child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
-                              itemCubit.item2.emit(SwipeFeedCardState.SHOW);
-                            },
+                          child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
+                            itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                          },
                           ),
-                        ),
                       ),
                     ),
                   ),
