@@ -1,3 +1,7 @@
+## [0.2.8]
+
+* Fixed Feed Sliding Sheet Feed Refresh Issue
+
 ## [0.2.7] v0.2.7
 
 * Added index widget wrapper to Sliding Sheet Feed
