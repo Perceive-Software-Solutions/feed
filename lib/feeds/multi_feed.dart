@@ -124,7 +124,7 @@ class _MultiFeedState extends State<MultiFeed> {
   late int feedIndex;
 
   ///Controller for the page view
-  late PageController pageController;
+  PageController? pageController;
 
   ///Determines when each index in the list is loading
   late List <bool> loading;
@@ -194,15 +194,17 @@ class _MultiFeedState extends State<MultiFeed> {
       widget.controller?._bind(this);
 
       ///Dispose the old page controller
-      pageController.dispose();
+      if(pageController != null){
+        pageController!.dispose();
+      }
 
       //Reinitialize the page controller
       pageController = widget.controller?.pageController ?? PageController();
 
       ///Bind the onchnage to the tab controller
       widget.controller?.tabController!.addListener(() {
-        if(widget.controller!.tabController!.index != feedIndex && widget.controller!.tabController!.indexIsChanging == false){
-          pageController.animateToPage(widget.controller!.tabController!.index, duration: Duration(milliseconds: 300), curve: Curves.linear);
+        if(widget.controller!.tabController!.index != feedIndex && widget.controller!.tabController!.indexIsChanging == false && pageController != null){
+          pageController!.animateToPage(widget.controller!.tabController!.index, duration: Duration(milliseconds: 300), curve: Curves.linear);
         }
       });
     }

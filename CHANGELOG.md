@@ -1,3 +1,7 @@
+## [0.2.15] v0.2.15
+
+* Hotfix for multifeed page view error
+
 ## [0.2.14] v0.2.14
 
 * Fixed tab bar animating page view in multifeed.
