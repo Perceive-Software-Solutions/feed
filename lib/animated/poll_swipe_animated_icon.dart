@@ -261,11 +261,11 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
         child: TrashCan(controller: moveAnimation)
       );
     } else if(widget.position == IconPosition.TOP) {
-      return Icon(widget.icons[0], size: 36 * scaleSequence.value, color: color,);
+      return Icon(widget.icons[0], size: 37 * scaleSequence.value, color: color,);
     } else if(widget.position == IconPosition.LEFT) {
-      return Icon(widget.icons[1], size: 36 * scaleSequence.value, color: color);
+      return Icon(widget.icons[1], size: 37 * scaleSequence.value, color: color);
     } else if(widget.position == IconPosition.RIGHT) {
-      return Icon(widget.icons[2], size: 36 * scaleSequence.value, color: color,);
+      return Icon(widget.icons[2], size: 37 * scaleSequence.value, color: color,);
     } else {
       return null;
     }
