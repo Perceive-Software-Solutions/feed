@@ -1,3 +1,7 @@
+## [0.2.13]
+
+* Fixed tab bar animating page view in multifeed.
+
 ## [0.2.8]
 
 * Fixed Feed Sliding Sheet Feed Refresh Issue
