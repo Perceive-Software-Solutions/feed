@@ -123,6 +123,12 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   ///The direction of the last swipe
   DismissDirection? _lastSwipe;
 
+  int? oldDirection;
+
+  double horizontalSwipeThresh = 92 + 1;
+  double bottomSwipeThresh = 157 + 1;
+  double topSwipeThresh = 92.0 + 1;
+
   Widget get blur => widget.blur == null ? Container() : widget.blur!;
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Lifecycle ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -283,7 +289,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         showValue = dx.abs() / maxX!;
       }
       if(i >= 0 && !swipeController.reversing){
-
+        if(oldDirection != i && ((dx.abs() >= horizontalSwipeThresh && 
+        (i == 0 || i == 1)) || (dy.abs() > topSwipeThresh 
+        && i == 3) || (dy.abs() > bottomSwipeThresh && i == 2))){
+          Functions.hapticSwipeVibrate();
+        }
         iconControllers[i].show(Functions.animateOver(showValue, percent: 0.5));
 
         // Ensure current icon is shown
@@ -295,6 +305,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
           }
         }
       }
+      oldDirection = i;
     }
   }
 
