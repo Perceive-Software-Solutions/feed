@@ -258,14 +258,14 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
     if(widget.position == IconPosition.BOTTOM) {
       return ScaleTransition(
         scale: scaleSequence,
-        child: TrashCan(controller: moveAnimation)
+        child: TrashCan(controller: moveAnimation, showAnimation: showAnimation)
       );
     } else if(widget.position == IconPosition.TOP) {
-      return Icon(widget.icons[0], size: 37 * scaleSequence.value, color: color,);
+      return Icon(widget.icons[0], size: 38 * scaleSequence.value, color: color,);
     } else if(widget.position == IconPosition.LEFT) {
-      return Icon(widget.icons[1], size: 37 * scaleSequence.value, color: color);
+      return Icon(widget.icons[1], size: 38 * scaleSequence.value, color: color);
     } else if(widget.position == IconPosition.RIGHT) {
-      return Icon(widget.icons[2], size: 37 * scaleSequence.value, color: color,);
+      return Icon(widget.icons[2], size: 38 * scaleSequence.value, color: color,);
     } else {
       return null;
     }
@@ -316,7 +316,7 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
                 animation: showAnimation,
                 builder: (context, child) {
                   return Opacity(
-                    opacity: showAnimation.value,
+                    opacity: widget.position == IconPosition.BOTTOM && showAnimation.value != 0 ? 1.0 : widget.position == IconPosition.BOTTOM ? 0 : showAnimation.value,
                     child: child,
                   );
                 },
@@ -376,8 +376,11 @@ class TrashCan extends StatefulWidget {
 
   final AnimationController controller;
 
+  final AnimationController showAnimation;
+
   const TrashCan({ 
     Key? key,
+    required this.showAnimation,
     required this.controller
   }) : super(key: key);
 
@@ -404,18 +407,22 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
 
     opacityAnimation = TweenSequence<double>([
       TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 0, end: 1),
-        weight: 0.2
+        tween: Tween<double>(begin: -3, end: 1),
+        weight: 0.078
       ),
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 1, end: 1),
-        weight: 0.6
+        weight: 0.7
       ),
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 1, end: 0),
-        weight: 0.2
+        weight: 0.078
       ),
     ]).animate(widget.controller);
+
+    opacityAnimation.addListener(() { 
+      print(opacityAnimation.value);
+    });
 
     cubeOpacityAnimation = TweenSequence<double>([
       TweenSequenceItem<double>(
@@ -443,11 +450,11 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
     lidRotationAnimation = TweenSequence<double>([
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 0, end: 0),
-        weight: 0.2
+        weight: 0.073
       ),
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 0, end: 64/360),
-        weight: 0.4
+        weight: 0.3
       ),
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 64/360, end: 0),
@@ -461,19 +468,19 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
         weight: 0.4
       ),
       TweenSequenceItem<Offset>(
-        tween: Tween<Offset>(begin: Offset.zero, end: Offset(6.79, 3.79)),
-        weight: 0.2
+        tween: Tween<Offset>(begin: Offset.zero, end: Offset(4.8, 3.79)),
+        weight: 0.3
       ),
       TweenSequenceItem<Offset>(
-        tween: Tween<Offset>(begin: Offset(6.79, 3.79), end: Offset(6.79, 7.79)),
-        weight: 0.4
+        tween: Tween<Offset>(begin: Offset(4.8, 3.79), end: Offset(4.8, 7.79)),
+        weight: 0.3
       ),
     ]).animate(widget.controller);
 
     cubeRotateAnimation = TweenSequence<double>([
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 0, end: 0),
-        weight: 0.4
+        weight: 0.2
       ),
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 0, end: 45/360),
@@ -481,7 +488,7 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
       ),
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 45/360, end: 45/360),
-        weight: 0.4
+        weight: 0.3
       ),
     ]).animate(widget.controller);
 
@@ -546,15 +553,15 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
       animation: widget.controller,
       builder: (BuildContext context, Widget? child) {
         return Container(
-          height: 32,
-          width: 32,
+          height: 36,
+          width: 36,
           child: Stack(
             children: [
               Positioned(
                 // top: moveAnimationHorizontal.value*3.79 + moveAnimationVertical.value*7,
                 // left: 7 + moveAnimationHorizontal.value*6.79,
-                top: cubeMoveAnimation.value.dy,
-                left: 7 + cubeMoveAnimation.value.dx,
+                top: cubeMoveAnimation.value.dy + 2,
+                left: 9.5 + cubeMoveAnimation.value.dx,
                 // duration: Duration(milliseconds: 0),
                 child: RotationTransition(
                   turns: cubeRotateAnimation,
@@ -568,13 +575,21 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    RotationTransition(
-                      alignment: Alignment.centerRight,
-                      turns: lidRotationAnimation,
-                      child: Opacity(
-                        opacity: opacityAnimation.value,
-                        child: Lid(),
-                      ),
+                    AnimatedBuilder(
+                      animation: widget.controller,
+                      builder: (context, child) {
+                        return Padding(
+                          padding: EdgeInsets.only(left: lidRotationAnimation.value * 30),
+                          child: RotationTransition(
+                            alignment: Alignment(0.7, 0),
+                            turns: lidRotationAnimation,
+                            child: Opacity(
+                              opacity: opacityAnimation.value,
+                              child: Lid(),
+                            ),
+                          ),
+                        );
+                      }
                     ),
                     // RotationTransition(
                     //   alignment: Alignment.centerRight,
