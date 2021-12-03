@@ -153,7 +153,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   }
 
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await fillController.completeFillBar(value, duration, direction, cardPosition);
-  Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => await fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
+  Future<void> fillBar(double value, IconPosition? direction, CardPosition cardPosition, [bool overrideLock = false]) async => await fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
 
   void swipeRight(){
     if(!lock){
@@ -183,7 +183,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
       }
       Future.delayed(Duration(milliseconds: 400)).then((value){
-        fillBar(0.0, IconPosition.BOTTOM, CardPosition.Left);
+        fillBar(0.0, null, CardPosition.Left);
         cubit.emit([...cubit.state]..removeAt(0));
         if(cubit.state.length <= LOAD_MORE_LIMIT){
           _loadMore();

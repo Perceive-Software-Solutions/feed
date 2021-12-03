@@ -150,6 +150,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.LEFT, CardPosition.Left);
                   }
                   else if(direction == DismissDirection.up){
+                    
                     if(dx >= 0){
                       feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Right);
                     }

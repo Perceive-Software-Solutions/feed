@@ -35,10 +35,10 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   late AnimationController fillController;
 
   ///Current quadrant
-  late IconPosition iconDirection;
+  late IconPosition? iconDirection;
 
   ///Current fill
-  late CardPosition cardPosition;
+  CardPosition? cardPosition;
 
   //Locks the animation
   static bool lockAnimation = false;
@@ -76,7 +76,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       return appColors.blue;
     }
     else{
-      throw 'Invalid Type for Icon Positioning';
+      return appColors.grey;
     }
   }
 
@@ -95,7 +95,16 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       return 'Agree';
     }
     else{
-      throw 'Invalid Type for Icon Positioning';
+      return '';
+    }
+  }
+
+  AlignmentGeometry get alignment{
+    if(cardPosition == CardPosition.Left){
+      return Alignment.centerRight;
+    }
+    else{
+      return Alignment.centerLeft;
     }
   }
 
@@ -104,10 +113,10 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     super.initState();
 
     //Get position
-    cardPosition = CardPosition.Left;
+    cardPosition = CardPosition.Right;
     
     //Get direction
-    iconDirection = IconPosition.TOP;
+    iconDirection = IconPosition.BOTTOM;
 
     //Bind controller
     widget.controller._bind(this);
@@ -121,7 +130,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       });
   }
 
-  Future<void> fillBar(double newFill, IconPosition newDirection, CardPosition newCardPosition, [bool overrideLock = false]) async {
+  Future<void> fillBar(double newFill, IconPosition? newDirection, CardPosition newCardPosition, [bool overrideLock = false]) async {
     if(lockAnimation) return;
 
     complete = false;
@@ -171,7 +180,13 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   }
 
   Future<void> completeFillBar(double newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
-    Future.delayed(Duration.zero).then((value){
+
+    if(newCardPosition != null && cardPosition != newCardPosition){
+      setState(() {
+        cardPosition = newCardPosition;
+      });
+    }
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
 
       lockAnimation = true;
 
@@ -179,19 +194,14 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
       complete = true;
 
-      if(newDirection != null && newDirection == IconPosition.TOP){
-        
-      }
-
       if(newDirection != null && newDirection != iconDirection){
         iconDirection = newDirection;
       }
 
-      if(newCardPosition != null && cardPosition != newCardPosition){
-        cardPosition = newCardPosition;
-      }
       fillController.animateTo(newFill, duration: duration).then((value) {
         lockAnimation = false;
+      }).then((value) {
+          print(fillController.value);
       });
       setState(() {
         
@@ -281,7 +291,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                       bottom: 16.5,
                       child: AnimatedAlign(
                         duration: iconDirection == IconPosition.TOP && complete ? Duration(milliseconds: 600) : Duration(milliseconds: 0),
-                        alignment: (complete && iconDirection == IconPosition.TOP) ? Alignment.center : cardPosition != CardPosition.Left ? Alignment.centerLeft : Alignment.centerRight,
+                        alignment: (complete && iconDirection == IconPosition.TOP) ? Alignment.center : alignment,
                         child: Container(
                           child: Text(
                             title,
@@ -395,7 +405,7 @@ class PercentBarController extends ChangeNotifier {
   //Called to notify all listners
   void _update() => notifyListeners();
 
-  Future<void> fillBar(double value, IconPosition direction, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? null : await _state!.fillBar(value, direction, cardPosition);
+  Future<void> fillBar(double value, IconPosition? direction, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? null : await _state!.fillBar(value, direction, cardPosition);
 
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
 

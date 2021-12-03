@@ -133,10 +133,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   static const Duration SWIPE_DURATION_Y = Duration(milliseconds: 300); 
 
   ///The Duration X for swiping
-  static const Duration FLING_DURATION_X = Duration(milliseconds: 120); 
+  static const Duration FLING_DURATION = Duration(milliseconds: 300); 
 
   ///The Duration Y for swiping
-  static const Duration FLING_DURATION_Y = Duration(milliseconds: 200); 
+  // static const Duration FLING_DURATION = Duration(milliseconds: 120); 
 
   ///Pan delay, ratio of the pan delta
   static const double PAN_DELAY_RATIO = 0.8; 
@@ -659,7 +659,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       //Sends a callback if there is one defined
       if(widget.onStartSwipe != null) {
         if(fling == true){
-          await Future.delayed(FLING_DURATION_X);
+          await Future.delayed(FLING_DURATION);
         }
 
         widget.onStartSwipe!(startSwipeSignal);
@@ -672,7 +672,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   }
 
   void swipeRight(){
-    rightSwiper.duration = FLING_DURATION_X;
+    rightSwiper.duration = FLING_DURATION;
     rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
     // _haptic(startSwipeSignal, 1000, 1);
     widget.onSwipe!(100, 0, DismissDirection.startToEnd, true);
@@ -680,7 +680,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   }
 
   void swipeLeft(){
-    leftSwiper.duration = FLING_DURATION_X;
+    leftSwiper.duration = FLING_DURATION;
     leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
     // _haptic(startSwipeSignal, 1000, 1);
     widget.onSwipe!(-100, 0, DismissDirection.endToStart, true);
@@ -691,20 +691,42 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   DismissDirection? _flingCard(Offset velocity){
     double flingX = velocity.dx;
     double flingY = velocity.dy;
-    // print('Fling (${flingX}, ${flingY})');
+    double vectorX = flingX/sqrt(pow(flingX, 2) + pow(flingY, 2));
+    double vectorY = flingY/sqrt(pow(flingX, 2) + pow(flingY, 2));
     if(flingX.abs() > flingY.abs() && xDrag.abs() > MIN_FLING_DISTANCE || xDrag.abs() > yDrag.abs()){
-      // print('Work ${xDrag.abs() > yDrag.abs()}');
+      
       if(flingX > 0){
-        rightSwiper.duration = FLING_DURATION_X;
-        rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
+        rightSwiper.duration = FLING_DURATION;
+        // rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
+        rightSwiper.forward(from: xDrag / cardSwipeLimitX).then((value) {
+          rightSwiper.forward();
+        });
+        if(vectorY.abs() >= 0.45){
+          if(flingY > 0){
+            downSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+          }
+          else{
+            upSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+          }
+        }
         // _haptic(startSwipeSignal, 1000, 1);
         widget.onSwipe!(flingX, flingY, DismissDirection.startToEnd, true);
         swipable = false;
         return DismissDirection.startToEnd; //set signal
       }
       else{
-        leftSwiper.duration = FLING_DURATION_X;
-        leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
+        leftSwiper.duration = FLING_DURATION;
+        leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX).then((value) {
+          leftSwiper.forward();
+        }); //animate
+        if(vectorY.abs() > 0.45){
+          if(flingY > 0){
+            downSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+          }
+          else{
+            upSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+          }
+        }
         // _haptic(startSwipeSignal, 1000, 1);
         widget.onSwipe!(flingX, flingY, DismissDirection.endToStart, true);
         swipable = false;
@@ -714,16 +736,36 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     else if(yDrag.abs() > MIN_FLING_DISTANCE){
       // print('AHH ${xDrag.abs() > yDrag.abs()}');
       if(flingY > 0){
-        downSwiper.duration = FLING_DURATION_Y;
-        downSwiper.forward(from: yDrag / cardSwipeLimitY); //animate
+        downSwiper.duration = FLING_DURATION;
+        downSwiper.forward(from: yDrag / cardSwipeLimitY).then((value) {
+          downSwiper.forward();
+        }); //animate
+        if(vectorX > 0.45){
+          if(flingX > 0){
+            rightSwiper.animateTo(vectorX.abs(), duration: FLING_DURATION);
+            }
+            else{
+              leftSwiper.animateTo(vectorX.abs(), duration: FLING_DURATION);
+            }
+        }
         // _haptic(startSwipeSignal, 1000, 1);
         widget.onSwipe!(flingX, flingY, DismissDirection.down, true);
         swipable = false;
         return DismissDirection.down; //set signal
       }
       else{
-        upSwiper.duration = FLING_DURATION_Y;
-        upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY); //animate
+        upSwiper.duration = FLING_DURATION;
+        upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY).then((value) {
+          upSwiper.forward();
+        }); //animate
+        if(vectorX > 0.45){
+          if(flingX > 0){
+            rightSwiper.animateTo(vectorX, duration: FLING_DURATION);
+          }
+          else{
+            leftSwiper.animateTo(vectorX, duration: FLING_DURATION);
+          }
+        }
         // _haptic(startSwipeSignal, 1000, 1);
         widget.onSwipe!(flingX, flingY, DismissDirection.up, true);
         swipable = false;
