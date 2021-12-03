@@ -200,8 +200,6 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
       fillController.animateTo(newFill, duration: duration).then((value) {
         lockAnimation = false;
-      }).then((value) {
-          print(fillController.value);
       });
       setState(() {
         

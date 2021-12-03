@@ -420,10 +420,6 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
       ),
     ]).animate(widget.controller);
 
-    opacityAnimation.addListener(() { 
-      print(opacityAnimation.value);
-    });
-
     cubeOpacityAnimation = TweenSequence<double>([
       TweenSequenceItem<double>(
         tween: Tween<double>(begin: 0, end: 0),

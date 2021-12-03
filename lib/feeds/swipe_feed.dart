@@ -292,26 +292,21 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   Widget _loadCard(T? item, bool show, int index, bool isExpanded, Function() close) {
     if(item == null){
       lock = true;
-      return placeholder ?? SizedBox.shrink();
+      return Container(
+        key: ValueKey('SwipeFeed Placeholder Card ' + widget.objectKey(item!)),
+        child: placeholder ?? SizedBox.shrink());
     }
-    // else if(!show && widget.background != null){
-    //   return widget.background!;
-    // }
+    else if(!show && widget.background != null){
+      return Container(
+        key: ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
+        child: widget.background!
+      );
+    }
     else if(widget.childBuilder != null && item != null){
       //Builds custom child if childBuilder is defined
-      return Stack(
-        children: [
-          Positioned.fill(
-            child: widget.childBuilder!(item, index == 1, isExpanded, close)
-          ),
-          Positioned.fill(
-            child: AnimatedOpacity(
-              duration: Duration(milliseconds: 200),
-              opacity: !show && widget.background != null ? 1.0 : 0.0,
-              child: widget.background!
-            )
-          )
-        ],
+      return Container(
+        key: ValueKey('SwipeFeed Child Card ' + widget.objectKey(item)),
+        child: widget.childBuilder!(item, index == 1, isExpanded, close)
       );
     }
     else {
@@ -396,10 +391,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           onPanEnd: () {
                             // Nothing
                           },
-                          child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
-                            itemCubit.item2.emit(SwipeFeedCardState.SHOW);
-                          },
+                          child: AnimatedSwitcher(
+                            duration: Duration(milliseconds: 200),
+                            child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
+                              itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                            },
                           ),
+                        ),
                       ),
                     ),
                   ),
