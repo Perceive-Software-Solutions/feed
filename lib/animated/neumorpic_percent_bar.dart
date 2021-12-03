@@ -116,7 +116,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     cardPosition = CardPosition.Right;
     
     //Get direction
-    iconDirection = IconPosition.BOTTOM;
+    iconDirection = null;
 
     //Bind controller
     widget.controller._bind(this);
