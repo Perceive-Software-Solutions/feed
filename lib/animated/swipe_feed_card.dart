@@ -37,6 +37,7 @@ class SwipeFeedCard extends StatefulWidget {
     this.overlay,
     this.blur,
     this.onPanUpdate,
+    this.overlayMaxDuration,
     required this.icons,
     required this.swipeFeedCardController,
     required this.keyboardOpen,
@@ -48,6 +49,8 @@ class SwipeFeedCard extends StatefulWidget {
   _SwipeFeedCardState createState() => _SwipeFeedCardState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  final Map<DismissDirection, Duration>? overlayMaxDuration;
 
   final bool? swipeOverride;
 
@@ -61,7 +64,7 @@ class SwipeFeedCard extends StatefulWidget {
   final SwipeFeedController swipeFeedController;
 
   /// Overlay that comes up when [swipeAlert] is true
-  final Widget? Function(Future<void> Function(int), Future<void> Function(int), int)? overlay;
+  final Widget? Function(Future<void> Function(int, bool overlay), Future<void> Function(int), int)? overlay;
 
   /// Blur that is produced on the background card
   final Widget? blur;
@@ -94,7 +97,7 @@ class SwipeFeedCard extends StatefulWidget {
   final void Function()? onPanEnd;
 
   ///The on continue function is run when the poll card requests to be continued
-  final Future<void> Function(DismissDirection? direction)? onContinue;
+  final Future<void> Function(DismissDirection? direction, bool overlay)? onContinue;
 
   ///The child widget
   final Widget? child;
@@ -208,7 +211,16 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     iconControllers[currentIndex(direction)].maximize(true);
 
     if(widget.swipeAlert == null || widget.overlay == null || !widget.swipeAlert!(currentIndex(direction))){
-      forwardAnimation(currentIndex(direction));
+      forwardAnimation(currentIndex(direction), false);
+    }
+    else if(widget.overlayMaxDuration != null && widget.overlayMaxDuration![direction] != null){
+
+      Future.delayed(Duration(milliseconds: 500)).then((value) {
+        iconControllers[currentIndex(direction)].show(0.0);
+      });
+      Future.delayed(widget.overlayMaxDuration![direction]!).then((value) {
+        forwardAnimation(currentIndex(direction), true);
+      });
     }
   }
 
@@ -315,18 +327,16 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   }
 
   /// Forward animation
-  Future<void> forwardAnimation(int index) async{
+  Future<void> forwardAnimation(int index, bool overlay) async{
     if(mounted){
-
-      // widget.swipeFeedController.setLock(false);
-      // widget.fillController.unlockAnimation();
       fillLock = false;
-      await Future.delayed(Duration(milliseconds: 200));
-      iconControllers[index].maximize(false);
-      iconControllers[index].setMoveAnimationFinished(false);
-      widget.onContinue!(_lastSwipe);
-      _lastSwipe = null;
-      widget.onDismiss!();
+      Future.delayed(Duration(milliseconds: 200)).then((value) {
+        iconControllers[index].maximize(false);
+        iconControllers[index].setMoveAnimationFinished(false);
+        widget.onContinue!(_lastSwipe, overlay);
+        _lastSwipe = null;
+        widget.onDismiss!();
+      });
     }
   }
 

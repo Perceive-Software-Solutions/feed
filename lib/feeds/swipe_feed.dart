@@ -33,11 +33,14 @@ class SwipeFeed<T> extends StatefulWidget {
     this.duration,
     this.placeholder,
     this.canExpand,
-    this.style
+    this.style,
+    this.overlayMaxDuration
   }): super(key: key);
 
   @override
   _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
+
+  final Map<DismissDirection, Duration>? overlayMaxDuration;
 
   final bool Function(T)? canExpand;
 
@@ -46,7 +49,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final String Function(T item) objectKey;
 
   /// The overlay to be shown
-  final Widget Function(Future<void> Function(int), Future<void> Function(int), int, T)? overlayBuilder;
+  final Widget Function(Future<void> Function(int, bool overlay), Future<void> Function(int), int, T)? overlayBuilder;
 
   /// If the overlay should be shown
   final bool Function(int)? swipeAlert;
@@ -175,10 +178,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     lock = newLock;
   }
   
-  void _removeCard(){
+  void _removeCard(bool overlay){
     swipeFeedCardControllers.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
-    Future.delayed(Duration(milliseconds: 400, seconds: 1)).then((value){
+
+    Future.delayed(Duration(seconds: 1)).then((value){
       if(cubit.state.length >= 2) {
         cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
       }
@@ -290,12 +294,25 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       lock = true;
       return placeholder ?? SizedBox.shrink();
     }
-    else if(!show && widget.background != null){
-      return widget.background!;
-    }
+    // else if(!show && widget.background != null){
+    //   return widget.background!;
+    // }
     else if(widget.childBuilder != null && item != null){
       //Builds custom child if childBuilder is defined
-      return widget.childBuilder!(item, index == 1, isExpanded, close);
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: widget.childBuilder!(item, index == 1, isExpanded, close)
+          ),
+          Positioned.fill(
+            child: AnimatedOpacity(
+              duration: Duration(milliseconds: 200),
+              opacity: !show && widget.background != null ? 1.0 : 0.0,
+              child: widget.background!
+            )
+          )
+        ],
+      );
     }
     else {
       throw ('T is not supported by Feed');
@@ -340,6 +357,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                         opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
                         child: SwipeFeedCard(
                           swipeOverride: itemCubit.item1 != null,
+                          overlayMaxDuration: widget.overlayMaxDuration,
                           icons: widget.icons,
                           swipeFeedController: widget.controller,
                           fillController: fillController,
@@ -361,11 +379,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                             fillBar(fill, iconPosition, cardPosition, overrideLock);
                           },
 
-                          onContinue: itemCubit.item1 != null ? (dir) async {
+                          onContinue: itemCubit.item1 != null ? (dir, overlay) async {
                             if(widget.onContinue != null){
                               await widget.onContinue!(dir!, itemCubit.item1!);
                             }
-                            _removeCard();
+                            _removeCard(overlay);
                           } : null,
                           onDismiss: (){
                             // Nothing

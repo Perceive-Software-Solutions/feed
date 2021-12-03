@@ -82,12 +82,13 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 padding: const EdgeInsets.only(top: 57 + 16, left: 8, right: 8, bottom: 49 + 13),
                 duration: const Duration(milliseconds: 300),
                 controller: feedController,
+                overlayMaxDuration: const {DismissDirection.endToStart: Duration(seconds: 3), DismissDirection.startToEnd: Duration(seconds: 3)},
                 loader: loadItems,
                 objectKey: (item){
                   return item.hashCode.toString();
                 },
                 swipeAlert: (index){
-                  return false;
+                  return true;
                 },
                 canExpand: (item){
                   return true;
@@ -100,7 +101,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     child: MaterialButton(
                       child: Text(item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
                       onPressed: (){
-                        reverseAnimation(index);
+                        forwardAnimation(index, true);
                       }
                     )
                   );

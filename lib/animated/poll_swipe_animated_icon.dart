@@ -16,15 +16,15 @@ class PollPageAnimatedIcon extends StatefulWidget {
     Key? key, 
     this.controller,
     required this.position, this.child, this.onContinue, 
-    required this.icons
+    required this.icons,
   }): assert(icons.length == 3),
       super(key: key);
 
   @override
   _PollPageAnimatedIconState createState() => _PollPageAnimatedIconState();
 
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
   ///Controls the animation flow for this widget
   final PollPageAnimatedIconController? controller;
 
