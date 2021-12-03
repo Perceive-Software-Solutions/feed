@@ -293,19 +293,19 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     if(item == null){
       lock = true;
       return Container(
-        key: ValueKey('SwipeFeed Placeholder Card ' + widget.objectKey(item!)),
+        key: item == null ? UniqueKey() : ValueKey('SwipeFeed Placeholder Card ' + widget.objectKey(item)),
         child: placeholder ?? SizedBox.shrink());
     }
     else if(!show && widget.background != null){
       return Container(
-        key: ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
+        key: item == null ? UniqueKey() : ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
         child: widget.background!
       );
     }
     else if(widget.childBuilder != null && item != null){
       //Builds custom child if childBuilder is defined
       return Container(
-        key: ValueKey('SwipeFeed Child Card ' + widget.objectKey(item)),
+        key: item == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + widget.objectKey(item)),
         child: widget.childBuilder!(item, index == 1, isExpanded, close)
       );
     }
