@@ -182,7 +182,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     swipeFeedCardControllers.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
 
-    Future.delayed(Duration(seconds: 1)).then((value){
+    Future.delayed(Duration(milliseconds: overlay ? 200 : 1000)).then((value){
       if(cubit.state.length >= 2) {
         cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
       }

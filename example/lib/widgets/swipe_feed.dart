@@ -91,7 +91,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                   return item.hashCode.toString();
                 },
                 swipeAlert: (index){
-                  return true;
+                  return false;
                 },
                 canExpand: (item){
                   return true;
