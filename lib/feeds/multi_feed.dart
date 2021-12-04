@@ -173,7 +173,7 @@ class _MultiFeedState extends State<MultiFeed> {
 
     //Sets the state variables for each feed index
     pending = List<List>.generate(_feedCount, (i) => []);
-    sizes = List<int>.generate(_feedCount, (i) => (loadSize/2).floor());
+    sizes = List<int>.generate(_feedCount, (i) => 0);
     tokens = List<String?>.generate(_feedCount, (i) => null);
     loading = List<bool>.generate(_feedCount, (i) => false);
     loadMore = List<bool>.generate(_feedCount, (index) => true);
@@ -183,6 +183,10 @@ class _MultiFeedState extends State<MultiFeed> {
 
     //Loads the innitial set of items
     _refresh(feedIndex, false);
+  }
+
+  int sizeAtIndex(int index){
+    return itemsCubit[index].state.length;
   }
 
   @override
@@ -305,6 +309,7 @@ class _MultiFeedState extends State<MultiFeed> {
 
       if(loadedItems.length < loadSize){
         loadMore[feedIndex] = false;
+        setState(() {});
       }
 
       await _incrementallyAddItems(newItems, feedIndex);
@@ -358,9 +363,12 @@ class _MultiFeedState extends State<MultiFeed> {
 
         if(loadedItems.length < newSize){
           loadMore[feedIndex] = false;
+          setState(() {});
         }
 
         await _incrementallyAddItems(newItems, feedIndex);
+
+
 
         //Set the loading to false
         loading[feedIndex] = false;
@@ -371,14 +379,34 @@ class _MultiFeedState extends State<MultiFeed> {
     }
   }
 
+  Widget wrapperBuilder({required BuildContext context, required Widget child, required int index}){
+    if(widget.wrapper != null){
+      return widget.wrapper!(context, child, index);
+    }
+    return child;
+  }
+
+  void addItem(dynamic item, int index){
+    List addNewItem = [item, ...itemsCubit[index].state];
+    itemsCubit[index].emit(addNewItem);
+  }
+
   ///Builds the tabs used in the custom scroll view
   List<Widget> _loadTabs() {
     List<Widget> tabs = <Widget>[];
     for (int j = 0; j < widget.loaders.length; j++) {
 
-      if (sizes[j] == 0) {
+      if (sizes[j] == 0 && !loadMore[j]) {
         tabs.add(widget.placeHolders![j]);
-      } else {
+      } 
+      else if(sizes[j] == 0){
+        tabs.add(wrapperBuilder(
+          context: context,
+          child: SizedBox.shrink(),
+          index: j
+        ));
+      }
+      else {
         tabs.add(
           KeepAliveWidget(
             child: FeedListView(
@@ -514,6 +542,9 @@ class MultiFeedController extends ChangeNotifier {
 
   ///Reloads the feed state based on the original size parameter
   void reload(int index) => _state!._refresh(index);
+
+  ///Adds an item to the beginning of the stated multi feed
+  void addItem(dynamic item, int index) => _state!.addItem(item, index);
 
   ///Reloads the feed state based on the original size parameter
   ScrollController? scrollControllerAtIndex(int index) => _scrollControllers![index];

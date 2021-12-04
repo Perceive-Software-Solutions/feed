@@ -69,10 +69,31 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
               ],
             );
           },
+          placeHolders: <Widget>[
+            Container(
+              height: 300,
+              width: 300,
+              color: Colors.blue,
+              child: const Text("First Page", style: TextStyle(fontSize: 70, color: Colors.black,))
+            ),
+            Container(
+              height: 300,
+              width: 300,
+              color: Colors.blue,
+              child: const Text("First Page", style: TextStyle(fontSize: 70, color: Colors.black,))
+            ),
+            Container(
+              height: 300,
+              width: 300,
+              color: Colors.blue,
+              child: const Text("First Page", style: TextStyle(fontSize: 70, color: Colors.black,))
+            ),
+          ],
           //Loaders defined to retreive data for each index in the feed
           loaders: List.filled(3, (int size, [String? token]) async {
+            await Future.delayed(const Duration(seconds: 5));
             int index = int.parse(token ?? '0');
-            return Tuple2(List.generate(size, (i) => i + index), (index + size).toString());
+            return Tuple2([], null);
           }),
             //item builder for each element of the feed dependant on the data from ther loaders
           childBuilder: (item, isLast) {
