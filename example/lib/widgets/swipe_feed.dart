@@ -21,6 +21,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
   }
 
   Future<Tuple2<List<dynamic>, String?>> loadItems(int size, [String? token]) async {
+    await Future.delayed(const Duration(seconds: 1));
     return const Tuple2(['Testing1', 'Testing2', 'Testing3'], null);
   }
 
@@ -168,15 +169,15 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     }
                   }
                 },
-                placeholder: Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.amber, width: 3)
-                    ),
-                  )
-                ),
+                // placeholder: Center(
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //       color: Colors.green,
+                //       borderRadius: BorderRadius.circular(16),
+                //       border: Border.all(color: Colors.amber, width: 3)
+                //     ),
+                //   )
+                // ),
               ),
             ),
           ],

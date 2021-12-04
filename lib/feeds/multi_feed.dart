@@ -496,7 +496,7 @@ class MultiFeedController extends ChangeNotifier {
         debugLabel: debugLabels?.elementAt(index) ?? 'SimpleMultiFeedScrollController-' + UniqueKey().toString() + '$index',
         initialScrollOffset: initialOffsets?.elementAt(index) ?? 0.0,
         keepScrollOffset: keepScrollOffsets?.elementAt(index) ?? true
-      ))
+      )),
     );
   }
 
@@ -508,6 +508,9 @@ class MultiFeedController extends ChangeNotifier {
 
   ///Retreives the list of items from the feed
   List list(index) => _state!.itemsCubit[index].state;
+
+  ///Retreives the list of items from the feed
+  bool hasMore(index) => _state!.loadMore[index];
 
   ///Reloads the feed state based on the original size parameter
   void reload(int index) => _state!._refresh(index);
