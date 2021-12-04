@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:feed/feeds/swipe_feed.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
@@ -95,16 +97,21 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                   return true;
                 },
                 overlayBuilder: (forwardAnimation, reverseAnimation, index, item){
-                  return Container(
-                    height: 300,
-                    width: 300,
-                    color: Colors.black,
-                    child: MaterialButton(
-                      child: Text(item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
-                      onPressed: (){
-                        forwardAnimation(index, true);
-                      }
-                    )
+                  List colors = [Colors.red, Colors.green, Colors.yellow, Colors.red, Colors.yellow, Colors.indigo];
+                  Random random = new Random();
+                  return Padding(
+                    padding: EdgeInsets.only(left: 100*index.toDouble()),
+                    child: Container(
+                      height: 300,
+                      width: 300,
+                      color: colors[random.nextInt(6)],
+                      child: MaterialButton(
+                        child: Text(item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)),
+                        onPressed: (){
+                          forwardAnimation(index, true);
+                        }
+                      )
+                    ),
                   );
                 },
                 background: Container(

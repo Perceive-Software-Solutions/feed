@@ -17,6 +17,8 @@ class PollPageAnimatedIcon extends StatefulWidget {
     this.controller,
     required this.position, this.child, this.onContinue, 
     required this.icons,
+    required this.show,
+    this.index = 0
   }): assert(icons.length == 3),
       super(key: key);
 
@@ -24,6 +26,10 @@ class PollPageAnimatedIcon extends StatefulWidget {
   _PollPageAnimatedIconState createState() => _PollPageAnimatedIconState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  final int index;
+
+  final bool show;
   
   ///Controls the animation flow for this widget
   final PollPageAnimatedIconController? controller;
@@ -69,6 +75,10 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   static bool moveAnimationFinished = false;
 
   double opacity = 1.0;
+
+  static int? currentIndex;
+
+  static bool ignoring = true;
 
 
 
@@ -126,6 +136,8 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
   void initState() {
     super.initState();
 
+    // currentIndex = null;
+
     //Initialize the show opacity animation
     showAnimation = AnimationController(
       vsync: this,
@@ -170,8 +182,10 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
         overlayAnimationScale.animateTo(1.0, duration: Duration(milliseconds: 200));
         moveAnimationFinished = true;
         setState(() {});
+        setIgnore();
       }
       if(moveAnimation.value == 0.07){
+        // currentIndex = null;
         moveAnimationFinished = false;
       }
     });
@@ -213,16 +227,24 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
     }
   }
 
+  void setIgnore() {
+    ignoring = false;
+    setState(() {});
+  }
+
   ///Updates moving the icon
-  void maximize(bool move){
+  void maximize(bool move, int index){
     this.move = move;
     if(move){
+      currentIndex = index;
       showAnimation.animateTo(1.0, duration: Duration(milliseconds: 0));
       moveAnimation.forward(from: moveAnimation.value);
     }
     else{
+      currentIndex = null;
       moveAnimationFinished = false;
       overlayAnimationScale.animateTo(0.8, duration: Duration(milliseconds: 200));
+      show(0.0);
     }
     if(mounted){
       setState(() {});
@@ -245,8 +267,11 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
             scale: overlayAnimationScale,
             child: AnimatedOpacity(
             duration: Duration(milliseconds: 200),
-            opacity: moveAnimationFinished ? 1.0 : 0.0,
-            child: widget.child ?? Container(),
+            opacity: moveAnimationFinished && widget.index == currentIndex ? 1.0 : 0.0,
+            child: IgnorePointer(
+              ignoring: ignoring ? true : widget.index != currentIndex ? true : false,
+              child: widget.child ?? Container()
+            ),
           )
         );
       },
@@ -348,7 +373,7 @@ class PollPageAnimatedIconController extends ChangeNotifier {
   void move([double move = 1.0]) => _retreiveState((s) => s.moveIcon(move));
 
   ///Updates the maximization of the icon
-  void maximize([bool move = true]) => _retreiveState((s) => s.maximize(move));
+  void maximize(int index, [bool move = true]) => _retreiveState((s) => s.maximize(move, index));
 
   void setMoveAnimationFinished(bool value) => _retreiveState((s) => s.setMoveAnimationFinished(value));
 

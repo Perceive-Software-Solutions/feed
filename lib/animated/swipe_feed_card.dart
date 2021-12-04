@@ -134,6 +134,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
   Widget get blur => widget.blur == null ? Container() : widget.blur!;
 
+  static bool isAnimating = false;
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Lifecycle ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   @override
@@ -208,7 +210,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     }
 
     // Call Finish icon animation
-    iconControllers[currentIndex(direction)].maximize(true);
+    iconControllers[currentIndex(direction)].maximize(currentIndex(direction), true);
 
     if(widget.swipeAlert == null || widget.overlay == null || !widget.swipeAlert!(currentIndex(direction))){
       forwardAnimation(currentIndex(direction), false);
@@ -219,7 +221,9 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         iconControllers[currentIndex(direction)].show(0.0);
       });
       Future.delayed(widget.overlayMaxDuration![direction]!).then((value) {
-        forwardAnimation(currentIndex(direction), true);
+        if(!fillLock){
+          forwardAnimation(currentIndex(direction), true);
+        }
       });
     }
   }
@@ -328,14 +332,18 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
   /// Forward animation
   Future<void> forwardAnimation(int index, bool overlay) async{
-    if(mounted){
+    if(mounted && !isAnimating){
       fillLock = false;
+      isAnimating = true;
+      iconControllers[index].maximize(index, false);
       Future.delayed(Duration(milliseconds: 200)).then((value) {
-        iconControllers[index].maximize(false);
         iconControllers[index].setMoveAnimationFinished(false);
         widget.onContinue!(_lastSwipe, overlay);
         _lastSwipe = null;
         widget.onDismiss!();
+      });
+      Future.delayed(Duration(milliseconds: 1000)).then((value) {
+        isAnimating = false;
       });
     }
   }
@@ -345,7 +353,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     if(mounted){
       widget.swipeFeedController.setLock(false);
       // widget.fillController.unlockAnimation();
-      iconControllers[index].maximize(false);
+      iconControllers[index].maximize(index, false);
       widget.onDismiss!();
       swipeController.setSwipe(true);
       _lastSwipe = null;
@@ -367,6 +375,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       icons: widget.icons,
       controller: iconControllers[index],
       position: IconPosition.values[index],
+      show: widget.show,
+      index: index,
       child: child,
     );
   }
