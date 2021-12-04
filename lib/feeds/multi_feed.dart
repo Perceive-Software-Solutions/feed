@@ -397,14 +397,12 @@ class _MultiFeedState extends State<MultiFeed> {
     for (int j = 0; j < widget.loaders.length; j++) {
 
       if (sizes[j] == 0 && !loadMore[j]) {
-        tabs.add(widget.placeHolders![j]);
-      } 
-      else if(sizes[j] == 0){
-        tabs.add(wrapperBuilder(
-          context: context,
-          child: SizedBox.shrink(),
-          index: j
-        ));
+        if(widget.placeHolders != null && j < widget.placeHolders!.length && widget.placeHolders![j] != null){
+          tabs.add(widget.placeHolders![j]);
+        }
+        else{
+          tabs.add(SizedBox());
+        }
       }
       else {
         tabs.add(

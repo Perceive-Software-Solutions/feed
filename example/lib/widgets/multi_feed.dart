@@ -82,12 +82,12 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
               color: Colors.blue,
               child: const Text("First Page", style: TextStyle(fontSize: 70, color: Colors.black,))
             ),
-            Container(
-              height: 300,
-              width: 300,
-              color: Colors.blue,
-              child: const Text("First Page", style: TextStyle(fontSize: 70, color: Colors.black,))
-            ),
+            // Container(
+            //   height: 300,
+            //   width: 300,
+            //   color: Colors.blue,
+            //   child: const Text("First Page", style: TextStyle(fontSize: 70, color: Colors.black,))
+            // ),
           ],
           //Loaders defined to retreive data for each index in the feed
           loaders: List.filled(3, (int size, [String? token]) async {

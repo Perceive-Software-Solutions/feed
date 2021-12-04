@@ -180,9 +180,6 @@ class _FeedListViewState extends State<FeedListView> {
                 if(widget.headerBuilder != null)
                   widget.headerBuilder!(context),
 
-                if(items.isEmpty)
-                  Center(child: loading),
-
                 Expanded(
                   child: SingleChildScrollView(
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
