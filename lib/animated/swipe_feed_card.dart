@@ -419,7 +419,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     return Transform.scale(
       scale: widget.iconScale ?? 1,
       child: Padding(
-        padding: widget.iconPadding ?? EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((1.0 - SwipeCard.CARD_MINIMIZE_SCALE) * widget.heightOfCard!/2) : 47, bottom: 5),
+        padding: widget.iconPadding ?? EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((widget.heightOfCard! - 84)/2) : 47, bottom: 5),
         child: hide,
       ),
     );
@@ -487,7 +487,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       builder: (context, value, child) {
         return AnimatedPadding(
           duration: Duration(milliseconds: 200),
-          padding: widget.show == false ? const EdgeInsets.only(top: 74, bottom: 10, left: 8, right: 8) : EdgeInsets.zero,
+          padding: widget.show == false ? const EdgeInsets.only(top: 74, bottom: 11, left: 8, right: 8) : EdgeInsets.zero,
           child: swipeCard,
         );
       },

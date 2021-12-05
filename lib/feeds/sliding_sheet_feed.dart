@@ -1,6 +1,8 @@
 import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 
 /// Uses package [SlidingSheet] and widget [MultiFeed]
@@ -55,10 +57,10 @@ class SlidingSheetFeed extends StatefulWidget {
   final double expandedExtent;
 
   /// Header of the sheet
-  final Widget header;
+  final Widget Function(BuildContext context, dynamic pageObject)? header;
 
   /// Footer of the sheet
-  final Widget footer;
+  final Widget Function(BuildContext context, dynamic pageObject)? footer;
 
   /// Disables scrolling the sheet
   final bool disableSheetScroll;
@@ -129,8 +131,8 @@ class SlidingSheetFeed extends StatefulWidget {
     this.closeOnBackdropTap = true,
     this.extendBody = true,
     this.color = Colors.transparent,
-    this.header = const SizedBox.shrink(),
-    this.footer = const SizedBox.shrink(),
+    this.header,
+    this.footer,
     this.disableSheetScroll = false,
     this.headerSliver,
     this.lengthFactor,
@@ -157,6 +159,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
 
+  late ConcreteCubit<dynamic> pageObject = ConcreteCubit<dynamic>(null);
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -172,8 +176,14 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
     }
   }
 
-  Future<dynamic> pushPage(Widget page) {
+  Future<dynamic> pushPage(Widget page, [dynamic pageObj]) {
+    pageObject.emit(pageObj);
     return key.currentState!.push(MaterialPageRoute(builder: (context) => page,));
+  }
+
+  void popPage(){
+    key.currentState!.pop(pageObject);
+    pageObject.emit(null);
   }
 
   @override
@@ -193,7 +203,12 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       ),
       listener: sheetStateListener,
       headerBuilder: (context, state){
-        return widget.header;
+        return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+          bloc: pageObject,
+          builder: (context, obj) {
+            return widget.header!(context, obj);
+          }
+        ) : SizedBox.shrink();
       },
       customBuilder: (context, controller, state){
         return SingleChildScrollView(
@@ -233,7 +248,12 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         );
       },
       footerBuilder: (context, state){
-        return widget.footer;
+        return widget.footer != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+          bloc: pageObject,
+          builder: (context, obj) {
+            return widget.footer!(context, obj);
+          }
+        ) : SizedBox.shrink();
       },
     );
   }
@@ -280,7 +300,11 @@ class SlidingSheetFeedController extends ChangeNotifier {
     );
   }
 
-  Future<dynamic> push(Widget page) => _state!.pushPage(page);
+
+
+  Future<dynamic> push(Widget page, [dynamic pageObj]) => _state!.pushPage(page, pageObj);
+
+  void pop() => _state!.popPage();
 
   ///Binds the feed state
   void _bind(_SlidingSheetFeedState bind) => _state = bind;
