@@ -40,6 +40,8 @@ class SwipeFeedCard extends StatefulWidget {
     this.overlayMaxDuration,
     this.heightOfCard,
     this.lowerBound,
+    this.iconScale,
+    this.iconPadding,
     required this.icons,
     required this.swipeFeedCardController,
     required this.keyboardOpen,
@@ -51,6 +53,10 @@ class SwipeFeedCard extends StatefulWidget {
   _SwipeFeedCardState createState() => _SwipeFeedCardState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  final double? iconScale;
+
+  final EdgeInsets? iconPadding;
 
   final double? heightOfCard;
 
@@ -411,9 +417,9 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   //Creates an hideen widget
   Widget _minimize(Widget hide){
     return Transform.scale(
-      scale: 1,
+      scale: widget.iconScale ?? 1,
       child: Padding(
-        padding: EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((1.0 - SwipeCard.CARD_MINIMIZE_SCALE) * widget.heightOfCard!/2) : 47, bottom: 5),
+        padding: widget.iconPadding ?? EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((1.0 - SwipeCard.CARD_MINIMIZE_SCALE) * widget.heightOfCard!/2) : 47, bottom: 5),
         child: hide,
       ),
     );

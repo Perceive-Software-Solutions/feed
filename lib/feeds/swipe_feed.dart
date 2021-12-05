@@ -37,11 +37,17 @@ class SwipeFeed<T> extends StatefulWidget {
     this.style,
     this.overlayMaxDuration,
     this.lowerBound,
-    this.heightOfCard
+    this.heightOfCard,
+    this.iconScale,
+    this.iconPadding,
   }): super(key: key);
 
   @override
   _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
+
+  final double? iconScale;
+
+  final EdgeInsets? iconPadding;
 
   final EdgeInsets? percentBarPadding;
 
@@ -360,6 +366,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                       child: Opacity(
                         opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
                         child: SwipeFeedCard(
+                          iconPadding: widget.iconPadding,
+                          iconScale: widget.iconScale,
                           swipeOverride: itemCubit.item1 != null,
                           overlayMaxDuration: widget.overlayMaxDuration,
                           icons: widget.icons,
