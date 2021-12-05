@@ -432,7 +432,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           
         //Percent bar displaying current vote
         Padding(
-          padding: widget.percentBarPadding ?? EdgeInsets.only(left: 8 + padding.left, right: 8 + padding.right, top: padding.top, bottom: padding.top),
+          padding: widget.percentBarPadding ?? EdgeInsets.only(left: 8 + padding.left, right: 8 + padding.right, top: padding.top + 6, bottom: padding.top),
           child: KeepAliveWidget(
             key: Key('PollPage - Bar - KeepAlive'),
             child: NeumorpicPercentBar(

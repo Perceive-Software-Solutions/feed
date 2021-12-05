@@ -411,7 +411,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   //Creates an hideen widget
   Widget _minimize(Widget hide){
     return Transform.scale(
-      scale: SwipeCard.CARD_MINIMIZE_SCALE,
+      scale: 1,
       child: Padding(
         padding: EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((1.0 - SwipeCard.CARD_MINIMIZE_SCALE) * widget.heightOfCard!/2) : 47, bottom: 5),
         child: hide,
@@ -481,11 +481,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       builder: (context, value, child) {
         return AnimatedPadding(
           duration: Duration(milliseconds: 200),
-          padding: widget.show == false ? const EdgeInsets.only(top: 74, bottom: 8, left: 8, right: 8) : EdgeInsets.zero,
-          child: Container(
-            height: widget.heightOfCard! * value,
-            child: swipeCard,
-          ),
+          padding: widget.show == false ? const EdgeInsets.only(top: 74, bottom: 10, left: 8, right: 8) : EdgeInsets.zero,
+          child: swipeCard,
         );
       },
       child: swipeCard,
