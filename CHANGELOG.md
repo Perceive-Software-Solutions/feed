@@ -1,3 +1,7 @@
+## [0.2.31] v0.2.31
+
+* Added `SlidingSheetFeedController` to control pushing a page on the `SlidingSheetFeed`.
+
 ## [0.2.15] v0.2.15
 
 * Hotfix for multifeed page view error
