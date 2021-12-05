@@ -18,6 +18,7 @@ class PollPageAnimatedIcon extends StatefulWidget {
     required this.position, this.child, this.onContinue, 
     required this.icons,
     required this.show,
+    this.lowerBound,
     this.index = 0
   }): assert(icons.length == 3),
       super(key: key);
@@ -30,6 +31,8 @@ class PollPageAnimatedIcon extends StatefulWidget {
   final int index;
 
   final bool show;
+
+  final double? lowerBound;
   
   ///Controls the animation flow for this widget
   final PollPageAnimatedIconController? controller;
@@ -148,8 +151,8 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
     //Initialize the move animation
     moveAnimation = AnimationController(
       vsync: this,
-      value: 0.07,
-      lowerBound: 0.07,
+      value: widget.lowerBound ?? 0.07,
+      lowerBound: widget.lowerBound ?? 0.07,
       duration: Duration(milliseconds: 600)
     );
 

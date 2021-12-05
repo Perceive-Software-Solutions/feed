@@ -38,6 +38,8 @@ class SwipeFeedCard extends StatefulWidget {
     this.blur,
     this.onPanUpdate,
     this.overlayMaxDuration,
+    this.heightOfCard,
+    this.lowerBound,
     required this.icons,
     required this.swipeFeedCardController,
     required this.keyboardOpen,
@@ -49,6 +51,10 @@ class SwipeFeedCard extends StatefulWidget {
   _SwipeFeedCardState createState() => _SwipeFeedCardState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  final double? heightOfCard;
+
+  final double? lowerBound;
 
   final Map<DismissDirection, Duration>? overlayMaxDuration;
 
@@ -407,7 +413,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     return Transform.scale(
       scale: SwipeCard.CARD_MINIMIZE_SCALE,
       child: Padding(
-        padding: const EdgeInsets.only(top: 47, bottom: 5),
+        padding: EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((1.0 - SwipeCard.CARD_MINIMIZE_SCALE) * widget.heightOfCard!/2) : 47, bottom: 5),
         child: hide,
       ),
     );
