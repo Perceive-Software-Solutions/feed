@@ -68,9 +68,6 @@ class MultiFeed extends StatefulWidget {
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ///Page that can be pushed ontop of the single-multi feed
-  final Widget? page;
-
   const MultiFeed(
       {Key? key,
       required this.loaders,
@@ -90,8 +87,7 @@ class MultiFeed extends StatefulWidget {
       this.condition = false, 
       this.disableScroll, 
       this.headerBuilder,
-      this.wrapper,
-      this.page})
+      this.wrapper})
       : assert(childBuilders == null || childBuilders.length == loaders.length),
         assert(controller == null || controller.length == loaders.length),
         super(key: key);
@@ -413,7 +409,6 @@ class _MultiFeedState extends State<MultiFeed> {
               itemsCubit: itemsCubit[j],
               disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
               footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
-              page: widget.page,
               wrapper: widget.wrapper == null ? null : (BuildContext context, Widget child){
                 return widget.wrapper!(context, child, j);
               },

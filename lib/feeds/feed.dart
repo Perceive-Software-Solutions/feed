@@ -45,9 +45,6 @@ class Feed extends StatefulWidget {
 
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  /// Page that can be pushed on top of the single feed
-  final Widget? page;
-
   const Feed({ 
     Key? key,
       required this.loader,
@@ -63,8 +60,7 @@ class Feed extends StatefulWidget {
       this.condition = false, 
       this.headerBuilder,
       this.disableScroll,
-      this.page})
-      : super(key: key);
+    }) : super(key: key);
 
   @override
   _FeedState createState() => _FeedState();
@@ -266,7 +262,6 @@ class _FeedState extends State<Feed> {
           itemsCubit: itemsCubit,
           disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
           footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
-          page: widget.page,
           onLoad: (){
             // print(loadMore[j]);
             if(loading == false && loadMore == true) {

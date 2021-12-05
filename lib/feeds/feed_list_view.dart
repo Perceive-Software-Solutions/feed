@@ -44,10 +44,6 @@ class FeedListView extends StatefulWidget {
   ///The header builder
   final Widget Function(BuildContext context)? headerBuilder;
 
-  //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  final Widget? page;
-
   const FeedListView({ 
     Key? key, 
     required this.sheetController,
@@ -60,7 +56,6 @@ class FeedListView extends StatefulWidget {
     this.headerBuilder, 
     this.wrapper, 
     this.loading,
-    this.page
   }) : super(key: key);
 
   @override
@@ -189,17 +184,7 @@ class _FeedListViewState extends State<FeedListView> {
                       child: Column(
                         children: [
                           for (var i = 0; i < items.length; i++)
-                            GestureDetector(
-                              child: _buildChild(items, i),
-                              onTap: widget.page != null ? (){
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => widget.page!
-                                  ),
-                                );
-                              } : null,
-                            ),
+                            _buildChild(items, i),
                         ],
                       ),
                     ),

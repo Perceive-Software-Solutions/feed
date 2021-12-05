@@ -17,23 +17,18 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Controller for the slidingSheet
-  late SheetController sheetController;
-
-  ///Controller for the multifeed
-  late MultiFeedController feedController;
+  late SlidingSheetFeedController sheetController;
 
   @override
   void initState(){
     super.initState();
-    sheetController = SheetController();
-
-    //Initialize the feed controller
-    feedController = MultiFeedController(
+    sheetController = SlidingSheetFeedController(
       pageCount: 3,
       initialPage: 1,
       keepPage: true,
       vsync: this
     );
+
   }
 
   void sheetStateListener(SheetState state){
@@ -125,8 +120,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
   Widget build(BuildContext context) {
     return SlidingSheetFeed(
       //Controllers
-      sheetController: sheetController,
-      controller: feedController,
+      controller: sheetController,
       //Params
       color: Colors.white,
       closeOnBackButtonPressed: true,
@@ -146,11 +140,15 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
         return headerBuilder();
       },
       childBuilder: (item, isLast) {
-        return childBuilder(item);
+        return GestureDetector(
+          onTap: (){
+            sheetController.push(MultiFeedExample(sheetController: sheetController.sheetController));
+          },
+          child: childBuilder(item)
+        );
       },
       
       //Widgets
-      page: MultiFeedExample(sheetController: sheetController),
       wrapper: wrapper,
     );
   }

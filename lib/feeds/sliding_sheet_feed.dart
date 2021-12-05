@@ -8,10 +8,10 @@ import 'package:sliding_sheet/sliding_sheet.dart';
 /// *** The sliding of the list relative to the sliding sheet can not currently be 
 class SlidingSheetFeed extends StatefulWidget {
 
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Sliding Sheet ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  /// Cintroller for the sheet and the multi feed within
+  final SlidingSheetFeedController controller;
 
-  /// Bounded to the sliding sheet
-  final SheetController sheetController;
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Sliding Sheet ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   /// Corner radius when it is not fully expanded
   /// Default 32.0
@@ -67,9 +67,6 @@ class SlidingSheetFeed extends StatefulWidget {
 
   /// Loader for the feed
   final List<FeedLoader> loaders;
-  
-    /// State of the feed
-  final MultiFeedController controller;
 
   /// Sliver header of the feed
   final List<Widget>? headerSliver;
@@ -118,12 +115,8 @@ class SlidingSheetFeed extends StatefulWidget {
 
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  /// Page that can be pushed on top of the [SlidingSheet]
-  final Widget? page;
-
   const SlidingSheetFeed({ 
     Key? key,
-    required this.sheetController,
     required this.loaders,
     required this.controller,
     this.minExtent = 0.0,
@@ -154,7 +147,6 @@ class SlidingSheetFeed extends StatefulWidget {
     this.disableScroll, 
     this.headerBuilder,
     this.wrapper,
-    this.page
   }) : super(key: key);
 
   @override
@@ -165,6 +157,13 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    widget.controller._bind(this);
+  }
+
   void sheetStateListener(SheetState state){
     if(state.extent == 0.0){
       if(Navigator.canPop(context)){
@@ -173,10 +172,14 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
     }
   }
 
+  Future<dynamic> pushPage(Widget page) {
+    return key.currentState!.push(MaterialPageRoute(builder: (context) => page,));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SlidingSheet(
-      controller: widget.sheetController,
+      controller: widget.controller.sheetController,
       color: widget.color,
       closeOnBackButtonPressed: widget.closeOnBackButtonPressed,
       closeOnBackdropTap: widget.closeOnBackdropTap, //Closes the page when the sheet reaches the bottom
@@ -204,13 +207,13 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                 settings: settings,
                 builder: (context){
                   return MultiFeed(
-                    sheetController: widget.sheetController,
+                    sheetController: widget.controller.sheetController,
                     loaders: widget.loaders,
                     headerSliver: widget.headerSliver,
                     lengthFactor: widget.lengthFactor,
                     innitalLength: widget.innitalLength,
                     onRefresh: widget.onRefresh,
-                    controller: widget.controller,
+                    controller: widget.controller.multifeedController,
                     footerSliver: widget.footerSliver,
                     childBuilders: widget.childBuilders,
                     childBuilder: widget.childBuilder,
@@ -222,7 +225,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                     disableScroll: widget.disableScroll,
                     headerBuilder: widget.headerBuilder,
                     wrapper: widget.wrapper,
-                    page: widget.page,
                   );
                 }
               ),
@@ -234,5 +236,68 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         return widget.footer;
       },
     );
+  }
+}
+
+///Controller for the simple multi feed. 
+///Holds a nested Page, Tab and Scroll controllers
+class SlidingSheetFeedController extends ChangeNotifier {
+  late _SlidingSheetFeedState? _state;
+
+  /// Bounded to the sliding sheet
+  final SheetController sheetController;
+
+  /// State of the feed
+  final MultiFeedController multifeedController;
+
+  ///Private constructor
+  SlidingSheetFeedController._(this.sheetController, this.multifeedController);
+
+  ///Default constuctor
+  ///Creates the nested controllers
+  factory SlidingSheetFeedController({
+    required int pageCount,
+    int initialPage = 0,
+    bool keepPage = true,
+    double viewportFraction = 1.0,
+    TickerProvider? vsync,
+    List<double>? initialOffsets,
+    List<bool>? keepScrollOffsets,
+    List<String>? debugLabels
+  }){
+    return SlidingSheetFeedController._(
+      SheetController(),
+      MultiFeedController(
+        pageCount: pageCount,
+        initialPage: initialPage,
+        keepPage: keepPage,
+        viewportFraction: viewportFraction,
+        vsync: vsync,
+        initialOffsets: initialOffsets,
+        keepScrollOffsets: keepScrollOffsets,
+        debugLabels: debugLabels,
+      )
+    );
+  }
+
+  Future<dynamic> push(Widget page) => _state!.pushPage(page);
+
+  ///Binds the feed state
+  void _bind(_SlidingSheetFeedState bind) => _state = bind;
+
+  //Called to notify all listners
+  void _update() => notifyListeners();
+
+  //Disposes of the controller and all nested controllers
+  @override
+  void dispose() {
+
+    //Disconnect state
+    _state = null;
+    
+    //Dispose all nested controllers
+    multifeedController.dispose();
+
+    super.dispose();
   }
 }
