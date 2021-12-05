@@ -15,7 +15,9 @@ class PollPageAnimatedIcon extends StatefulWidget {
   const PollPageAnimatedIcon({ 
     Key? key, 
     this.controller,
-    required this.position, this.child, this.onContinue, 
+    required this.position, 
+    this.child, 
+    this.onContinue, 
     required this.icons,
     required this.show,
     this.lowerBound,

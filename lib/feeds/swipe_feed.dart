@@ -34,11 +34,17 @@ class SwipeFeed<T> extends StatefulWidget {
     this.placeholder,
     this.canExpand,
     this.style,
-    this.overlayMaxDuration
+    this.overlayMaxDuration,
+    this.lowerBound,
+    this.heightOfCard
   }): super(key: key);
 
   @override
   _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
+
+  final double? heightOfCard;
+
+  final double? lowerBound;
 
   final Map<DismissDirection, Duration>? overlayMaxDuration;
 
@@ -357,6 +363,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           swipeFeedController: widget.controller,
                           fillController: fillController,
                           swipeFeedCardController: swipeFeedCardControllers[index],
+                          lowerBound: widget.lowerBound,
+                          heightOfCard: widget.heightOfCard,
                           overlay: (forwardAnimation, reverseAnimation, index){
                             if(widget.overlayBuilder != null && itemCubit.item1 != null)
                               return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
