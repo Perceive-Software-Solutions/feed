@@ -23,6 +23,7 @@ class SwipeFeed<T> extends StatefulWidget {
     required this.controller, 
     required this.icons,
     required this.objectKey,
+    this.percentBarPadding,
     this.background,
     this.loadManually = false, 
     this.onSwipe, 
@@ -41,6 +42,8 @@ class SwipeFeed<T> extends StatefulWidget {
 
   @override
   _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
+
+  final EdgeInsets? percentBarPadding;
 
   final double? heightOfCard;
 
@@ -429,7 +432,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           
         //Percent bar displaying current vote
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8 + padding.left, vertical: padding.top),
+          padding: widget.percentBarPadding ?? EdgeInsets.only(left: 8 + padding.left, right: 8 + padding.right, top: padding.top, bottom: padding.top),
           child: KeepAliveWidget(
             key: Key('PollPage - Bar - KeepAlive'),
             child: NeumorpicPercentBar(

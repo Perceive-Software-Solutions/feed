@@ -81,6 +81,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
             ),
             Positioned.fill(
               child: SwipeFeed<dynamic>(
+                heightOfCard: MediaQuery.of(context).size.height - 57 - 16 - 49 - 13,
                 icons: const [Icons.star, Icons.check, Icons.cancel],
                 padding: const EdgeInsets.only(top: 57 + 16, left: 8, right: 8, bottom: 49 + 13),
                 duration: const Duration(milliseconds: 300),

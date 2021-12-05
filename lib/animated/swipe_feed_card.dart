@@ -461,19 +461,34 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     );
 
     //Minimization sizing for the swipe card
+    // return TweenAnimationBuilder<double>(
+    //   tween: Tween<double>(begin: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1, end: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1),
+    //   duration: Duration(milliseconds: 200),
+    //   builder: (context, value, child) {
+    //     return Transform.scale(
+    //       scale: value,
+    //       child: child,
+    //     );
+    //   },
+    //   child: Padding(
+    //     padding: widget.show == false ? const EdgeInsets.only(top: 47, bottom: 5) : EdgeInsets.zero,
+    //     child: swipeCard,
+    //   ),
+    // );
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1, end: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1),
       duration: Duration(milliseconds: 200),
       builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: child,
+        return AnimatedPadding(
+          duration: Duration(milliseconds: 200),
+          padding: widget.show == false ? const EdgeInsets.only(top: 74, bottom: 8, left: 8, right: 8) : EdgeInsets.zero,
+          child: Container(
+            height: widget.heightOfCard! * value,
+            child: swipeCard,
+          ),
         );
       },
-      child: Padding(
-        padding: widget.show == false ? const EdgeInsets.only(top: 47, bottom: 5) : EdgeInsets.zero,
-        child: swipeCard,
-      ),
+      child: swipeCard,
     );
   }
 
