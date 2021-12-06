@@ -42,6 +42,10 @@ class SwipeFeedCard extends StatefulWidget {
     this.lowerBound,
     this.iconScale,
     this.iconPadding,
+    this.topAlignment,
+    this.bottomAlignment,
+    this.startTopAlignment,
+    this.startBottomAlignment,
     required this.icons,
     required this.swipeFeedCardController,
     required this.keyboardOpen,
@@ -53,6 +57,14 @@ class SwipeFeedCard extends StatefulWidget {
   _SwipeFeedCardState createState() => _SwipeFeedCardState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  final AlignmentGeometry? topAlignment;
+
+  final AlignmentGeometry? bottomAlignment;
+
+  final AlignmentGeometry? startTopAlignment;
+
+  final AlignmentGeometry? startBottomAlignment;
 
   final double? iconScale;
 
@@ -387,6 +399,10 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       icons: widget.icons,
       controller: iconControllers[index],
       position: IconPosition.values[index],
+      topAlignment: widget.topAlignment,
+      bottomAlignment: widget.bottomAlignment,
+      startBottomAlignment: widget.startBottomAlignment,
+      startTopAlignment: widget.startTopAlignment,
       show: widget.show,
       index: index,
       child: child,
@@ -423,6 +439,14 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         child: hide,
       ),
     );
+    // return Container(
+    //   height: widget.iconScaleHeight! * widget.heightOfCard!,
+    //   width: widget.iconScaleWidth! * (MediaQuery.of(context).size.width - 16),
+    //   child: Padding(
+    //     padding: widget.iconPadding ?? EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((widget.heightOfCard! - 84)/2) : 47, bottom: 5),
+    //     child: hide,
+    //   ),
+    // );
   }
 
   /// Builds the primary view for the poll page card. 
@@ -487,7 +511,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       builder: (context, value, child) {
         return AnimatedPadding(
           duration: Duration(milliseconds: 200),
-          padding: widget.show == false ? const EdgeInsets.only(top: 74, bottom: 11, left: 8, right: 8) : EdgeInsets.zero,
+          padding: widget.show == false ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
           child: swipeCard,
         );
       },

@@ -20,6 +20,10 @@ class PollPageAnimatedIcon extends StatefulWidget {
     this.onContinue, 
     required this.icons,
     required this.show,
+    this.topAlignment,
+    this.bottomAlignment,
+    this.startBottomAlignment,
+    this.startTopAlignment,
     this.lowerBound,
     this.index = 0
   }): assert(icons.length == 3),
@@ -29,6 +33,14 @@ class PollPageAnimatedIcon extends StatefulWidget {
   _PollPageAnimatedIconState createState() => _PollPageAnimatedIconState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  final AlignmentGeometry? topAlignment;
+
+  final AlignmentGeometry? bottomAlignment;
+
+  final AlignmentGeometry? startTopAlignment;
+
+  final AlignmentGeometry? startBottomAlignment;
 
   final int index;
 
@@ -328,11 +340,25 @@ class _PollPageAnimatedIconState extends State<PollPageAnimatedIcon> with Ticker
             // }
 
             AlignmentGeometry align;
-
+            align = Alignment.center;
             if(!moveAnimationFinished){
-              align = (position! * (1.0 - animation)) - Alignment.center;
+              if(widget.position == IconPosition.TOP){
+                align = (position! * (1.0 - animation)) - Alignment(0, widget.topAlignment!.resolve(TextDirection.ltr).y);
+              }
+              else if(widget.position == IconPosition.BOTTOM){
+                align = (position! * (1.0 - animation)) - Alignment(0, widget.bottomAlignment!.resolve(TextDirection.ltr).y);
+              }
+              else{
+                align = (position! * (1.0 - animation)) - Alignment.center;
+              }
               if(widget.position == IconPosition.TOP || widget.position == IconPosition.BOTTOM){
-                AlignmentGeometry offset =  Alignment(0, 0.06 * (widget.position == IconPosition.TOP ? -1.0 : 1.0));
+                AlignmentGeometry offset;
+                if(widget.topAlignment != null && widget.bottomAlignment != null){
+                  offset = widget.position == IconPosition.TOP ? widget.startTopAlignment! : widget.startBottomAlignment!;
+                }
+                else{
+                  offset = Alignment(0, 0.06 * (widget.position == IconPosition.TOP ? -1.0 : 1.0));
+                }
                 align = align.add(offset);
               }
             }
@@ -479,11 +505,11 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
         weight: 0.073
       ),
       TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 0, end: 64/360),
+        tween: Tween<double>(begin: 0, end: 74/360),
         weight: 0.3
       ),
       TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 64/360, end: 0),
+        tween: Tween<double>(begin: 74/360, end: 0),
         weight: 0.4
       ),
     ]).animate(widget.controller);
@@ -579,8 +605,8 @@ class _TrashCanState extends State<TrashCan> with TickerProviderStateMixin {
       animation: widget.controller,
       builder: (BuildContext context, Widget? child) {
         return Container(
-          height: 36,
-          width: 36,
+          height: 38,
+          width: 38,
           child: Stack(
             children: [
               Positioned(
