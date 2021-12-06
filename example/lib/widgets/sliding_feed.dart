@@ -48,7 +48,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 32, right: 34),
+            padding: const EdgeInsets.only(top: 0, right: 34),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -135,10 +135,13 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
         await Future.delayed(const Duration(seconds: 3));
         return Tuple2(List.generate(size, (i) => i + index), (index + size).toString());
       }),
-      //Builders
-      headerBuilder: (context, i){
+      header: (context, i){
         return headerBuilder();
       },
+      //Builders
+      // headerBuilder: (context, i){
+      //   return headerBuilder();
+      // },
       childBuilder: (item, isLast) {
         return GestureDetector(
           onTap: (){

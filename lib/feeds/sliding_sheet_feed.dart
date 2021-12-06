@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
@@ -161,6 +164,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   late ConcreteCubit<dynamic> pageObject = ConcreteCubit<dynamic>(null);
 
+  late ConcreteCubit<double> sheetExtent = ConcreteCubit<double>(widget.initialExtent);
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -174,6 +179,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         Navigator.pop(context);
       }
     }
+    sheetExtent.emit(state.extent);
   }
 
   Future<dynamic> pushPage(Widget page, [dynamic pageObj]) {
@@ -188,6 +194,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   @override
   Widget build(BuildContext context) {
+    var statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
     return SlidingSheet(
       controller: widget.controller.sheetController,
       color: widget.color,
@@ -203,11 +210,26 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       ),
       listener: sheetStateListener,
       headerBuilder: (context, state){
+        // return widget.header != null ? widget.header!(context, pageObject.state) : SizedBox.shrink();
         return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
           bloc: pageObject,
           builder: (context, obj) {
-            return widget.header!(context, obj);
-          }
+            return BlocBuilder<ConcreteCubit<double>, double>(
+              bloc: sheetExtent,
+              builder: (context, extent){
+                //The animation value for the topExtent animation
+                double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+                print(MediaQuery.of(context).padding.top);
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
+                    widget.header!(context, obj)
+                  ],
+                );
+              },
+            );
+          }      
         ) : SizedBox.shrink();
       },
       customBuilder: (context, controller, state){
