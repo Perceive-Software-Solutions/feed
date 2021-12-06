@@ -43,31 +43,34 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Widget headerBuilder(){
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 30),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 0, right: 34),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios, color: Colors.grey),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                const Spacer(),
-                const Text('Single Feed', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                const Spacer()
-              ],
+    return SizedBox(
+      height: 176,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 30),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 0, right: 34),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.grey),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const Spacer(),
+                  const Text('Single Feed', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                  const Spacer()
+                ],
+              ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(top: 32, bottom: 32),
-            child: Text('Asynchronous list that loads depending on position of list', textAlign: TextAlign.center),
-          ),
-        ],
+            const Padding(
+              padding: EdgeInsets.only(top: 32, bottom: 32),
+              child: Text('Asynchronous list that loads depending on position of list', textAlign: TextAlign.center),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+
 import 'dart:ui';
 
 import 'package:feed/feed.dart';
@@ -5,7 +6,9 @@ import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_neumorphic_null_safety/flutter_neumorphic.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 
 /// Uses package [SlidingSheet] and widget [MultiFeed]
@@ -166,6 +169,22 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   late ConcreteCubit<double> sheetExtent = ConcreteCubit<double>(widget.initialExtent);
 
+  double headerHeight = 70;
+
+  BuildContext? heightContext;
+
+  @override
+  void initState(){
+    super.initState();
+
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
+      if(heightContext != null){
+        headerHeight = heightContext!.size!.height;
+        setState(() {});
+      }
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -217,15 +236,17 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
             return BlocBuilder<ConcreteCubit<double>, double>(
               bloc: sheetExtent,
               builder: (context, extent){
+                heightContext = context;
                 //The animation value for the topExtent animation
                 double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-                print(MediaQuery.of(context).padding.top);
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
-                    widget.header!(context, obj)
-                  ],
+                return Container(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
+                      widget.header!(context, obj)
+                    ],
+                  ),
                 );
               },
             );
@@ -233,40 +254,54 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         ) : SizedBox.shrink();
       },
       customBuilder: (context, controller, state){
-        return SingleChildScrollView(
-          physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-          controller: controller,
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: Navigator(
-              key: key,
-              onGenerateRoute: (settings) => MaterialPageRoute(
-                settings: settings,
-                builder: (context){
-                  return MultiFeed(
-                    sheetController: widget.controller.sheetController,
-                    loaders: widget.loaders,
-                    headerSliver: widget.headerSliver,
-                    lengthFactor: widget.lengthFactor,
-                    innitalLength: widget.innitalLength,
-                    onRefresh: widget.onRefresh,
-                    controller: widget.controller.multifeedController,
-                    footerSliver: widget.footerSliver,
-                    childBuilders: widget.childBuilders,
-                    childBuilder: widget.childBuilder,
-                    footerHeight: widget.footerHeight,
-                    placeHolder: widget.placeHolder,
-                    placeHolders: widget.placeHolders,
-                    loading: widget.loading,
-                    condition: widget.condition,
-                    disableScroll: widget.disableScroll,
-                    headerBuilder: widget.headerBuilder,
-                    wrapper: widget.wrapper,
-                  );
-                }
-              ),
-            ),
-          ),
+        return BlocBuilder<ConcreteCubit<double>, double>(
+          bloc: sheetExtent,
+          builder: (context, extent) {
+            double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(height: headerHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
+                    controller: controller,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      child: Navigator(
+                        key: key,
+                        onGenerateRoute: (settings) => MaterialPageRoute(
+                          settings: settings,
+                          builder: (context){
+                            return MultiFeed(
+                              sheetController: widget.controller.sheetController,
+                              loaders: widget.loaders,
+                              headerSliver: widget.headerSliver,
+                              lengthFactor: widget.lengthFactor,
+                              innitalLength: widget.innitalLength,
+                              onRefresh: widget.onRefresh,
+                              controller: widget.controller.multifeedController,
+                              footerSliver: widget.footerSliver,
+                              childBuilders: widget.childBuilders,
+                              childBuilder: widget.childBuilder,
+                              footerHeight: widget.footerHeight,
+                              placeHolder: widget.placeHolder,
+                              placeHolders: widget.placeHolders,
+                              loading: widget.loading,
+                              condition: widget.condition,
+                              disableScroll: widget.disableScroll,
+                              headerBuilder: widget.headerBuilder,
+                              wrapper: widget.wrapper,
+                            );
+                          }
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
         );
       },
       footerBuilder: (context, state){
