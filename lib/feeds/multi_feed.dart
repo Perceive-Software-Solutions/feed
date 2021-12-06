@@ -143,6 +143,8 @@ class _MultiFeedState extends State<MultiFeed> {
   ///The list iof loaded items to be displayed on the feed
   late List<ConcreteCubit<List>> itemsCubit;
 
+  late List<Widget> _tabs = [];
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Getter ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Retreives the load size
@@ -460,6 +462,7 @@ class _MultiFeedState extends State<MultiFeed> {
 
   @override
   Widget build(BuildContext context) {
+    _tabs = _loadTabs();
     return PageView(
       controller: pageController,
       onPageChanged: (value) {
@@ -469,7 +472,7 @@ class _MultiFeedState extends State<MultiFeed> {
           _refresh(feedIndex);
         }
       },
-      children: _loadTabs(),
+      children: _tabs,
     );
   }
 }

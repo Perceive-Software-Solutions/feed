@@ -38,6 +38,19 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      floatingActionButton: GestureDetector(
+        child: Container(
+          height: 100,
+          width: 100,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(100),
+            color: Colors.blue,
+          ),
+        ),
+        onTap: (){
+          feedController.addItem(3, 1);
+        }
+      ),
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
         child: MultiFeed(
@@ -91,9 +104,8 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
           ],
           //Loaders defined to retreive data for each index in the feed
           loaders: List.filled(3, (int size, [String? token]) async {
-            await Future.delayed(const Duration(seconds: 5));
             int index = int.parse(token ?? '0');
-            return Tuple2([], null);
+            return Tuple2(List.generate(size, (i) => i + index), (index + size).toString());
           }),
             //item builder for each element of the feed dependant on the data from ther loaders
           childBuilder: (item, isLast) {
