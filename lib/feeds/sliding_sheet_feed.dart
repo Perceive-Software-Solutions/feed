@@ -63,7 +63,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final double expandedExtent;
 
   /// Header of the sheet
-  final Widget Function(BuildContext context, dynamic pageObject)? header;
+  final Widget Function(BuildContext context, dynamic pageObject, Widget spacing)? header;
 
   /// Footer of the sheet
   final Widget Function(BuildContext context, dynamic pageObject)? footer;
@@ -239,15 +239,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                 heightContext = context;
                 //The animation value for the topExtent animation
                 double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-                return Container(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
-                      widget.header!(context, obj)
-                    ],
-                  ),
-                );
+                return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
               },
             );
           }      
