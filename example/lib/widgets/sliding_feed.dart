@@ -138,7 +138,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
         await Future.delayed(const Duration(seconds: 3));
         return Tuple2(List.generate(size, (i) => i + index), (index + size).toString());
       }),
-      header: (context, i){
+      header: (context, i, child){
         return headerBuilder();
       },
       //Builders
