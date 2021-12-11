@@ -148,7 +148,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   static const double SWIPE_LIMIT_Y = 756/812; 
 
   ///The minimum velocity to be considered a fling
-  static const double MIN_FLING_VELOCITY = 20;
+  static const double MIN_FLING_VELOCITY = 3500;
 
   ///The minimum distance to be considered a fling
   static const double MIN_FLING_DISTANCE = 92;
