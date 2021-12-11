@@ -22,7 +22,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
     feedController = SwipeFeedController();
   }
 
-  Future<Tuple2<List<dynamic>, String?>> loadItems(int size, [String? token]) async {
+  Future<Tuple2<List<String>, String?>> loadItems(int size, [String? token]) async {
     await Future.delayed(const Duration(seconds: 1));
     return const Tuple2(['Testing1', 'Testing2', 'Testing3'], null);
   }
@@ -35,8 +35,8 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
         resizeToAvoidBottomInset: false,
         floatingActionButton: GestureDetector(
           child: Container(
-            height: 40,
-            width: 40,
+            height: 75,
+            width: 75,
             child: const Icon(Icons.plus_one, size: 20),
             decoration: BoxDecoration(
               color: Colors.blue,
@@ -44,7 +44,8 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
             ),
           ),
           onTap: (){
-            feedController.swipeRight();
+            feedController.addItem('It Worked !!!!!!');
+            // feedController.swipeRight();
           }
         ),
         body: Stack(
@@ -80,7 +81,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
               ),
             ),
             Positioned.fill(
-              child: SwipeFeed<dynamic>(
+              child: SwipeFeed<String>(
                 heightOfCard: MediaQuery.of(context).size.height - 57 - 16 - 49 - 13,
                 icons: const [Icons.star, Icons.check, Icons.cancel],
                 padding: const EdgeInsets.only(top: 57 + 16, left: 8, right: 8, bottom: 49 + 13),
@@ -134,10 +135,6 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                       color: isExpanded ? Colors.red : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.black, width: 3),
-                      image: const DecorationImage(
-                        fit: BoxFit.fill,
-                        image: NetworkImage('https://i.imgur.com/DKmvjwi.gif')
-                      )
                     ),
                     child: Center(
                       child: Container(
@@ -151,6 +148,9 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                                 style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)
                               ),
                               const TextField(),
+                              const Spacer(),
+                              Text(value),
+                              const Spacer(),
                             ],
                           ),
                         ),

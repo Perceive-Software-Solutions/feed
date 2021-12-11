@@ -185,6 +185,13 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
     });
   }
 
+  void refreshHeight(){
+    if(heightContext != null){
+      headerHeight = heightContext!.size!.height;
+      setState(() {});
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -360,6 +367,8 @@ class SlidingSheetFeedController extends ChangeNotifier {
 
   //Called to notify all listners
   void _update() => notifyListeners();
+
+  void refreshHeight() => _state != null ? _state!.refreshHeight() : null;
 
   //Disposes of the controller and all nested controllers
   @override

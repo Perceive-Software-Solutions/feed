@@ -119,9 +119,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   static const int LOAD_MORE_LIMIT = 3;
 
-  // ConcreteCubit<Tuple2<Widget, ConcreteCubit<bool>>> topCard;
-  // ConcreteCubit<Tuple2<Widget, ConcreteCubit<bool>>> bottomCard;
-
   ///List of loaded items
   List<T> items = [];
 
@@ -148,7 +145,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   List<SwipeFeedCardController> swipeFeedCardControllers = [];
 
   late AnimationController controller;
-  late Animation<double> animation;
 
   EdgeInsets get padding => widget.padding ?? EdgeInsets.zero;
 
@@ -291,7 +287,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
         //TODO emit
         //Cubit items
-        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
+          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
 
 
         for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
@@ -312,6 +310,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       });
     }
 
+  }
+
+  /// Add custom on top of the swipe feed state
+  void addItem(T item){
+    if(cubit.state.isNotEmpty){
+      cubit.state[0].item2.emit(SwipeFeedCardState.HIDE);
+    }
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> addNewItem = 
+    [Tuple2(item, ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.SHOW)), ...cubit.state];
+    cubit.emit(addNewItem);
   }
 
   ///Builds the type of item card based on the feed type. 
@@ -514,6 +522,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
+
+  void addItem(T item) => _state != null ? _state!.addItem(item) : null;
 
   void swipeRight() => _state != null ? _state!.swipeRight() : null;
 
