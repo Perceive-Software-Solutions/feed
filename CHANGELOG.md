@@ -1,3 +1,13 @@
+## [0.2.43] v0.2.43
+
+* Fixed swiping math
+* Add item functionality added to SwipeFeed and MultiFeed 
+* Added weight to SwipeCard
+* Updated Fling value inside SwipeCard
+* Fixed Percent bar bugs inside SwipeFeed
+* Fixed Animated Icon bugs inside SwipeFeed
+* Updated SlidingSheet Feed
+
 ## [0.2.31] v0.2.31
 
 * Added `SlidingSheetFeedController` to control pushing a page on the `SlidingSheetFeed`.
