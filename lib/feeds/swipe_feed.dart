@@ -322,6 +322,29 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     cubit.emit(addNewItem);
   }
 
+  /// Update item inside the swipe feed
+  void updateItem(T item, String id){
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> state = cubit.state;
+    if(state.isNotEmpty){
+      if(id == widget.objectKey(state[0].item1!)){
+        state.remove(state[0]);
+        cubit.emit(state);
+        addItem(item);
+      }
+    }
+  }
+
+  /// Remove an item inside the swipe feed specified by the ID
+  void removeItem(String id){
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> state = cubit.state;
+    if(state.isNotEmpty){
+      if(id == widget.objectKey(state[0].item1!)){
+        state.remove(state[0]);
+        cubit.emit(state);
+      }
+    }
+  }
+
   ///Builds the type of item card based on the feed type. 
   ///If a custom child builder is present, uses the child builder instead
   Widget _loadCard(T? item, bool show, int index, bool isExpanded, Function() close) {
@@ -524,6 +547,10 @@ class SwipeFeedController<T> extends ChangeNotifier {
   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
 
   void addItem(T item) => _state != null ? _state!.addItem(item) : null;
+
+  void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
+
+  void removeItem(String id) => _state != null ? _state!.removeItem(id) : null;
 
   void swipeRight() => _state != null ? _state!.swipeRight() : null;
 

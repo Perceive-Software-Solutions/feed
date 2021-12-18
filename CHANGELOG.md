@@ -1,3 +1,11 @@
+## [0.2.45] v0.2.45
+
+* Added remove item function to Swipe Feed and SwipeFeedController
+
+## [0.2.44] v0.2.44
+
+* Added update item function to Swipe Feed and SwipeFeedController
+
 ## [0.2.43] v0.2.43
 
 * Fixed swiping math
