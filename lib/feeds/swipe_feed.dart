@@ -340,6 +340,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     if(state.isNotEmpty){
       if(id == widget.objectKey(state[0].item1!)){
         state.remove(state[0]);
+        if(state.isNotEmpty){
+          state[0].item2.emit(SwipeFeedCardState.SHOW);
+        }
         cubit.emit(state);
       }
     }
