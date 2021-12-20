@@ -179,6 +179,7 @@ class _FeedListViewState extends State<FeedListView> {
                   child: SingleChildScrollView(
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                     controller: scrollController,
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     child: wrapperBuilder(
                       context: context,
                       child: Column(

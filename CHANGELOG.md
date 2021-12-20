@@ -1,3 +1,7 @@
+## [0.2.50] v0.2.50
+
+* Added ios keyboard dismissal.
+
 ## [0.2.49] v0.2.49
 
 * Added set state after size update for multifeed.
