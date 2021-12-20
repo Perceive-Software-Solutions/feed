@@ -1,3 +1,7 @@
+## [0.2.49] v0.2.49
+
+* Added set state after size update for multifeed.
+
 ## [0.2.45] v0.2.45
 
 * Added remove item function to Swipe Feed and SwipeFeedController

@@ -98,6 +98,9 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
   }
 
   Widget wrapper(BuildContext context, Widget child, int index) {
+
+    Widget list = sheetController.multifeedController.list(index).isEmpty ? const SizedBox(height: 700, width: double.infinity,) : child;
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
@@ -108,13 +111,23 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
           ),
 
           Container(
-            child: child,
+            child: list,
             decoration: BoxDecoration(
               color: Colors.red[200],
               borderRadius: BorderRadius.circular(32)
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget placeholder(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 20.0),
+        child: Center(child: Text('PlaceHolder')),
       ),
     );
   }
@@ -136,7 +149,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       loaders: List.filled(3, (int size, [String? token]) async {
         int index = int.parse(token ?? '0');
         await Future.delayed(const Duration(seconds: 3));
-        return Tuple2(List.generate(size, (i) => i + index), (index + size).toString());
+        return Tuple2(List.generate(size, (i) => i + index), null);
       }),
       header: (context, i, child){
         return headerBuilder();
@@ -153,6 +166,11 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
           child: childBuilder(item)
         );
       },
+      placeHolders: [
+        placeholder(context),
+        placeholder(context),
+        placeholder(context),
+      ],
       
       //Widgets
       wrapper: wrapper,

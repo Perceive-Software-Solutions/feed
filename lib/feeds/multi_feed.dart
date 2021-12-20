@@ -307,13 +307,13 @@ class _MultiFeedState extends State<MultiFeed> {
 
       if(loadedItems.length < loadSize){
         loadMore[feedIndex] = false;
-        setState(() {});
       }
 
       await _incrementallyAddItems(newItems, feedIndex);
 
       //Set the loading to false
       loading[feedIndex] = false;
+      setState(() {});
         
       //Notifies all the controller lisneteners
       widget.controller?._update();
@@ -361,15 +361,13 @@ class _MultiFeedState extends State<MultiFeed> {
 
         if(loadedItems.length < newSize){
           loadMore[feedIndex] = false;
-          setState(() {});
         }
 
         await _incrementallyAddItems(newItems, feedIndex);
 
-
-
         //Set the loading to false
         loading[feedIndex] = false;
+        setState(() {});
 
         //Notifies all the controller lisneteners
         widget.controller?._update();
