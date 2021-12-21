@@ -1,4 +1,5 @@
 import 'package:example/widgets/compact_feed.dart';
+import 'package:example/widgets/dismissable_keyboard.dart';
 import 'package:example/widgets/multi_feed.dart';
 import 'package:example/widgets/sliding_feed.dart';
 import 'package:example/widgets/swipe_feed.dart';
@@ -171,6 +172,30 @@ class _MyHomePageState extends State<MyHomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const CompactFeedExample()),
+                      );
+                    },
+                  ),
+                  Container(
+                    height: 1,
+                    color: Colors.grey.withOpacity(0.2),
+                  ),
+                  GestureDetector(
+                    child: Container(
+                      height: 75,
+                      child: const Center(
+                        child: Text(
+                          'Dismissable Keyboard', 
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)
+                        ),
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(32)
+                      ),
+                    ),
+                    onTap: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const DismissableKeyboard()),
                       );
                     },
                   ),

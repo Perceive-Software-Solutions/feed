@@ -34,6 +34,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "7.3.3"
+  flutter_interactive_keyboard:
+    dependency: "direct main"
+    description:
+      name: flutter_interactive_keyboard
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   flutter_keyboard_visibility:
     dependency: "direct main"
     description:
