@@ -76,6 +76,8 @@ class _FeedListViewState extends State<FeedListView> {
 
   ScrollController get scrollController => widget.controller ?? scrollController;
 
+  bool keyBoardOpen = false;
+
 
   @override
   void initState() {
@@ -85,26 +87,32 @@ class _FeedListViewState extends State<FeedListView> {
     _syncProviders(widget.itemsCubit.state);
 
     widget.sheetController != null ? scrollController.addListener(() {
-      if(scrollController.offset <= -80 && !snapping){
-        if(widget.sheetController!.state!.extent == 1.0){
-          snapping = true;
-          Future.delayed(Duration.zero, () {
-            widget.sheetController!.snapToExtent(0.7, duration: Duration(milliseconds: 300));
+      print(MediaQuery.of(context).viewInsets.bottom);
+      if(keyBoardOpen){
+        return;
+      }
+      else{
+        if(scrollController.offset <= -80 && !snapping){
+          if(widget.sheetController!.state!.extent == 1.0){
+            snapping = true;
+            Future.delayed(Duration.zero, () {
+              widget.sheetController!.snapToExtent(0.7, duration: Duration(milliseconds: 300));
+              Future.delayed(Duration(milliseconds: 300)).then((value) => {
+                snapping = false
+              });
+            });
+          }
+          else if(widget.sheetController!.state!.extent == 0.7){
+            snapping = true;
+            Future.delayed(Duration.zero, () {
+              widget.sheetController!.snapToExtent(0.0, duration: Duration(milliseconds: 300));
+            });
             Future.delayed(Duration(milliseconds: 300)).then((value) => {
               snapping = false
             });
-          });
-        }
-        else if(widget.sheetController!.state!.extent == 0.7){
-          snapping = true;
-          Future.delayed(Duration.zero, () {
-            widget.sheetController!.snapToExtent(0.0, duration: Duration(milliseconds: 300));
-          });
-          Future.delayed(Duration(milliseconds: 300)).then((value) => {
-            snapping = false
-          });
-        }
+          }
 
+        }
       }
     }) : null;
   }
@@ -179,10 +187,10 @@ class _FeedListViewState extends State<FeedListView> {
                 Expanded(
                   child: KeyboardManagerWidget(
                     onKeyboardOpen: (){
-                      print("Opened");
+                      keyBoardOpen = true;
                     },
                     onKeyboardClose: (){
-                      print("Closed");
+                      keyBoardOpen = false;
                     },
                     child: SingleChildScrollView(
                       physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),

@@ -154,6 +154,20 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       header: (context, i, child){
         return headerBuilder();
       },
+      footer: (context, _){
+        return SafeArea(
+          bottom: true,
+          child: Container(
+            height: 100,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.white,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: TextField()
+            )
+          ),
+        );
+      },
       //Builders
       // headerBuilder: (context, i){
       //   return headerBuilder();

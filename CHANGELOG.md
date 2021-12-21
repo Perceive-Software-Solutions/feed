@@ -1,3 +1,7 @@
+## [0.2.52] v0.2.52
+
+* Added dismissable keyboard on drag to feed
+
 ## [0.2.50] v0.2.50
 
 * Added ios keyboard dismissal.
