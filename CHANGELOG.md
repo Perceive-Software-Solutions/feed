@@ -1,3 +1,7 @@
+## [0.2.53] v0.2.53
+
+* Fixed minor dispose error with swipe card.
+
 ## [0.2.52] v0.2.52
 
 * Added dismissable keyboard on drag to feed

@@ -191,13 +191,13 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 */
 
   ///Controls the right swipe animation
-  late AnimationController rightSwiper;
+  late AnimationController rightSwiper = AnimationController(duration: Duration.zero, vsync: this);
   ///Controls the left swipe animation
-  late AnimationController leftSwiper;
+  late AnimationController leftSwiper = AnimationController(duration: Duration.zero, vsync: this);
   ///Controls the down swipe animation
-  late AnimationController downSwiper;
+  late AnimationController downSwiper = AnimationController(duration: Duration.zero, vsync: this);
   ///Controls the up swipe animation
-  late AnimationController upSwiper;
+  late AnimationController upSwiper = AnimationController(duration: Duration.zero, vsync: this);
 
   ///Holds the value change over the right swiper
   late Animation<double> rightAnimation;
@@ -355,10 +355,14 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   void dispose(){
 
     //Dispose the animations
-    rightSwiper.dispose();
-    leftSwiper.dispose();
-    upSwiper.dispose();
-    downSwiper.dispose();
+    try{
+      rightSwiper.dispose();
+      leftSwiper.dispose();
+      upSwiper.dispose();
+      downSwiper.dispose();
+    }catch(e){
+      debugPrint('$e');
+    }
 
     super.dispose();
   }
@@ -485,7 +489,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Creates the swipe animations
   void _defineAnimations(){
     //Define Right Swipe animation
-    rightSwiper = AnimationController(duration: Duration.zero, vsync: this);
     rightAnimation = Tween<double>(begin: 0, end: cardSwipeLimitX).animate(CurvedAnimation(parent: rightSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener(() {
         setState(() {
@@ -508,7 +511,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       });
 
     //Define Left Swipe animation
-    leftSwiper = AnimationController(duration: Duration.zero, vsync: this);
     leftAnimation = Tween<double>(begin: 0, end: -1 * cardSwipeLimitX).animate(CurvedAnimation(parent: leftSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener(() {
         setState(() {
@@ -531,7 +533,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       });
 
     //Define Down Swipe animation
-    downSwiper = AnimationController(duration: Duration.zero, vsync: this);
     downAnimation = Tween<double>(begin: 0, end: cardSwipeLimitY).animate(CurvedAnimation(parent: downSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener((){
         setState(() {
@@ -554,7 +555,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       });
 
     //Define Up Swipe animation
-    upSwiper = AnimationController(duration: Duration.zero, vsync: this);
     upAnimation = Tween<double>(begin: 0, end: cardSwipeLimitY * -1).animate(CurvedAnimation(parent: upSwiper, curve: SWIPE_CURVE, reverseCurve: SWIPE_CURVE))
       ..addListener(() { 
         setState(() {
