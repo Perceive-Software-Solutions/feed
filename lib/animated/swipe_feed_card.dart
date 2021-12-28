@@ -98,7 +98,7 @@ class SwipeFeedCard extends StatefulWidget {
   final bool Function(int)? swipeAlert;
 
 
-  final bool Function(int)? overrideSwipeAlert;
+  final bool Function(int index, DismissDirection direction)? overrideSwipeAlert;
 
   /// Is the keyboard open
   final bool keyboardOpen;
@@ -164,6 +164,8 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
   static bool isAnimating = false;
 
+  DismissDirection lastDismissDirection = DismissDirection.up;
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Lifecycle ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   @override
@@ -182,9 +184,9 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     widget.swipeAlert!(index);
   }
 
-  bool overrideSwipeAlert(index){
+  bool overrideSwipeAlert(int index, DismissDirection direction){
     return widget.overrideSwipeAlert == null ? false : 
-    widget.overrideSwipeAlert!(index);
+    widget.overrideSwipeAlert!(index, direction);
   }
 
   @override
@@ -241,11 +243,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         iconControllers[i].show(0.0);
       }
     }
-
+    lastDismissDirection = direction;
     // Call Finish icon animation
     iconControllers[currentIndex(direction)].maximize(currentIndex(direction), true);
 
-    if((widget.swipeAlert == null || widget.overlay == null || !widget.swipeAlert!(currentIndex(direction))) && (widget.overrideSwipeAlert == null || !widget.overrideSwipeAlert!(currentIndex(direction)))){
+    if((widget.swipeAlert == null || widget.overlay == null || !widget.swipeAlert!(currentIndex(direction))) && (widget.overrideSwipeAlert == null || !widget.overrideSwipeAlert!(currentIndex(direction), direction))){
       forwardAnimation(currentIndex(direction), false);
     }
     else if(widget.overlayMaxDuration != null && widget.overlayMaxDuration![direction] != null){
@@ -400,7 +402,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   ///Builds the icon at the specified index
   Widget _buildIconAtIndex(BuildContext context, int index){
     Widget? child;
-    if(swipeAlert(index) && widget.overlay != null && !overrideSwipeAlert(index)){
+    if(swipeAlert(index) && widget.overlay != null && !overrideSwipeAlert(index, lastDismissDirection)){
       child = widget.overlay!(forwardAnimation, reverseAnimation, index);
     }
     return PollPageAnimatedIcon(

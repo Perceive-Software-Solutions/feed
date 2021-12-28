@@ -82,7 +82,7 @@ class SwipeFeed<T> extends StatefulWidget {
   /// If the overlay should be shown
   final bool Function(int)? swipeAlert;
 
-  final bool Function(int)? overrideSwipeAlert;
+  final bool Function(int index, dynamic item, DismissDirection direction)? overrideSwipeAlert;
 
   ///A builder for the feed
   final SwipeFeedBuilder<T>? childBuilder;
@@ -439,7 +439,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                               itemCubit.item2.emit(SwipeFeedCardState.SHOW);
                             }
                           },
-                          overrideSwipeAlert: widget.overrideSwipeAlert,
+                          overrideSwipeAlert: (index, direction){
+                              return widget.overrideSwipeAlert!(index, itemCubit.item1, direction);
+                          },
                           swipeAlert: widget.swipeAlert,
                           keyboardOpen: keyboard,
                           show: show != SwipeFeedCardState.HIDE,

@@ -98,8 +98,11 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 objectKey: (item){
                   return item.hashCode.toString();
                 },
-                overrideSwipeAlert: (index){
-                  return true;
+                overrideSwipeAlert: (index, item, direction){
+                  if(direction == DismissDirection.down && item == "Testing1"){
+                    return true;
+                  }
+                  return false;
                 },
                 swipeAlert: (index){
                   return true;
@@ -162,32 +165,36 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                   );
                 },
                 onSwipe: (dx, dy, direction, reverseAnimation, item) async {
-                  Future.delayed(const Duration(milliseconds: 10)).then((value) {
-                    reverseAnimation(2);
-                  });
-                  // if(direction == DismissDirection.startToEnd){
-                  //   feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.RIGHT, CardPosition.Right);
-                  // }
-                  // else if(direction == DismissDirection.endToStart){
-                  //   feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.LEFT, CardPosition.Left);
-                  // }
-                  // else if(direction == DismissDirection.up){
-                    
-                  //   if(dx >= 0){
-                  //     feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Right);
-                  //   }
-                  //   else{
-                  //     feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Left);
-                  //   }
-                  // }
-                  // else if(direction == DismissDirection.down){
-                  //   if(dx >= 0){
-                  //     feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Right);
-                  //   }
-                  //   else{
-                  //     feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Left);
-                  //   }
-                  // }
+                  if(direction== DismissDirection.down && item == "Testing1"){
+                    Future.delayed(const Duration(milliseconds: 10)).then((value) {
+                      reverseAnimation(2);
+                    });
+                  }
+                  else{
+                    if(direction == DismissDirection.startToEnd){
+                      feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.RIGHT, CardPosition.Right);
+                    }
+                    else if(direction == DismissDirection.endToStart){
+                      feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.LEFT, CardPosition.Left);
+                    }
+                    else if(direction == DismissDirection.up){
+                      
+                      if(dx >= 0){
+                        feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Right);
+                      }
+                      else{
+                        feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Left);
+                      }
+                    }
+                    else if(direction == DismissDirection.down){
+                      if(dx >= 0){
+                        feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Right);
+                      }
+                      else{
+                        feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Left);
+                      }
+                    }
+                  }
                 },
                 // placeholder: Center(
                 //   child: Container(
