@@ -162,7 +162,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                   );
                 },
                 onSwipe: (dx, dy, direction, reverseAnimation, item) async {
-                  Future.delayed(const Duration(milliseconds: 300)).then((value) {
+                  Future.delayed(const Duration(milliseconds: 10)).then((value) {
                     reverseAnimation(2);
                   });
                   // if(direction == DismissDirection.startToEnd){
