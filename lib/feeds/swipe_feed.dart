@@ -30,6 +30,7 @@ class SwipeFeed<T> extends StatefulWidget {
     this.onContinue,
     this.overlayBuilder,
     this.swipeAlert,
+    this.overrideSwipeAlert,
     this.padding,
     this.duration,
     this.placeholder,
@@ -81,6 +82,8 @@ class SwipeFeed<T> extends StatefulWidget {
   /// If the overlay should be shown
   final bool Function(int)? swipeAlert;
 
+  final bool Function(int)? overrideSwipeAlert;
+
   ///A builder for the feed
   final SwipeFeedBuilder<T>? childBuilder;
 
@@ -97,7 +100,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final SwipeFeedController controller;
 
   ///The on swipe function, run when a card is swiped
-  final Future<void> Function(double dx, double dy, DismissDirection direction, T item)? onSwipe;
+  final Future<void> Function(double dx, double dy, DismissDirection direction, Future<void> Function(int), T item)? onSwipe;
 
   ///The on swipe function, run when a card is completed swiping away
   final Future<void> Function(DismissDirection direction, T item)? onContinue;
@@ -436,6 +439,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                               itemCubit.item2.emit(SwipeFeedCardState.SHOW);
                             }
                           },
+                          overrideSwipeAlert: widget.overrideSwipeAlert,
                           swipeAlert: widget.swipeAlert,
                           keyboardOpen: keyboard,
                           show: show != SwipeFeedCardState.HIDE,
@@ -452,9 +456,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           onDismiss: (){
                             // Nothing
                           },
-                          onSwipe: (dx, dy, dir) {
+                          onSwipe: (dx, dy, reverseAnimation, dir) {
                             if(widget.onSwipe != null && itemCubit.item1 != null){
-                              widget.onSwipe!(dx, dy, dir, itemCubit.item1!);
+                              widget.onSwipe!(dx, dy, dir, reverseAnimation, itemCubit.item1!);
                             }
                           },
                           onPanEnd: () {

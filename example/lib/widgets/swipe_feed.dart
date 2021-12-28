@@ -98,8 +98,11 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 objectKey: (item){
                   return item.hashCode.toString();
                 },
+                overrideSwipeAlert: (index){
+                  return true;
+                },
                 swipeAlert: (index){
-                  return false;
+                  return true;
                 },
                 canExpand: (item){
                   return true;
@@ -132,7 +135,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 childBuilder: (dynamic value, bool isLast, bool isExpanded, void Function() close ) {
                   return Container(
                     decoration: BoxDecoration(
-                      color: isExpanded ? Colors.red : Colors.white,
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.black, width: 3),
                     ),
@@ -158,30 +161,33 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     ),
                   );
                 },
-                onSwipe: (dx, dy, direction, item) async {
-                  if(direction == DismissDirection.startToEnd){
-                    feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.RIGHT, CardPosition.Right);
-                  }
-                  else if(direction == DismissDirection.endToStart){
-                    feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.LEFT, CardPosition.Left);
-                  }
-                  else if(direction == DismissDirection.up){
+                onSwipe: (dx, dy, direction, reverseAnimation, item) async {
+                  Future.delayed(const Duration(milliseconds: 300)).then((value) {
+                    reverseAnimation(2);
+                  });
+                  // if(direction == DismissDirection.startToEnd){
+                  //   feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.RIGHT, CardPosition.Right);
+                  // }
+                  // else if(direction == DismissDirection.endToStart){
+                  //   feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.LEFT, CardPosition.Left);
+                  // }
+                  // else if(direction == DismissDirection.up){
                     
-                    if(dx >= 0){
-                      feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Right);
-                    }
-                    else{
-                      feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Left);
-                    }
-                  }
-                  else if(direction == DismissDirection.down){
-                    if(dx >= 0){
-                      feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Right);
-                    }
-                    else{
-                      feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Left);
-                    }
-                  }
+                  //   if(dx >= 0){
+                  //     feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Right);
+                  //   }
+                  //   else{
+                  //     feedController.completeFillBar(1.0, const Duration(milliseconds: 600), IconPosition.TOP, CardPosition.Left);
+                  //   }
+                  // }
+                  // else if(direction == DismissDirection.down){
+                  //   if(dx >= 0){
+                  //     feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Right);
+                  //   }
+                  //   else{
+                  //     feedController.completeFillBar(0.75, const Duration(milliseconds: 600), IconPosition.BOTTOM, CardPosition.Left);
+                  //   }
+                  // }
                 },
                 // placeholder: Center(
                 //   child: Container(

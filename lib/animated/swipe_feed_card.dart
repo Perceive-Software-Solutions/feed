@@ -27,6 +27,7 @@ class SwipeFeedCard extends StatefulWidget {
     Key? key, 
     this.show = true,
     this.swipeOverride,
+    this.overrideSwipeAlert,
     this.swipeAlert,
     this.onFill, 
     this.onSwipe, 
@@ -96,6 +97,9 @@ class SwipeFeedCard extends StatefulWidget {
   /// If the overlay should be shown
   final bool Function(int)? swipeAlert;
 
+
+  final bool Function(int)? overrideSwipeAlert;
+
   /// Is the keyboard open
   final bool keyboardOpen;
   
@@ -112,7 +116,7 @@ class SwipeFeedCard extends StatefulWidget {
   final void Function(double fill, IconPosition position, CardPosition cardPosition, bool overrideLock)? onFill;
 
   ///The on swipe function, run when the swiper is completed
-  final void Function(double dx, double dy, DismissDirection direction)? onSwipe;
+  final void Function(double dx, double dy, Future<void> Function(int), DismissDirection direction)? onSwipe;
 
   ///The on dismiss function is run when the poll card requests to be dismissed
   final void Function()? onDismiss;
@@ -178,6 +182,11 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     widget.swipeAlert!(index);
   }
 
+  bool overrideSwipeAlert(index){
+    return widget.overrideSwipeAlert == null ? false : 
+    widget.overrideSwipeAlert!(index);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -226,7 +235,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   void _onFlingUpdate(double dx, double dy, DismissDirection direction) async {
     widget.swipeFeedController.setLock(true);
     fillLock = true;
-    widget.onSwipe!(dx, dy, direction);
+    widget.onSwipe!(dx, dy, reverseAnimation, direction);
     for(int i = 0; i < 4; i++){
       if(i != currentIndex(direction)){
         iconControllers[i].show(0.0);
@@ -236,7 +245,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
     // Call Finish icon animation
     iconControllers[currentIndex(direction)].maximize(currentIndex(direction), true);
 
-    if(widget.swipeAlert == null || widget.overlay == null || !widget.swipeAlert!(currentIndex(direction))){
+    if((widget.swipeAlert == null || widget.overlay == null || !widget.swipeAlert!(currentIndex(direction))) && (widget.overrideSwipeAlert == null || !widget.overrideSwipeAlert!(currentIndex(direction)))){
       forwardAnimation(currentIndex(direction), false);
     }
     else if(widget.overlayMaxDuration != null && widget.overlayMaxDuration![direction] != null){
@@ -376,7 +385,6 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   Future<void> reverseAnimation(int index) async {
     if(mounted){
       widget.swipeFeedController.setLock(false);
-      // widget.fillController.unlockAnimation();
       iconControllers[index].maximize(index, false);
       widget.onDismiss!();
       swipeController.setSwipe(true);
@@ -392,7 +400,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   ///Builds the icon at the specified index
   Widget _buildIconAtIndex(BuildContext context, int index){
     Widget? child;
-    if(swipeAlert(index) && widget.overlay != null){
+    if(swipeAlert(index) && widget.overlay != null && !overrideSwipeAlert(index)){
       child = widget.overlay!(forwardAnimation, reverseAnimation, index);
     }
     return PollPageAnimatedIcon(
@@ -439,14 +447,6 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         child: hide,
       ),
     );
-    // return Container(
-    //   height: widget.iconScaleHeight! * widget.heightOfCard!,
-    //   width: widget.iconScaleWidth! * (MediaQuery.of(context).size.width - 16),
-    //   child: Padding(
-    //     padding: widget.iconPadding ?? EdgeInsets.only(top: widget.heightOfCard != null ? 47.0 + ((widget.heightOfCard! - 84)/2) : 47, bottom: 5),
-    //     child: hide,
-    //   ),
-    // );
   }
 
   /// Builds the primary view for the poll page card. 
@@ -490,21 +490,6 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
       ),
     );
 
-    //Minimization sizing for the swipe card
-    // return TweenAnimationBuilder<double>(
-    //   tween: Tween<double>(begin: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1, end: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1),
-    //   duration: Duration(milliseconds: 200),
-    //   builder: (context, value, child) {
-    //     return Transform.scale(
-    //       scale: value,
-    //       child: child,
-    //     );
-    //   },
-    //   child: Padding(
-    //     padding: widget.show == false ? const EdgeInsets.only(top: 47, bottom: 5) : EdgeInsets.zero,
-    //     child: swipeCard,
-    //   ),
-    // );
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1, end: widget.show == false ? SwipeCard.CARD_MINIMIZE_SCALE : 1),
       duration: Duration(milliseconds: 200),
