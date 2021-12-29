@@ -80,10 +80,10 @@ class SwipeFeed<T> extends StatefulWidget {
   final String Function(T item) objectKey;
 
   /// No Polls
-  final Widget Function(bool show)? noPollsPlaceHolder;
+  final Widget? noPollsPlaceHolder;
 
   /// No Connectivity
-  final Widget Function(bool show)? noConnectivityPlaceHolder;
+  final Widget? noConnectivityPlaceHolder;
 
   /// The overlay to be shown
   final Widget Function(Future<void> Function(int, bool overlay), Future<void> Function(int), int, T)? overlayBuilder;
@@ -287,6 +287,71 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     }
   }
 
+  Future<void> _refresh() async {
+    //Skip loading if there are no more polls or you are currently loading
+    if(loading){
+      return;
+    }
+
+    // Emit Loading State
+    cubit.emit([Tuple2(null, ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.SHOW))]);
+
+    loading = true;
+
+    Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
+
+    loading = false;
+
+    if(loaded.item1.isEmpty){
+      items = [];
+      pageToken = null;
+      hasMore = true;
+      loading = false;
+      cubit.emit([]);
+      return;
+    }
+
+    // New Items Loaded
+    List<T> newItems = loaded.item1;
+
+    // Old items will be empty but just a procaution
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
+
+    if(mounted) {
+      setState(() {
+        //New token
+        pageToken = loaded.item2;
+
+        //If there is no next page, then has more is false
+        if(pageToken == null || newItems.length < LENGTH_INCREASE_FACTOR){
+          hasMore = false;
+        }
+
+        //Cubit items
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
+          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
+
+        
+        for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
+          if(oldItems[i].item1 == null){
+            oldItems[i] = Tuple2(cubitItems[0].item1, oldItems[i].item2);
+            cubitItems.removeAt(0);
+          }
+        }
+
+        if(oldItems.isEmpty && cubitItems.isNotEmpty){
+          Future.delayed(Duration(milliseconds: 300)).then((value){
+            cubitItems[0].item2.emit(SwipeFeedCardState.SHOW);
+          });
+        }
+        
+        cubit.emit([...oldItems, ...cubitItems]);
+        lock = false;
+      });
+    }
+  }
+
   Future<void> _loadMore() async {
     
     //Skip loading if there are no more polls or you are currently loading
@@ -297,15 +362,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     loading = true;
 
     Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
-
-    if(loaded.item1.isEmpty){
-      items = [];
-      pageToken = null;
-      hasMore = true;
-      loading = false;
-      cubit.emit([]);
-      return;
-    }
     
     loading = false;
 
@@ -319,7 +375,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
         //If there is no next page, then has more is false
         if(pageToken == null || newItems.length < LENGTH_INCREASE_FACTOR){
-
           hasMore = false;
         }
 
@@ -347,7 +402,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         lock = false;
       });
     }
-
   }
 
   /// Add custom on top of the swipe feed state
@@ -551,8 +605,41 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
               children: [
                 state.length <= 1 ? 
                 (widget.noPollsPlaceHolder != null && connectivity == false ? 
-                  Center(child: widget.noConnectivityPlaceHolder!(state.length == 0)) : widget.noPollsPlaceHolder != null ? 
-                  Center(child: widget.noPollsPlaceHolder!(state.length == 0)) : 
+                  AnimatedSwitcher(
+                    duration: Duration(milliseconds: 300),
+                    reverseDuration: Duration(milliseconds: 300),
+                    child: state.length == 1 ? Padding(
+                      key: Key("Display-Background-No-Polls-Or-Connectivity"),
+                      padding: EdgeInsets.only(top: 74),
+                      child: Padding(
+                        padding: padding,
+                        child: Center(child: widget.background)),
+                    ) : Padding(
+                      key: Key("Display-No-Polls-Or-Connectivity"),
+                      padding: EdgeInsets.only(top: 74),
+                      child: Padding(
+                        padding: padding,
+                        child: Center(child: widget.noConnectivityPlaceHolder!),
+                      ),
+                    )
+                  ) : widget.noPollsPlaceHolder != null ? 
+                  AnimatedSwitcher(
+                    duration: Duration(milliseconds: 300),
+                    reverseDuration: Duration(milliseconds: 300),
+                    child: state.length == 1 ? Padding(
+                      key: Key("Display-Background-No-Polls"),
+                      padding: EdgeInsets.only(top: 74),
+                      child: Padding(
+                        padding: padding,
+                        child: Center(child: widget.background)),
+                    ) : Padding(
+                      key: Key("Display-No-Polls"),
+                      padding: EdgeInsets.only(top: 74),
+                      child: Padding(
+                        padding: padding,
+                        child: Center(child: widget.noPollsPlaceHolder!),
+                      ),
+                    )) : 
                   SizedBox.shrink()) : SizedBox.shrink(),
 
                 _buildCard(1),
@@ -586,6 +673,9 @@ class SwipeFeedController<T> extends ChangeNotifier {
 
   ///Reloads the feed state based on the original size parameter
   void loadMore() => _state!._loadMore();
+
+  ///Refreshes the feed replacing the page token
+  void refresh() => _state!._refresh();
 
   ///Reloads the feed state based on the original size parameter
   void reset() => _state!._reset();

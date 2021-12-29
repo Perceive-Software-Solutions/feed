@@ -128,14 +128,31 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     ),
                   );
                 },
-                // noConnectivityPlaceHolder: const SizedBox(
-                //   height: 300,
-                //   child: Text("No Connectivity and No Polls"),
-                // ),
-                // noPollsPlaceHolder: const SizedBox(
-                //   height: 300,
-                //   child: Text("No More Polls"),
-                // ),
+                noPollsPlaceHolder: GestureDetector(
+                  child: Container(
+                    decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black, width: 3),
+                    ),
+                  ),
+                  onTap: (){
+                    feedController.refresh();
+                  },
+                ),
+                noConnectivityPlaceHolder: GestureDetector(
+                  child: Container(
+                    height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top -  MediaQuery.of(context).padding.bottom - 62 - 125,
+                    decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black, width: 3),
+                    ),
+                  ),
+                  onTap: (){
+                    feedController.refresh();
+                  },
+                ),
                 background: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
