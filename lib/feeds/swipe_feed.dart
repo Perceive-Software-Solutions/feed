@@ -176,7 +176,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     if(!widget.loadManually) {
       // _loadMore();
-      _reset();
+      _refresh();
     }
 
     controller = new AnimationController(vsync: this);
