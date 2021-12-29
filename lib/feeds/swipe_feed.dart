@@ -235,7 +235,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     Future.delayed(Duration(milliseconds: overlay ? 200 : 1000)).then((value){
       if(cubit.state.length >= 2) {
-        cubit.state[1].item2.emit(SwipeFeedCardState.SHOW);
+        cubit.state[1].item2.emit(ShowSwipeFeedCardState());
       }
       Future.delayed(Duration(milliseconds: 400)).then((value){
         fillBar(0.0, null, CardPosition.Left);
@@ -292,12 +292,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     }
 
     // Emit Loading State
-    final showCubit = ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE);
+    final showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
     cubit.emit([
       Tuple2(null, showCubit),
     ]);
     final placeHolderAnimation = Future.delayed(Duration(milliseconds: 500)).then((value){
-      showCubit.emit(SwipeFeedCardState.SHOW);
+      showCubit.emit(ShowSwipeFeedCardState());
     });
 
     loading = true;
@@ -335,7 +335,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         //Cubit items
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
-          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
+          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
 
         
         for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
@@ -347,7 +347,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
         if(oldItems.isEmpty && cubitItems.isNotEmpty){
           Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(SwipeFeedCardState.SHOW);
+            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
           });
         }
         
@@ -387,7 +387,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         //Cubit items
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
-          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.HIDE)));
+          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
 
 
         for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
@@ -399,7 +399,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
         if(oldItems.isEmpty && cubitItems.isNotEmpty){
           Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(SwipeFeedCardState.SHOW);
+            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
           });
         }
         
@@ -412,10 +412,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   /// Add custom on top of the swipe feed state
   void addItem(T item){
     if(cubit.state.isNotEmpty){
-      cubit.state[0].item2.emit(SwipeFeedCardState.HIDE);
+      cubit.state[0].item2.emit(HideSwipeFeedCardState());
     }
     List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> addNewItem = 
-    [Tuple2(item, ConcreteCubit<SwipeFeedCardState>(SwipeFeedCardState.SHOW)), ...cubit.state];
+    [Tuple2(item, ConcreteCubit<SwipeFeedCardState>(ShowSwipeFeedCardState())), ...cubit.state];
     cubit.emit(addNewItem);
   }
 
@@ -438,7 +438,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       if(id == widget.objectKey(state[0].item1!)){
         state.remove(state[0]);
         if(state.isNotEmpty){
-          state[0].item2.emit(SwipeFeedCardState.SHOW);
+          state[0].item2.emit(ShowSwipeFeedCardState());
         }
         cubit.emit(state);
       }
@@ -497,18 +497,18 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
               animation: controller,
               builder: (context, child) {
                 return Transform.translate(
-                  offset: Offset(0, (keyboard && show != SwipeFeedCardState.HIDE) ? (show == SwipeFeedCardState.EXPAND) ? 0 : -1 * controller.value * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
+                  offset: Offset(0, (keyboard && !(show is HideSwipeFeedCardState)) ? (show is ExpandSwipeFeedCardState) ? 0 : -1 * controller.value * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
                   child: AnimatedPadding(
                     duration: duration,
-                    padding: show == SwipeFeedCardState.EXPAND ? EdgeInsets.zero : padding,
+                    padding: show is ExpandSwipeFeedCardState ? EdgeInsets.zero : padding,
                     child: GestureDetector(
                       onTap: itemCubit.item1 != null && widget.canExpand != null && 
-                      widget.canExpand!(itemCubit.item1!) && show == SwipeFeedCardState.SHOW && 
+                      widget.canExpand!(itemCubit.item1!) && show is ShowSwipeFeedCardState && 
                       isExpandable && !keyboard ? (){
-                        itemCubit.item2.emit(SwipeFeedCardState.EXPAND);
+                        itemCubit.item2.emit(ExpandSwipeFeedCardState());
                       } : null,
                       child: Opacity(
-                        opacity: keyboard && show == SwipeFeedCardState.HIDE ? 0.0 : 1.0,
+                        opacity: keyboard && show is HideSwipeFeedCardState ? 0.0 : 1.0,
                         child: SwipeFeedCard(
                           startTopAlignment: widget.startTopAlignment,
                           startBottomAlignment: widget.startBottomAlignment,
@@ -530,8 +530,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                             return null;
                           },
                           onPanUpdate: (double dx, double dy, [double? maxX, double? maxYTop, double? maxYBot]) {
-                            if(show == SwipeFeedCardState.EXPAND){
-                              itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                            if(show is ExpandSwipeFeedCardState){
+                              itemCubit.item2.emit(ShowSwipeFeedCardState());
                             }
                           },
                           overrideSwipeAlert: (index, direction){
@@ -539,7 +539,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           },
                           swipeAlert: widget.swipeAlert,
                           keyboardOpen: keyboard,
-                          show: show != SwipeFeedCardState.HIDE,
+                          show: show is ShowSwipeFeedCardState || show is ExpandSwipeFeedCardState,
                           onFill: (fill, iconPosition, cardPosition, overrideLock) {
                             fillBar(fill, iconPosition, cardPosition, overrideLock);
                           },
@@ -563,8 +563,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           },
                           child: AnimatedSwitcher(
                             duration: Duration(milliseconds: 200),
-                            child: _loadCard(itemCubit.item1, show != SwipeFeedCardState.HIDE, index, show == SwipeFeedCardState.EXPAND, (){
-                              itemCubit.item2.emit(SwipeFeedCardState.SHOW);
+                            child: _loadCard(itemCubit.item1, !(show is HideSwipeFeedCardState), index, show is ExpandSwipeFeedCardState, (){
+                              itemCubit.item2.emit(ShowSwipeFeedCardState());
                             },
                           ),
                         ),

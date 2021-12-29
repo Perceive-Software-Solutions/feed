@@ -7,11 +7,17 @@ import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/animated/swipe_card.dart';
 import 'package:flutter/material.dart';
 
-enum SwipeFeedCardState{
-  HIDE,
-  SHOW,
-  EXPAND
+abstract class SwipeFeedCardState{}
+
+class HideSwipeFeedCardState extends SwipeFeedCardState{
+
+  final Widget? overlay;
+
+  HideSwipeFeedCardState([this.overlay]);
+
 }
+class ShowSwipeFeedCardState extends SwipeFeedCardState{}
+class ExpandSwipeFeedCardState extends SwipeFeedCardState{}
 
 ///The poll page card is a feed swipe card within a swippable card. 
 ///These are displayed on the poll page feed as swipable cards. 
