@@ -297,6 +297,15 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     loading = true;
 
     Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
+
+    if(loaded.item1.isEmpty){
+      items = [];
+      pageToken = null;
+      hasMore = true;
+      loading = false;
+      cubit.emit([]);
+      return;
+    }
     
     loading = false;
 
