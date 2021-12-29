@@ -448,16 +448,17 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   ///Builds the type of item card based on the feed type. 
   ///If a custom child builder is present, uses the child builder instead
   Widget _loadCard(T? item, bool show, int index, bool isExpanded, Function() close) {
+    if(!show && widget.background != null){
+      return Container(
+        key: item == null ? UniqueKey() : ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
+        child: widget.background!
+      );
+    }
     if(item == null){
       lock = true;
       return Container(
         key: item == null ? UniqueKey() : ValueKey('SwipeFeed Placeholder Card ' + widget.objectKey(item)),
-        child: placeholder ?? SizedBox.shrink());
-    }
-    else if(!show && widget.background != null){
-      return Container(
-        key: item == null ? UniqueKey() : ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
-        child: widget.background!
+        child: placeholder ?? SizedBox.shrink()
       );
     }
     else if(widget.childBuilder != null && item != null){
