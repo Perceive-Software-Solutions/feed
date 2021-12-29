@@ -258,7 +258,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     hasMore = true;
     loading = false;
     cubit.emit([]);
-    fillController.fillBar(0, IconPosition.BOTTOM, CardPosition.Left);
 
     if(mounted){
       setState(() {});
@@ -539,16 +538,18 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           bloc: cubit,
           builder: (context, state) {
             
-            return state.isNotEmpty ? Stack(
+            return Stack(
               children: [
+                widget.noPollsPlaceHolder != null && connectivity == false ? 
+                  Center(child: widget.noConnectivityPlaceHolder) : widget.noPollsPlaceHolder != null ? 
+                  Center(child: widget.noPollsPlaceHolder!) : 
+                  SizedBox.shrink(),
+
                 _buildCard(1),
 
                 _buildCard(0),
               ],
-            ) : widget.noPollsPlaceHolder != null && connectivity == false ? 
-            Center(child: widget.noConnectivityPlaceHolder) : widget.noPollsPlaceHolder != null ? 
-            Center(child: widget.noPollsPlaceHolder!) : 
-            SizedBox.shrink();
+            );
           },
         ),
       ],
