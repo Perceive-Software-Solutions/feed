@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:connectivity/connectivity.dart';
 import 'package:feed/animated/neumorpic_percent_bar.dart';
 import 'package:feed/animated/swipe_feed_card.dart';
 import 'package:feed/util/global/functions.dart';
@@ -34,6 +35,8 @@ class SwipeFeed<T> extends StatefulWidget {
     this.padding,
     this.duration,
     this.placeholder,
+    this.noPollsPlaceHolder,
+    this.noConnectivityPlaceHolder,
     this.canExpand,
     this.style,
     this.overlayMaxDuration,
@@ -75,6 +78,12 @@ class SwipeFeed<T> extends StatefulWidget {
   final List<IconData> icons;
 
   final String Function(T item) objectKey;
+
+  /// No Polls
+  final Widget? noPollsPlaceHolder;
+
+  /// No Connectivity
+  final Widget? noConnectivityPlaceHolder;
 
   /// The overlay to be shown
   final Widget Function(Future<void> Function(int, bool overlay), Future<void> Function(int), int, T)? overlayBuilder;
@@ -149,6 +158,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   late AnimationController controller;
 
+  bool connectivity = true;
+
   EdgeInsets get padding => widget.padding ?? EdgeInsets.zero;
 
   Duration get duration => widget.duration ?? Duration(milliseconds: 0);
@@ -171,6 +182,17 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     }
 
     controller = new AnimationController(vsync: this);
+
+    checkConnectivity();
+
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if(result == ConnectivityResult.none){
+        connectivity = false;
+      }
+      else{
+        connectivity = true;
+      }
+    });
   }
 
   @override
@@ -179,6 +201,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     //Bind the controller
     widget.controller._bind(this);
+  }
+
+  void checkConnectivity() async {
+    ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
+    connectivity = connectivityResult != ConnectivityResult.none;
   }
 
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await fillController.completeFillBar(value, duration, direction, cardPosition);
@@ -512,15 +539,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           bloc: cubit,
           builder: (context, state) {
             
-            return Stack(
+            return state.isNotEmpty ? Stack(
               children: [
                 _buildCard(1),
 
                 _buildCard(0),
-
               ],
-            );
-
+            ) : widget.noPollsPlaceHolder != null && connectivity == false ? 
+            Center(child: widget.noConnectivityPlaceHolder) : widget.noPollsPlaceHolder != null ? 
+            Center(child: widget.noPollsPlaceHolder!) : 
+            SizedBox.shrink();
           },
         ),
       ],

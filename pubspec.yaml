@@ -1,6 +1,6 @@
 name: feed
 description: A new Flutter package project.
-version: 0.2.55
+version: 0.2.56
 homepage: https://github.com/Perceive-Software-Solutions/feed
 
 environment:
@@ -16,6 +16,7 @@ dependencies:
   linked_scroll_controller: ^0.2.0
   sliding_sheet: ^0.5.2 
   flutter_interactive_keyboard: ^0.2.0
+  connectivity: ^3.0.6
   flutter:
     sdk: flutter
 

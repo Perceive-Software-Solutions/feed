@@ -128,6 +128,14 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     ),
                   );
                 },
+                noConnectivityPlaceHolder: const SizedBox(
+                  height: 300,
+                  child: Text("No Connectivity and No Polls"),
+                ),
+                noPollsPlaceHolder: const SizedBox(
+                  height: 300,
+                  child: Text("No More Polls"),
+                ),
                 background: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,

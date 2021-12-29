@@ -1,3 +1,9 @@
+## [0.2.56] v0.2.56
+
+* Added No Connectivity placeholder
+* Added No More Polls placeholder
+* Added an override Swipe alert
+
 ## [0.2.53] v0.2.53
 
 * Fixed minor dispose error with swipe card.
