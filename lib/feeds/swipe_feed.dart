@@ -97,7 +97,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final SwipeFeedBuilder<T>? childBuilder;
 
   /// Background behind the card
-  final Widget? background;
+  final Widget Function(BuildContext context, Widget? child)? background;
 
   ///A loader for the feed
   final FeedLoader<T> loader;
@@ -176,7 +176,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     if(!widget.loadManually) {
       // _loadMore();
-      _refresh();
+      _reset();
     }
 
     controller = new AnimationController(vsync: this);
@@ -312,7 +312,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       pageToken = null;
       hasMore = true;
       loading = false;
-      cubit.emit([]);
+      // cubit.emit([]);
+      showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
       return;
     }
 
@@ -447,11 +448,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   ///Builds the type of item card based on the feed type. 
   ///If a custom child builder is present, uses the child builder instead
-  Widget _loadCard(T? item, bool show, int index, bool isExpanded, Function() close) {
+  Widget _loadCard(BuildContext context, T? item, bool show, int index, bool isExpanded, Widget? child, Function() close) {
     if(!show && widget.background != null){
       return Container(
         key: item == null ? UniqueKey() : ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
-        child: widget.background!
+        child: widget.background!(context, child)
       );
     }
     if(item == null){
@@ -485,6 +486,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       key: Key('swipefeed - card - ${itemCubit.item1 == null ? UniqueKey().toString() : widget.objectKey(itemCubit.item1!)}'),
       bloc: itemCubit.item2,
       builder: (context, show) {
+
+        ///Te child to display on the hidden card
+        Widget? hiddenChild = show is HideSwipeFeedCardState ? show.overlay : null;
+
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard){
             if(keyboard){
@@ -563,7 +568,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           },
                           child: AnimatedSwitcher(
                             duration: Duration(milliseconds: 200),
-                            child: _loadCard(itemCubit.item1, !(show is HideSwipeFeedCardState), index, show is ExpandSwipeFeedCardState, (){
+                            child: _loadCard(context, itemCubit.item1, !(show is HideSwipeFeedCardState), index, show is ExpandSwipeFeedCardState, hiddenChild, (){
                               itemCubit.item2.emit(ShowSwipeFeedCardState());
                             },
                           ),

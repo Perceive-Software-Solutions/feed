@@ -153,13 +153,16 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     feedController.refresh();
                   },
                 ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black, width: 3),
-                  ),
-                ),
+                background: (context, child){
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.black, width: 3),
+                    ),
+                    child: child,
+                  );
+                },
                 childBuilder: (dynamic value, bool isLast, bool isExpanded, void Function() close ) {
                   return Container(
                     decoration: BoxDecoration(
