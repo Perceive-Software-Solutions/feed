@@ -80,10 +80,10 @@ class SwipeFeed<T> extends StatefulWidget {
   final String Function(T item) objectKey;
 
   /// No Polls
-  final Widget? noPollsPlaceHolder;
+  final Widget Function(bool show)? noPollsPlaceHolder;
 
   /// No Connectivity
-  final Widget? noConnectivityPlaceHolder;
+  final Widget Function(bool show)? noConnectivityPlaceHolder;
 
   /// The overlay to be shown
   final Widget Function(Future<void> Function(int, bool overlay), Future<void> Function(int), int, T)? overlayBuilder;
@@ -549,10 +549,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             
             return Stack(
               children: [
-                widget.noPollsPlaceHolder != null && connectivity == false ? 
-                  Center(child: widget.noConnectivityPlaceHolder) : widget.noPollsPlaceHolder != null ? 
-                  Center(child: widget.noPollsPlaceHolder!) : 
-                  SizedBox.shrink(),
+                state.length <= 1 ? 
+                (widget.noPollsPlaceHolder != null && connectivity == false ? 
+                  Center(child: widget.noConnectivityPlaceHolder!(state.length == 0)) : widget.noPollsPlaceHolder != null ? 
+                  Center(child: widget.noPollsPlaceHolder!(state.length == 0)) : 
+                  SizedBox.shrink()) : SizedBox.shrink(),
 
                 _buildCard(1),
 
