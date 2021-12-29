@@ -296,13 +296,14 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     cubit.emit([
       Tuple2(null, showCubit),
     ]);
-    Future.delayed(Duration(milliseconds: 300)).then((value){
+    final placeHolderAnimation = Future.delayed(Duration(milliseconds: 500)).then((value){
       showCubit.emit(SwipeFeedCardState.SHOW);
     });
 
     loading = true;
 
     Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
+    await placeHolderAnimation;
 
     loading = false;
 
