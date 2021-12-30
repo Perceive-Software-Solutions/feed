@@ -209,6 +209,47 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     return false;
   }
 
+  ///Adds an item to the start of the swipe feed. 
+  Future<void> animateItem(T item) async {
+    var showCubit;
+    final items = cubit.state;
+
+    if(items.isEmpty){
+      //Adds a mimnimized card if list is empty
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      final placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(item, showCubit);
+      items.add(placeholder);
+    }
+    else if(items[0].item1 == null){
+      //Determine if the first card is a null card
+      //Replaces card
+      items[0] = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(item, items[0].item2);
+    }
+    else{
+      //Minimizes current card and replaces it
+
+      //Set the current first item state to hidden
+      items[0].item2.emit(HideSwipeFeedCardState());
+      await Future.delayed(Duration(seconds: 1));
+
+      //Add a new item to the start with a new state
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      items.insert(0, Tuple2(item, showCubit));
+    }
+
+    //Emit the state
+    cubit.emit(items);
+
+    if(showCubit == null){
+      return;
+    }
+
+    //Maximizes the card
+    await Future.delayed(Duration(milliseconds: 500)).then((value){
+      showCubit.emit(ShowSwipeFeedCardState());
+    });
+  }
+
   void checkConnectivity() async {
     ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
     connectivity = connectivityResult != ConnectivityResult.none;
@@ -342,14 +383,14 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
         
-        if(cubitItems.isNotEmpty){
+        if(cubitItems.isNotEmpty && oldItems[0].item1 == null){
           oldItems[0] = Tuple2(cubitItems[0].item1, oldItems[0].item2);
           cubitItems.removeAt(0);
           if(hasMore == false){
             cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
           }
         }
-        else{
+        else if(oldItems[0].item1 == null){
           //No replacement occured, animate loading card into no polls card
           if(hasMore == false)
             Future.delayed(Duration(milliseconds: 500)).then((value){
@@ -712,6 +753,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
 
   void addItem(T item) => _state != null ? _state!.addItem(item) : null;
+
+  Future<void> animateItem(T item) async => _state != null ? await _state!.animateItem(item) : null;
 
   void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
 
