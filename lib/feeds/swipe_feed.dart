@@ -529,6 +529,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                       child: Opacity(
                         opacity: keyboard && show is HideSwipeFeedCardState ? 0.0 : 1.0,
                         child: SwipeFeedCard(
+                          blur: show is HideSwipeFeedCardState && show.overlay == null,
                           startTopAlignment: widget.startTopAlignment,
                           startBottomAlignment: widget.startBottomAlignment,
                           topAlignment: widget.topAlignment,

@@ -42,7 +42,7 @@ class SwipeFeedCard extends StatefulWidget {
     this.onContinue, 
     this.onPanEnd,
     this.overlay,
-    this.blur,
+    this.blur = false,
     this.onPanUpdate,
     this.overlayMaxDuration,
     this.heightOfCard,
@@ -98,7 +98,7 @@ class SwipeFeedCard extends StatefulWidget {
   final Widget? Function(Future<void> Function(int, bool overlay), Future<void> Function(int), int)? overlay;
 
   /// Blur that is produced on the background card
-  final Widget? blur;
+  final bool blur;
 
   /// If the overlay should be shown
   final bool Function(int)? swipeAlert;
@@ -165,8 +165,6 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
   double horizontalSwipeThresh = 92 + 1;
   double bottomSwipeThresh = 157 + 1;
   double topSwipeThresh = 92.0 + 1;
-
-  Widget get blur => widget.blur == null ? Container() : widget.blur!;
 
   static bool isAnimating = false;
 
@@ -474,7 +472,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
     //Creates the swipe card swidget
     Widget swipeCard = IgnorePointer(
-      ignoring: !widget.show,
+      ignoring: widget.blur,
       child: SwipeCard(
         controller: swipeController,
         swipable: (widget.swipeOverride != null && !widget.swipeOverride!) ? widget.swipeOverride! : (widget.show == true && widget.keyboardOpen == false),
@@ -483,12 +481,7 @@ class _SwipeFeedCardState extends State<SwipeFeedCard> {
         onPanEnd: _onPanEnd,
         onPanUpdate: _onPanUpdate,
         child: KeepAliveWidget(
-          child: Stack(
-            children: [
-              Positioned.fill(child: child),
-              blur
-            ],
-          )
+          child: SizedBox.expand(child: child),
         ),
         onSwipe: (dx, dy, direction, fling){
           if(!fillLock){
