@@ -322,7 +322,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     List<T> newItems = loaded.item1;
 
     // Old items will be empty but just a procaution
-    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = [];
 
     if(mounted) {
       setState(() {
