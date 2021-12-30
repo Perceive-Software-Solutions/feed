@@ -201,6 +201,14 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     widget.controller._bind(this);
   }
 
+  bool setCardState(SwipeFeedCardState state){
+    if(cubit.state.isNotEmpty){
+      cubit.state[0].item2.emit(state);
+      return true;
+    }
+    return false;
+  }
+
   void checkConnectivity() async {
     ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
     connectivity = connectivityResult != ConnectivityResult.none;
@@ -308,7 +316,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     loading = true;
 
-    Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
+    Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, null);
 
     loading = false;
 
@@ -714,6 +722,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
   void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
 
   void setLock(bool lock) => _state != null ? _state!.setLock(lock) : null;
+
+  bool setCardState(SwipeFeedCardState cardState) => _state != null ? _state!.setCardState(cardState) : false;
 
   //Disposes of the controller
   @override
