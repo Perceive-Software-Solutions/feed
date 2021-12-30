@@ -322,7 +322,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     List<T> newItems = loaded.item1;
 
     // Old items will be empty but just a procaution
-    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = [];
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
 
     if(mounted) {
       setState(() {
@@ -339,7 +339,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
-
         
         for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
           if(oldItems[i].item1 == null){
@@ -347,24 +346,17 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             cubitItems.removeAt(0);
           }
         }
-
-        if(oldItems.isEmpty && cubitItems.isNotEmpty){
-          Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
-          });
-        }
         
-
         if(hasMore == false){
-          if(cubitItems.isNotEmpty){
-            cubitItems.add(placeholder);
+          if(cubitItems.isEmpty){
+            cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState(widget.noPollsPlaceHolder))));
+            if(oldItems.isNotEmpty && oldItems[0].item1 == null){
+              oldItems.removeAt(0);
+            }
           }
-          Future.delayed(Duration(milliseconds: 500)).then((value){
-            showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
-          });
         }
 
-        cubit.emit([...cubitItems]);
+        cubit.emit([...oldItems, ...cubitItems]);
         lock = false;
       });
     }
