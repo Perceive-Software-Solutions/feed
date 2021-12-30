@@ -363,11 +363,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     }
 
     //Add a loading card at the end
-    final showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
-    cubit.emit([
-      ...cubit.state,
-      Tuple2(null, showCubit),
-    ]);
+    bool wasEmpty = cubit.state.isEmpty;
+    var showCubit;
+    if(wasEmpty || cubit.state.last.item1 == null){
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      var placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(null, showCubit);
+      cubit.emit([
+        ...cubit.state,
+        placeholder,
+      ]);
+    }
 
     loading = true;
 
@@ -377,16 +382,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     List<T> newItems = loaded.item1;
     List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
-
-    if(loaded.item1.isEmpty){
-      //Determine if new list is empty, and if so show the no polls widget
-      showCubit.emit(HideSwipeFeedCardState(connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
-    }
-    else{
-      //Otherwise remove the last card from the list
-      cubit.emit(cubit.state.sublist(0, cubit.state.length));
-    }
-
 
     if(mounted) {
       setState(() {
@@ -404,17 +399,15 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
 
+        // if(oldItems.isEmpty && cubitItems.isNotEmpty){
+        //   Future.delayed(Duration(milliseconds: 300)).then((value){
+        //     cubitItems[0].item2.emit(ShowSwipeFeedCardState());
+        //   });
+        // }
 
-        for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
-          if(oldItems[i].item1 == null){
-            oldItems[i] = Tuple2(cubitItems[0].item1, oldItems[i].item2);
-            cubitItems.removeAt(0);
-          }
-        }
-
-        if(oldItems.isEmpty && cubitItems.isNotEmpty){
-          Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
+        if(cubitItems.isEmpty && wasEmpty && showCubit != null){
+          Future.delayed(Duration(milliseconds: 500)).then((value){
+            showCubit.emit(HideSwipeFeedCardState(!connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
           });
         }
         
