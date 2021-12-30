@@ -235,7 +235,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     Future.delayed(Duration(milliseconds: overlay ? 200 : 1000)).then((value){
       if(cubit.state.length >= 2) {
-        cubit.state[1].item2.emit(ShowSwipeFeedCardState());
+        if(cubit.state[1].item1 == null){
+          cubit.state[1].item2.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+        }
+        else{
+          cubit.state[1].item2.emit(ShowSwipeFeedCardState());
+        }
       }
       Future.delayed(Duration(milliseconds: 400)).then((value){
         fillBar(0.0, null, CardPosition.Left);
@@ -333,7 +338,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           oldItems[0] = Tuple2(cubitItems[0].item1, oldItems[0].item2);
           cubitItems.removeAt(0);
           if(hasMore == false){
-            cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState(widget.noPollsPlaceHolder))));
+            cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
           }
         }
         else{
