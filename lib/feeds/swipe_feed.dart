@@ -330,11 +330,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
         
-        for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
-          if(oldItems[i].item1 == null){
-            oldItems[i] = Tuple2(cubitItems[0].item1, oldItems[i].item2);
-          }
-        }
         if(cubitItems.isNotEmpty){
           oldItems[0] = Tuple2(cubitItems[0].item1, oldItems[0].item2);
           cubitItems.removeAt(0);
