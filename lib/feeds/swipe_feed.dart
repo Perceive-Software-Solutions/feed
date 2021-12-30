@@ -297,14 +297,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     cubit.emit([
       placeholder
     ]);
-    final placeHolderAnimation = Future.delayed(Duration(milliseconds: 500)).then((value){
+    await Future.delayed(Duration(milliseconds: 500)).then((value){
       showCubit.emit(ShowSwipeFeedCardState());
     });
 
     loading = true;
 
     Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
-    await placeHolderAnimation;
 
     loading = false;
 
@@ -340,7 +339,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         else{
           //No replacement occured, animate loading card into no polls card
           if(hasMore == false)
-            showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+            Future.delayed(Duration(milliseconds: 500)).then((value){
+              showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+            });
         }
 
         cubit.emit([...oldItems, ...cubitItems]);
