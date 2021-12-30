@@ -245,7 +245,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     }
 
     //Maximizes the card
-    await Future.delayed(Duration(milliseconds: 500)).then((value){
+    await Future.delayed(Duration(seconds: 1)).then((value){
       showCubit.emit(ShowSwipeFeedCardState());
     });
   }
