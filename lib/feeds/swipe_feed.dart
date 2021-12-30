@@ -236,7 +236,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     Future.delayed(Duration(milliseconds: overlay ? 200 : 1000)).then((value){
       if(cubit.state.length >= 2) {
         if(cubit.state[1].item1 == null){
-          cubit.state[1].item2.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+          cubit.state[1].item2.emit(HideSwipeFeedCardState(connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
         }
         else{
           cubit.state[1].item2.emit(ShowSwipeFeedCardState());
@@ -380,7 +380,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     if(loaded.item1.isEmpty){
       //Determine if new list is empty, and if so show the no polls widget
-      showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+      showCubit.emit(HideSwipeFeedCardState(connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
     }
     else{
       //Otherwise remove the last card from the list
