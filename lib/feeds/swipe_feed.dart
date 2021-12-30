@@ -308,16 +308,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     loading = false;
 
-    // if(loaded.item1.isEmpty){
-    //   items = [];
-    //   pageToken = null;
-    //   hasMore = true;
-    //   loading = false;
-    //   // cubit.emit([]);
-    //   showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
-    //   return;
-    // }
-
     // New Items Loaded
     List<T> newItems = loaded.item1;
 
@@ -343,17 +333,19 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
           if(oldItems[i].item1 == null){
             oldItems[i] = Tuple2(cubitItems[0].item1, oldItems[i].item2);
-            cubitItems.removeAt(0);
           }
         }
-        
-        if(hasMore == false){
-          if(cubitItems.isEmpty){
+        if(cubitItems.isNotEmpty){
+          oldItems[0] = Tuple2(cubitItems[0].item1, oldItems[0].item2);
+          cubitItems.removeAt(0);
+          if(hasMore == false){
             cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState(widget.noPollsPlaceHolder))));
-            if(oldItems.isNotEmpty && oldItems[0].item1 == null){
-              oldItems.removeAt(0);
-            }
           }
+        }
+        else{
+          //No replacement occured, animate loading card into no polls card
+          if(hasMore == false)
+            showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
         }
 
         cubit.emit([...oldItems, ...cubitItems]);
