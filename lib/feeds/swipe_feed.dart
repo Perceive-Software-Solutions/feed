@@ -365,7 +365,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     //Add a loading card at the end
     bool wasEmpty = cubit.state.isEmpty;
     var showCubit;
-    if(wasEmpty || cubit.state.last.item1 == null){
+    if(wasEmpty || cubit.state.last.item1 != null){
       showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
       var placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(null, showCubit);
       cubit.emit([
