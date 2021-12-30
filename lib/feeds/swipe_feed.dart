@@ -261,7 +261,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       setState(() {});
     }
 
-    await _loadMore();
+    await _refresh();
 
   }
 
@@ -452,7 +452,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     if(!show && widget.background != null){
       return Container(
         key: item == null ? UniqueKey() : ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
-        child: widget.background!(context, child)
+        child: widget.background!(context, SizedBox.expand(child: child))
       );
     }
     if(item == null){
