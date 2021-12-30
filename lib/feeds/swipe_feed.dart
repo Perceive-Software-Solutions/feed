@@ -212,7 +212,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   ///Adds an item to the start of the swipe feed. 
   Future<void> animateItem(T item) async {
     var showCubit;
-    final items = cubit.state;
+    final items = [...cubit.state];
 
     if(items.isEmpty){
       //Adds a mimnimized card if list is empty
@@ -246,7 +246,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     //Maximizes the card
     await Future.delayed(Duration(seconds: 1)).then((value){
-      showCubit.emit(ShowSwipeFeedCardState());
+      cubit.state[0].item2.emit(ShowSwipeFeedCardState());
     });
   }
 

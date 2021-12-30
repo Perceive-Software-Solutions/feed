@@ -1,3 +1,10 @@
+## [0.3.0] v0.3.0
+
+* Added overlay state in hide mode
+* Animated internet and empty list widgets
+* Added state control to the controller
+* Added replacement animation
+
 ## [0.2.56] v0.2.56
 
 * Added No Connectivity placeholder
