@@ -293,8 +293,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     // Emit Loading State
     final showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+    final placeholder = Tuple2(null, showCubit);
     cubit.emit([
-      Tuple2(null, showCubit),
+      placeholder
     ]);
     final placeHolderAnimation = Future.delayed(Duration(milliseconds: 500)).then((value){
       showCubit.emit(ShowSwipeFeedCardState());
@@ -307,15 +308,15 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     loading = false;
 
-    if(loaded.item1.isEmpty){
-      items = [];
-      pageToken = null;
-      hasMore = true;
-      loading = false;
-      // cubit.emit([]);
-      showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
-      return;
-    }
+    // if(loaded.item1.isEmpty){
+    //   items = [];
+    //   pageToken = null;
+    //   hasMore = true;
+    //   loading = false;
+    //   // cubit.emit([]);
+    //   showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+    //   return;
+    // }
 
     // New Items Loaded
     List<T> newItems = loaded.item1;
@@ -333,10 +334,19 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           hasMore = false;
         }
 
+
         //Cubit items
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
+
+        if(hasMore == false){
+          if(cubitItems.isNotEmpty){
+            cubit.emit([]);
+            cubitItems.add(placeholder);
+          }
+          showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+        }
 
         
         for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
@@ -365,6 +375,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       return;
     }
 
+    //Add a loading card at the end
+    final showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+    cubit.emit([
+      ...cubit.state,
+      Tuple2(null, showCubit),
+    ]);
+
     loading = true;
 
     Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
@@ -373,6 +390,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     List<T> newItems = loaded.item1;
     List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
+
+    if(loaded.item1.isEmpty){
+      //Determine if new list is empty, and if so show the no polls widget
+      showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+    }
+    else{
+      //Otherwise remove the last card from the list
+      cubit.emit(cubit.state.sublist(0, cubit.state.length));
+    }
+
 
     if(mounted) {
       setState(() {
@@ -616,42 +643,42 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
               children: [
                 // state.length <= 1 ? 
                 // (widget.noPollsPlaceHolder != null && connectivity == false ? 
-                //   AnimatedSwitcher(
-                //     duration: Duration(milliseconds: 300),
-                //     reverseDuration: Duration(milliseconds: 300),
-                //     child: state.length == 1 ? Padding(
-                //       key: Key("Display-Background-No-Polls-Or-Connectivity"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.background)),
-                //     ) : Padding(
-                //       key: Key("Display-No-Polls-Or-Connectivity"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.noConnectivityPlaceHolder!),
-                //       ),
-                //     )
-                //   ) : widget.noPollsPlaceHolder != null ? 
-                //   AnimatedSwitcher(
-                //     duration: Duration(milliseconds: 300),
-                //     reverseDuration: Duration(milliseconds: 300),
-                //     child: state.length == 1 ? Padding(
-                //       key: Key("Display-Background-No-Polls"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.background)),
-                //     ) : Padding(
-                //       key: Key("Display-No-Polls"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.noPollsPlaceHolder!),
-                //       ),
-                //     )) : 
-                //   SizedBox.shrink()) : SizedBox.shrink(),
+                  // AnimatedSwitcher(
+                  //   duration: Duration(milliseconds: 300),
+                  //   reverseDuration: Duration(milliseconds: 300),
+                  //   child: state.length == 1 ? Padding(
+                  //     key: Key("Display-Background-No-Polls-Or-Connectivity"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.background?.call())),
+                  //   ) : Padding(
+                  //     key: Key("Display-No-Polls-Or-Connectivity"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.noConnectivityPlaceHolder!),
+                  //     ),
+                  //   )
+                  // ) : widget.noPollsPlaceHolder != null ? 
+                  // AnimatedSwitcher(
+                  //   duration: Duration(milliseconds: 300),
+                  //   reverseDuration: Duration(milliseconds: 300),
+                  //   child: state.length == 1 ? Padding(
+                  //     key: Key("Display-Background-No-Polls"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.background?.call())),
+                  //   ) : Padding(
+                  //     key: Key("Display-No-Polls"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.noPollsPlaceHolder!),
+                  //     ),
+                  //   )) : 
+                  // SizedBox.shrink()) : SizedBox.shrink(),
 
                 _buildCard(1),
 
