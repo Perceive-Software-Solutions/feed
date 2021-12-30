@@ -465,7 +465,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   Widget _loadCard(BuildContext context, T? item, bool show, int index, bool isExpanded, Widget? child, Function() close) {
     if(!show && widget.background != null){
       return Container(
-        key: item == null ? UniqueKey() : ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
+        key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
         child: widget.background!(context, SizedBox.expand(child: child))
       );
     }
