@@ -340,14 +340,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
 
-        if(hasMore == false){
-          if(cubitItems.isNotEmpty){
-            cubit.emit([]);
-            cubitItems.add(placeholder);
-          }
-          showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
-        }
-
         
         for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
           if(oldItems[i].item1 == null){
@@ -362,7 +354,17 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           });
         }
         
-        cubit.emit([...oldItems, ...cubitItems]);
+
+        if(hasMore == false){
+          if(cubitItems.isNotEmpty){
+            cubitItems.add(placeholder);
+          }
+          Future.delayed(Duration(milliseconds: 500)).then((value){
+            showCubit.emit(HideSwipeFeedCardState(widget.noPollsPlaceHolder));
+          });
+        }
+
+        cubit.emit([...cubitItems]);
         lock = false;
       });
     }
