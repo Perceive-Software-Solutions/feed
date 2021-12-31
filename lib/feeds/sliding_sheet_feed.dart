@@ -119,7 +119,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
   ///The optional function used to wrap the list view
-  final IndexWidgetWrapper? wrapper;
+  final SlidingSheetWidgetWrapper? wrapper;
 
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -298,7 +298,9 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               condition: widget.condition,
                               disableScroll: widget.disableScroll,
                               headerBuilder: widget.headerBuilder,
-                              wrapper: widget.wrapper,
+                              wrapper: (context, child, index){
+                                return widget.wrapper!(context, extent, child, index);
+                              },
                             );
                           }
                         ),

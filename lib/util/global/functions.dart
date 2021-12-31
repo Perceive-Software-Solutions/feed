@@ -84,5 +84,8 @@ typedef MultiFeedBuilder = Widget Function(dynamic item, bool isLast);
 ///A function that returns an wrapper for a widget
 typedef IndexWidgetWrapper = Widget Function(BuildContext context, Widget child, int index);
 
+///Sliding sheet widget wrapper
+typedef SlidingSheetWidgetWrapper = Widget Function(BuildContext context, double extent, Widget child, int index);
+
 
 typedef WidgetWrapper = Widget Function(BuildContext context, Widget child);
