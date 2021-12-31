@@ -35,7 +35,8 @@ class SwipeFeed<T> extends StatefulWidget {
     this.padding,
     this.duration,
     this.placeholder,
-    this.overlay,
+    this.noPollsPlaceHolder,
+    this.noConnectivityPlaceHolder,
     this.canExpand,
     this.style,
     this.overlayMaxDuration,
@@ -78,7 +79,11 @@ class SwipeFeed<T> extends StatefulWidget {
 
   final String Function(T item) objectKey;
 
-  final Widget? overlay;
+  /// No Polls
+  final Widget? noPollsPlaceHolder;
+
+  /// No Connectivity
+  final Widget? noConnectivityPlaceHolder;
 
   /// The overlay to be shown
   final Widget Function(Future<void> Function(int, bool overlay), Future<void> Function(int), int, T)? overlayBuilder;
@@ -92,7 +97,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final SwipeFeedBuilder<T>? childBuilder;
 
   /// Background behind the card
-  final Widget? background;
+  final Widget Function(BuildContext context, Widget? child)? background;
 
   ///A loader for the feed
   final FeedLoader<T> loader;
@@ -196,6 +201,55 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     widget.controller._bind(this);
   }
 
+  bool setCardState(SwipeFeedCardState state){
+    if(cubit.state.isNotEmpty){
+      cubit.state[0].item2.emit(state);
+      return true;
+    }
+    return false;
+  }
+
+  ///Adds an item to the start of the swipe feed. 
+  Future<void> animateItem(T item) async {
+    var showCubit;
+    final items = [...cubit.state];
+
+    if(items.isEmpty){
+      //Adds a mimnimized card if list is empty
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      final placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(item, showCubit);
+      items.add(placeholder);
+    }
+    else if(items[0].item1 == null){
+      //Determine if the first card is a null card
+      //Replaces card
+      items[0] = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(item, items[0].item2);
+    }
+    else{
+      //Minimizes current card and replaces it
+
+      //Set the current first item state to hidden
+      items[0].item2.emit(HideSwipeFeedCardState());
+      await Future.delayed(Duration(seconds: 1));
+
+      //Add a new item to the start with a new state
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      items.insert(0, Tuple2(item, showCubit));
+    }
+
+    //Emit the state
+    cubit.emit(items);
+
+    if(showCubit == null){
+      return;
+    }
+
+    //Maximizes the card
+    await Future.delayed(Duration(seconds: 1)).then((value){
+      cubit.state[0].item2.emit(ShowSwipeFeedCardState());
+    });
+  }
+
   void checkConnectivity() async {
     ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
     connectivity = connectivityResult != ConnectivityResult.none;
@@ -230,7 +284,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     Future.delayed(Duration(milliseconds: overlay ? 200 : 1000)).then((value){
       if(cubit.state.length >= 2) {
-        cubit.state[1].item2.emit(ShowSwipeFeedCardState());
+        if(cubit.state[1].item1 == null){
+          cubit.state[1].item2.emit(HideSwipeFeedCardState(!connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
+        }
+        else{
+          cubit.state[1].item2.emit(ShowSwipeFeedCardState());
+        }
       }
       Future.delayed(Duration(milliseconds: 400)).then((value){
         fillBar(0.0, null, CardPosition.Left);
@@ -256,7 +315,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       setState(() {});
     }
 
-    await _loadMore();
+    await _refresh();
 
   }
 
@@ -288,24 +347,19 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     // Emit Loading State
     final showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+    final placeholder = Tuple2(null, showCubit);
     cubit.emit([
-      Tuple2(null, showCubit),
+      placeholder
     ]);
-    final placeHolderAnimation = Future.delayed(Duration(milliseconds: 500)).then((value){
+    await Future.delayed(Duration(milliseconds: 500)).then((value){
       showCubit.emit(ShowSwipeFeedCardState());
     });
 
     loading = true;
 
-    Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, pageToken);
-    await placeHolderAnimation;
+    Tuple2<List<T>, String?> loaded = await widget.loader(LENGTH_INCREASE_FACTOR, null);
 
     loading = false;
-
-    if(loaded.item1.isEmpty){
-      showCubit.emit(HideSwipeFeedCardState(widget.overlay));
-      return;
-    }
 
     // New Items Loaded
     List<T> newItems = loaded.item1;
@@ -323,25 +377,27 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           hasMore = false;
         }
 
+
         //Cubit items
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
-
         
-        for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
-          if(oldItems[i].item1 == null){
-            oldItems[i] = Tuple2(cubitItems[0].item1, oldItems[i].item2);
-            cubitItems.removeAt(0);
+        if(cubitItems.isNotEmpty && oldItems[0].item1 == null){
+          oldItems[0] = Tuple2(cubitItems[0].item1, oldItems[0].item2);
+          cubitItems.removeAt(0);
+          if(hasMore == false){
+            cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
           }
         }
-
-        if(oldItems.isEmpty && cubitItems.isNotEmpty){
-          Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
-          });
+        else if(oldItems[0].item1 == null){
+          //No replacement occured, animate loading card into no polls card
+          if(hasMore == false)
+            Future.delayed(Duration(milliseconds: 500)).then((value){
+              showCubit.emit(HideSwipeFeedCardState(!connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
+            });
         }
-        
+
         cubit.emit([...oldItems, ...cubitItems]);
         lock = false;
       });
@@ -353,6 +409,18 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     //Skip loading if there are no more polls or you are currently loading
     if(loading || !hasMore){
       return;
+    }
+
+    //Add a loading card at the end
+    bool wasEmpty = cubit.state.isEmpty;
+    var showCubit;
+    if(wasEmpty || cubit.state.last.item1 != null){
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      var placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(null, showCubit);
+      cubit.emit([
+        ...cubit.state,
+        placeholder,
+      ]);
     }
 
     loading = true;
@@ -374,22 +442,21 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           hasMore = false;
         }
 
+        //TODO emit
         //Cubit items
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
 
+        // if(oldItems.isEmpty && cubitItems.isNotEmpty){
+        //   Future.delayed(Duration(milliseconds: 300)).then((value){
+        //     cubitItems[0].item2.emit(ShowSwipeFeedCardState());
+        //   });
+        // }
 
-        for (var i = 0; i < min(min(2, oldItems.length), cubitItems.length); i++) {
-          if(oldItems[i].item1 == null){
-            oldItems[i] = Tuple2(cubitItems[0].item1, oldItems[i].item2);
-            cubitItems.removeAt(0);
-          }
-        }
-
-        if(oldItems.isEmpty && cubitItems.isNotEmpty){
-          Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
+        if(cubitItems.isEmpty && wasEmpty && showCubit != null){
+          Future.delayed(Duration(milliseconds: 500)).then((value){
+            showCubit.emit(HideSwipeFeedCardState(!connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
           });
         }
         
@@ -437,11 +504,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   ///Builds the type of item card based on the feed type. 
   ///If a custom child builder is present, uses the child builder instead
-  Widget _loadCard(T? item, bool show, int index, bool isExpanded, Function() close) {
+  Widget _loadCard(BuildContext context, T? item, bool show, int index, bool isExpanded, Widget? child, Function() close) {
     if(!show && widget.background != null){
       return Container(
-        key: item == null ? UniqueKey() : ValueKey('SwipeFeed Background Card ' + widget.objectKey(item)),
-        child: widget.background!
+        key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
+        child: widget.background!(context, SizedBox.expand(child: child))
       );
     }
     if(item == null){
@@ -475,6 +542,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       key: Key('swipefeed - card - ${itemCubit.item1 == null ? UniqueKey().toString() : widget.objectKey(itemCubit.item1!)}'),
       bloc: itemCubit.item2,
       builder: (context, show) {
+
+        ///Te child to display on the hidden card
+        Widget? hiddenChild = show is HideSwipeFeedCardState ? show.overlay : null;
+
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard){
             if(keyboard){
@@ -500,6 +571,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                       child: Opacity(
                         opacity: keyboard && show is HideSwipeFeedCardState ? 0.0 : 1.0,
                         child: SwipeFeedCard(
+                          blur: show is HideSwipeFeedCardState && show.overlay == null,
                           startTopAlignment: widget.startTopAlignment,
                           startBottomAlignment: widget.startBottomAlignment,
                           topAlignment: widget.topAlignment,
@@ -553,7 +625,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
                           },
                           child: AnimatedSwitcher(
                             duration: Duration(milliseconds: 200),
-                            child: _loadCard(itemCubit.item1, !(show is HideSwipeFeedCardState), index, show is ExpandSwipeFeedCardState, (){
+                            child: _loadCard(context, itemCubit.item1, !(show is HideSwipeFeedCardState), index, show is ExpandSwipeFeedCardState, hiddenChild, (){
                               itemCubit.item2.emit(ShowSwipeFeedCardState());
                             },
                           ),
@@ -601,42 +673,42 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
               children: [
                 // state.length <= 1 ? 
                 // (widget.noPollsPlaceHolder != null && connectivity == false ? 
-                //   AnimatedSwitcher(
-                //     duration: Duration(milliseconds: 300),
-                //     reverseDuration: Duration(milliseconds: 300),
-                //     child: state.length == 1 ? Padding(
-                //       key: Key("Display-Background-No-Polls-Or-Connectivity"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.background)),
-                //     ) : Padding(
-                //       key: Key("Display-No-Polls-Or-Connectivity"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.noConnectivityPlaceHolder!),
-                //       ),
-                //     )
-                //   ) : widget.noPollsPlaceHolder != null ? 
-                //   AnimatedSwitcher(
-                //     duration: Duration(milliseconds: 300),
-                //     reverseDuration: Duration(milliseconds: 300),
-                //     child: state.length == 1 ? Padding(
-                //       key: Key("Display-Background-No-Polls"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.background)),
-                //     ) : Padding(
-                //       key: Key("Display-No-Polls"),
-                //       padding: EdgeInsets.only(top: 74),
-                //       child: Padding(
-                //         padding: padding,
-                //         child: Center(child: widget.noPollsPlaceHolder!),
-                //       ),
-                //     )) : 
-                //   SizedBox.shrink()) : SizedBox.shrink(),
+                  // AnimatedSwitcher(
+                  //   duration: Duration(milliseconds: 300),
+                  //   reverseDuration: Duration(milliseconds: 300),
+                  //   child: state.length == 1 ? Padding(
+                  //     key: Key("Display-Background-No-Polls-Or-Connectivity"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.background?.call())),
+                  //   ) : Padding(
+                  //     key: Key("Display-No-Polls-Or-Connectivity"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.noConnectivityPlaceHolder!),
+                  //     ),
+                  //   )
+                  // ) : widget.noPollsPlaceHolder != null ? 
+                  // AnimatedSwitcher(
+                  //   duration: Duration(milliseconds: 300),
+                  //   reverseDuration: Duration(milliseconds: 300),
+                  //   child: state.length == 1 ? Padding(
+                  //     key: Key("Display-Background-No-Polls"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.background?.call())),
+                  //   ) : Padding(
+                  //     key: Key("Display-No-Polls"),
+                  //     padding: EdgeInsets.only(top: 74),
+                  //     child: Padding(
+                  //       padding: padding,
+                  //       child: Center(child: widget.noPollsPlaceHolder!),
+                  //     ),
+                  //   )) : 
+                  // SizedBox.shrink()) : SizedBox.shrink(),
 
                 _buildCard(1),
 
@@ -682,6 +754,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
 
   void addItem(T item) => _state != null ? _state!.addItem(item) : null;
 
+  Future<void> animateItem(T item) async => _state != null ? await _state!.animateItem(item) : null;
+
   void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
 
   void removeItem(String id) => _state != null ? _state!.removeItem(id) : null;
@@ -691,6 +765,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
   void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
 
   void setLock(bool lock) => _state != null ? _state!.setLock(lock) : null;
+
+  bool setCardState(SwipeFeedCardState cardState) => _state != null ? _state!.setCardState(cardState) : false;
 
   //Disposes of the controller
   @override
