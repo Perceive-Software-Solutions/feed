@@ -87,5 +87,4 @@ typedef IndexWidgetWrapper = Widget Function(BuildContext context, Widget child,
 ///Sliding sheet widget wrapper
 typedef SlidingSheetWidgetWrapper = Widget Function(BuildContext context, double extent, Widget child, int index);
 
-
 typedef WidgetWrapper = Widget Function(BuildContext context, Widget child);

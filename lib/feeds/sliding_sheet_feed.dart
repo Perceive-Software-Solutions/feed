@@ -119,7 +119,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
   ///The optional function used to wrap the list view
-  final SlidingSheetWidgetWrapper? wrapper;
+  final IndexWidgetWrapper? wrapper;
 
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -168,8 +168,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   late ConcreteCubit<dynamic> pageObject = ConcreteCubit<dynamic>(null);
 
   late ConcreteCubit<double> sheetExtent = ConcreteCubit<double>(widget.initialExtent);
-
-
 
   double headerHeight = 70;
 
@@ -222,6 +220,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
 
 
+
+
   @override
   Widget build(BuildContext context) {
     var statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
@@ -259,12 +259,12 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       customBuilder: (context, controller, state){
         return BlocBuilder<ConcreteCubit<double>, double>(
           bloc: sheetExtent,
-          builder: (context, extent) {
-            double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+          builder: (context, sheetExtentValue) {
+            double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
             double pageHeight = MediaQuery.of(context).size.height;
-            double height = extent > 0.55 ? (extent == 1.0 ? extent*pageHeight - MediaQuery.of(context).padding.top - 60 : extent > 0.8 ? 
-            extent*pageHeight - MediaQuery.of(context).padding.top : extent*pageHeight - 60) : 
-            pageHeight*0.55 - 60;
+            double height = sheetExtentValue > widget.initialExtent ? (sheetExtentValue == 1.0 ? sheetExtentValue*pageHeight - MediaQuery.of(context).padding.top - headerHeight : sheetExtentValue > 0.8 ? 
+            sheetExtentValue*pageHeight - MediaQuery.of(context).padding.top : sheetExtentValue*pageHeight - headerHeight) : 
+            pageHeight*0.55 - headerHeight;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -298,9 +298,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               condition: widget.condition,
                               disableScroll: widget.disableScroll,
                               headerBuilder: widget.headerBuilder,
-                              wrapper: (context, child, index){
-                                return widget.wrapper!(context, extent, child, index);
-                              },
+                              wrapper: widget.wrapper
                             );
                           }
                         ),

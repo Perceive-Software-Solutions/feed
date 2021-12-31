@@ -100,7 +100,6 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
   Widget wrapper(BuildContext context, Widget child, int index) {
 
     Widget list = sheetController.multifeedController.list(index).isEmpty ? const SizedBox(height: 700, width: double.infinity,) : child;
-
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
