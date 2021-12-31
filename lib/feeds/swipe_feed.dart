@@ -459,6 +459,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             showCubit.emit(HideSwipeFeedCardState(!connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
           });
         }
+        else if(cubitItems.isNotEmpty && oldItems.last.item1 == null){
+          //Move the last null value to the end of the list
+          cubitItems.add(oldItems.last);
+          oldItems.removeLast();
+        }
         
         cubit.emit([...oldItems, ...cubitItems]);
         lock = false;

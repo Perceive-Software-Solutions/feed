@@ -1,3 +1,7 @@
+## [0.3.1] v0.3.1
+
+* Ensured that the null pointer moves to the end after load more is successful
+
 ## [0.3.0] v0.3.0
 
 * Added overlay state in hide mode
