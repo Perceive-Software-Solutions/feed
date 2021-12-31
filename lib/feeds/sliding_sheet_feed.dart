@@ -121,6 +121,9 @@ class SlidingSheetFeed extends StatefulWidget {
   ///The optional function used to wrap the list view
   final IndexWidgetWrapper? wrapper;
 
+  /// HeaderHeight
+  final double headerHeight;
+
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const SlidingSheetFeed({ 
@@ -155,6 +158,7 @@ class SlidingSheetFeed extends StatefulWidget {
     this.disableScroll, 
     this.headerBuilder,
     this.wrapper,
+    this.headerHeight = 60
   }) : super(key: key);
 
   @override
@@ -262,9 +266,9 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
           builder: (context, sheetExtentValue) {
             double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
             double pageHeight = MediaQuery.of(context).size.height;
-            double height = sheetExtentValue > widget.initialExtent ? (sheetExtentValue == 1.0 ? sheetExtentValue*pageHeight - MediaQuery.of(context).padding.top - headerHeight : sheetExtentValue > 0.8 ? 
-            sheetExtentValue*pageHeight - MediaQuery.of(context).padding.top : sheetExtentValue*pageHeight - headerHeight) : 
-            pageHeight*0.55 - headerHeight;
+            double height = sheetExtentValue > 0.55 ? (sheetExtentValue == 1.0 ? sheetExtentValue*pageHeight - MediaQuery.of(context).padding.top - widget.headerHeight : sheetExtentValue > 0.8 ? 
+            sheetExtentValue*pageHeight - MediaQuery.of(context).padding.top : sheetExtentValue*pageHeight - widget.headerHeight) : 
+            pageHeight*0.55 - widget.headerHeight;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
