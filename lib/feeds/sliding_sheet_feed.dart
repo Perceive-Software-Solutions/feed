@@ -267,7 +267,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
             double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
             double pageHeight = MediaQuery.of(context).size.height;
             double height = sheetExtentValue > 0.8 ? 
-            pageHeight*sheetExtentValue - widget.headerHeight - MediaQuery.of(context).padding.top :  
+            pageHeight*sheetExtentValue - widget.headerHeight - statusBarHeight :  
             pageHeight*sheetExtentValue - widget.headerHeight;
             return Column(
               mainAxisSize: MainAxisSize.min,
