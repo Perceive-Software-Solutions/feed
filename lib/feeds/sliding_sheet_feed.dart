@@ -269,6 +269,9 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
             double height = sheetExtentValue > 0.8 ? 
             pageHeight*sheetExtentValue - widget.headerHeight - statusBarHeight :  
             pageHeight*sheetExtentValue - widget.headerHeight;
+            if(height < 0){
+              height = 100;
+            }
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
