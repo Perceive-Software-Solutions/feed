@@ -169,6 +169,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   late ConcreteCubit<double> sheetExtent = ConcreteCubit<double>(widget.initialExtent);
 
+
+
   double headerHeight = 70;
 
   BuildContext? heightContext;
@@ -218,6 +220,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
     pageObject.emit(null);
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     var statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
@@ -257,6 +261,10 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
           bloc: sheetExtent,
           builder: (context, extent) {
             double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+            double pageHeight = MediaQuery.of(context).size.height;
+            double height = extent > 0.55 ? (extent == 1.0 ? extent*pageHeight - MediaQuery.of(context).padding.top - 60 : extent > 0.8 ? 
+            extent*pageHeight - MediaQuery.of(context).padding.top : extent*pageHeight - 60) : 
+            pageHeight*0.55 - 60;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -266,7 +274,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                     physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
                     controller: controller,
                     child: SizedBox(
-                      height: MediaQuery.of(context).size.height,
+                      height: height,
                       child: Navigator(
                         key: key,
                         onGenerateRoute: (settings) => MaterialPageRoute(
