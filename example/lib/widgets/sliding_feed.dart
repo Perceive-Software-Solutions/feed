@@ -150,9 +150,9 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
         await Future.delayed(const Duration(seconds: 3));
         return Tuple2(List.generate(size, (i) => i + index), null);
       }),
-      header: (context, i, child){
-        return headerBuilder();
-      },
+      // header: (context, i, child){
+      //   return headerBuilder();
+      // },
       footer: (context, _){
         return SafeArea(
           bottom: true,

@@ -63,7 +63,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final double expandedExtent;
 
   /// Header of the sheet
-  final Widget Function(BuildContext context, dynamic pageObject, Widget spacing)? header;
+  final Widget Function(BuildContext context, dynamic pageObject)? header;
 
   /// Footer of the sheet
   final Widget Function(BuildContext context, dynamic pageObject)? footer;
@@ -246,17 +246,22 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       listener: sheetStateListener,
       headerBuilder: (context, state){
         // return widget.header != null ? widget.header!(context, pageObject.state) : SizedBox.shrink();
-        return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-          bloc: pageObject,
-          builder: (context, obj) {
-            return BlocBuilder<ConcreteCubit<double>, double>(
-              bloc: sheetExtent,
-              builder: (context, extent){
-                heightContext = context;
-                //The animation value for the topExtent animation
-                double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-                return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
-              },
+        return widget.header != null ? BlocBuilder<ConcreteCubit<double>, double>(
+          bloc: sheetExtent,
+          builder: (context, extent) {
+            double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+            return Column(
+              children: [
+                Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
+                BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+                  bloc: pageObject,
+                  builder: (context, obj){
+                    heightContext = context;
+                    //The animation value for the topExtent animation
+                    return widget.header!(context, obj);
+                  },
+                ),
+              ],
             );
           }      
         ) : SizedBox.shrink();
@@ -276,7 +281,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(height: headerHeight),
+                Container(height: headerHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
