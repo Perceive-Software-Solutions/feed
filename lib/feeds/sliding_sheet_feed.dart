@@ -123,6 +123,9 @@ class SlidingSheetFeed extends StatefulWidget {
 
   /// HeaderHeight
   final double headerHeight;
+  
+  ///Retreives the item id, used to ensure the prevention of duplcicate additions
+  final String Function(dynamic item)? getItemID;
 
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -158,6 +161,7 @@ class SlidingSheetFeed extends StatefulWidget {
     this.disableScroll, 
     this.headerBuilder,
     this.wrapper,
+    this.getItemID,
     this.headerHeight = 60
   }) : super(key: key);
 
@@ -305,7 +309,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               condition: widget.condition,
                               disableScroll: widget.disableScroll,
                               headerBuilder: widget.headerBuilder,
-                              wrapper: widget.wrapper
+                              wrapper: widget.wrapper,
+                              getItemID: widget.getItemID,
                             );
                           }
                         ),

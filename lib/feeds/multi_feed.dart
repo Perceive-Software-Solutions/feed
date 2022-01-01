@@ -63,6 +63,9 @@ class MultiFeed extends StatefulWidget {
   ///The header builder that prints over each multi feed
   final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
 
+  ///Retreives the item id, used to ensure the prevention of duplcicate additions
+  final String Function(dynamic item)? getItemID;
+
   ///The optional function used to wrap the list view
   final IndexWidgetWrapper? wrapper;
 
@@ -87,6 +90,7 @@ class MultiFeed extends StatefulWidget {
       this.condition = false, 
       this.disableScroll, 
       this.headerBuilder,
+      this.getItemID,
       this.wrapper})
       : assert(childBuilders == null || childBuilders.length == loaders.length),
         assert(controller == null || controller.length == loaders.length),
@@ -137,6 +141,8 @@ class _MultiFeedState extends State<MultiFeed> {
   ///If there is any more items to be loaded
   List<bool> loadMore = <bool>[]; 
   
+  ///The items added the various indicies of the multifeed
+  late List<Map<String, bool>> addedItems;
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Render State ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -175,6 +181,7 @@ class _MultiFeedState extends State<MultiFeed> {
     tokens = List<String?>.generate(_feedCount, (i) => null);
     loading = List<bool>.generate(_feedCount, (i) => false);
     loadMore = List<bool>.generate(_feedCount, (index) => true);
+    addedItems = List<Map<String, bool>>.generate(_feedCount, (index) => {});
 
     //Creates concrete cubit
     itemsCubit = List.generate(_feedCount, (i) => ConcreteCubit<List>([]));
@@ -283,6 +290,13 @@ class _MultiFeedState extends State<MultiFeed> {
   ///The function that is run to refresh the page
   ///[full] - defines if the parent widget should be refreshed aswell
   Future<void> _refresh(int feedIndex, [bool full = true]) async {
+
+    
+    itemsCubit[feedIndex].emit([]);
+    if(loading[feedIndex]){
+      return;
+    }
+
     //Calls the refresh function from the parent widget
     Future<void>? refresh =
         widget.onRefresh != null && full ? widget.onRefresh!() : null;
@@ -295,6 +309,11 @@ class _MultiFeedState extends State<MultiFeed> {
 
     //The loaded items
     List loadedItems = loaded.item1;
+
+    //Remove the items already within addItems
+    if(widget.getItemID != null){
+      loadedItems = loadedItems.where((item) => addedItems[feedIndex][widget.getItemID!(item)] != true).toList();
+    }
 
     //Awaits the parent refresh function
     if (refresh != null) await refresh;
@@ -322,6 +341,11 @@ class _MultiFeedState extends State<MultiFeed> {
 
   ///The function run to load more items onto the page
   Future<void> _loadMore(int feedIndex) async {
+
+    if(loading[feedIndex]){
+      return;
+    }
+
     //Set the loading to true
     loading[feedIndex] = true;
     int newSize = LENGTH_INCREASE_FACTOR;
@@ -351,6 +375,11 @@ class _MultiFeedState extends State<MultiFeed> {
 
       //The loaded items
       List loadedItems = loaded.item1;
+
+      //Remove the items already within addItems
+      if(widget.getItemID != null){
+        loadedItems = loadedItems.where((item) => addedItems[feedIndex][widget.getItemID!(item)] != true).toList();
+      }
 
       if (mounted) {
 
@@ -382,9 +411,26 @@ class _MultiFeedState extends State<MultiFeed> {
     return child;
   }
 
+  ///Determines if a feed index is in refresh state or not
+  bool isNotRefreshed(int index){
+    return itemsCubit[index].state.isEmpty && loadMore[index];
+  }
+
+  ///Keps track of the added items are removes them from future loads
   void addItem(dynamic item, int index){
-    List addNewItem = [item, ...itemsCubit[index].state];
-    itemsCubit[index].emit(addNewItem);
+    // if(isNotRefreshed(index)){
+    //   //Refresh the list instead of adding
+    //   _refresh(index, false);
+    // }
+    // else{
+      List addNewItem = [item, ...itemsCubit[index].state];
+      itemsCubit[index].emit(addNewItem);
+
+      //track added items only oif the [getItemID] function is defined
+      if(widget.getItemID != null){
+        addedItems[index][widget.getItemID!(item)] = true;
+      }
+    // }
   }
 
   ///Builds the tabs used in the custom scroll view
@@ -533,6 +579,9 @@ class MultiFeedController extends ChangeNotifier {
 
   ///Retreives the list of items from the feed
   bool hasMore(index) => _state!.loadMore[index];
+
+  ///Determines if an index has been refreshed
+  bool isNotRefreshed(index) => _state!.isNotRefreshed(index);
 
   ///Reloads the feed state based on the original size parameter
   void reload(int index) => _state!._refresh(index);

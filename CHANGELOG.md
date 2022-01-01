@@ -1,3 +1,7 @@
+## [0.3.9] v0.3.9
+
+* Upgraded add item interface for multifeed
+
 ## [0.3.1] v0.3.1
 
 * Ensured that the null pointer moves to the end after load more is successful
