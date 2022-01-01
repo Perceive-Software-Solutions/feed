@@ -192,9 +192,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         if(sheetExtent.state > 0.8){
           headerHeight = heightContext!.size!.height - statusBarHeight;
         }
-        else{
-          headerHeight = heightContext!.size!.height;
-        }
+        headerHeight = heightContext!.size!.height;
         setState(() {});
       }
     });
@@ -205,9 +203,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       if(sheetExtent.state > 0.8){
         headerHeight = heightContext!.size!.height - statusBarHeight;
       }
-      else{
-        headerHeight = heightContext!.size!.height;
-      }
+      headerHeight = heightContext!.size!.height;
       setState(() {});
     }
   }
@@ -258,21 +254,17 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       listener: sheetStateListener,
       headerBuilder: (context, state){
         // return widget.header != null ? widget.header!(context, pageObject.state) : SizedBox.shrink();
-        return widget.header != null ? BlocBuilder<ConcreteCubit<double>, double>(
-          bloc: sheetExtent,
-          builder: (context, extent) {
-            return Column(
-              children: [
-                BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-                  bloc: pageObject,
-                  builder: (context, obj){
-                    heightContext = context;
-                    //The animation value for the topExtent animation
-                    double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-                    return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
-                  },
-                ),
-              ],
+        return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+          bloc: pageObject,
+          builder: (context, obj) {
+            return BlocBuilder<ConcreteCubit<double>, double>(
+              bloc: sheetExtent,
+              builder: (context, extent){
+                heightContext = context;
+                //The animation value for the topExtent animation
+                double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+                return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
+              },
             );
           }      
         ) : SizedBox.shrink();
@@ -301,15 +293,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                       height: height,
                       child: Navigator(
                         key: key,
-                        onPopPage: (route, child){
-                          WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
-                            if(heightContext != null){
-                              headerHeight = heightContext!.size!.height;
-                              setState(() {});
-                            }
-                          });
-                          return true;
-                        },
                         onGenerateRoute: (settings) => MaterialPageRoute(
                           settings: settings,
                           builder: (context){
