@@ -311,7 +311,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               childBuilder: widget.childBuilder,
                               footerHeight: widget.footerHeight,
                               placeHolder: widget.placeHolder,
-                              placeHolders: widget.placeHolders!(sheetExtentValue),
+                              placeHolders: widget.placeHolders!(sheetExtent.state),
                               loading: widget.loading,
                               condition: widget.condition,
                               disableScroll: widget.disableScroll,
