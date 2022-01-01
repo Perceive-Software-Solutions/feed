@@ -179,11 +179,13 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
           child: childBuilder(item)
         );
       },
-      placeHolders: [
-        placeholder(context),
-        placeholder(context),
-        placeholder(context),
-      ],
+      placeHolders: (extet){
+        return [
+          placeholder(context),
+          placeholder(context),
+          placeholder(context),
+        ];
+      },
       
       //Widgets
       wrapper: wrapper,

@@ -107,7 +107,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final bool? condition;
 
   /// Loading state placeholders
-  final List<Widget>? placeHolders;
+  final List<Widget> Function(double extent)? placeHolders;
 
   /// Loading widget
   final Widget? loading;
@@ -311,7 +311,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               childBuilder: widget.childBuilder,
                               footerHeight: widget.footerHeight,
                               placeHolder: widget.placeHolder,
-                              placeHolders: widget.placeHolders,
+                              placeHolders: widget.placeHolders!(sheetExtentValue),
                               loading: widget.loading,
                               condition: widget.condition,
                               disableScroll: widget.disableScroll,
