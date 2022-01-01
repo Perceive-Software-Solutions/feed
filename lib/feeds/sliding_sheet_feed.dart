@@ -245,6 +245,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       ),
       listener: sheetStateListener,
       headerBuilder: (context, state){
+        heightContext = context;
         // return widget.header != null ? widget.header!(context, pageObject.state) : SizedBox.shrink();
         return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
           bloc: pageObject,
@@ -252,7 +253,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
             return BlocBuilder<ConcreteCubit<double>, double>(
               bloc: sheetExtent,
               builder: (context, extent){
-                heightContext = context;
                 //The animation value for the topExtent animation
                 double topExtentValue = Functions.animateOver(extent, percent: 0.9);
                 return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
