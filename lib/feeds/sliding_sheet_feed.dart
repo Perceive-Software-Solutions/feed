@@ -63,7 +63,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final double expandedExtent;
 
   /// Header of the sheet
-  final Widget Function(BuildContext context, dynamic pageObject)? header;
+  final Widget Function(BuildContext context, dynamic pageObject, Widget spacing)? header;
 
   /// Footer of the sheet
   final Widget Function(BuildContext context, dynamic pageObject)? footer;
@@ -181,13 +181,20 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   BuildContext? heightContext;
 
+  double statusBarHeight = 0.0;
+
   @override
   void initState(){
     super.initState();
 
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
       if(heightContext != null){
-        headerHeight = heightContext!.size!.height;
+        if(sheetExtent.state > 0.8){
+          headerHeight = heightContext!.size!.height - statusBarHeight;
+        }
+        else{
+          headerHeight = heightContext!.size!.height;
+        }
         setState(() {});
       }
     });
@@ -195,7 +202,12 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   void refreshHeight(){
     if(heightContext != null){
-      headerHeight = heightContext!.size!.height;
+      if(sheetExtent.state > 0.8){
+        headerHeight = heightContext!.size!.height - statusBarHeight;
+      }
+      else{
+        headerHeight = heightContext!.size!.height;
+      }
       setState(() {});
     }
   }
@@ -229,7 +241,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   @override
   Widget build(BuildContext context) {
-    var statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
+    statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
     return SlidingSheet(
       controller: widget.controller.sheetController,
       color: widget.color,
@@ -249,19 +261,16 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         return widget.header != null ? BlocBuilder<ConcreteCubit<double>, double>(
           bloc: sheetExtent,
           builder: (context, extent) {
-            double topExtentValue = Functions.animateOver(extent, percent: 0.9);
             return Column(
               children: [
-                Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
-                Expanded(
-                  child: BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-                    bloc: pageObject,
-                    builder: (context, obj){
-                      heightContext = context;
-                      //The animation value for the topExtent animation
-                      return widget.header!(context, obj);
-                    },
-                  ),
+                BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+                  bloc: pageObject,
+                  builder: (context, obj){
+                    heightContext = context;
+                    //The animation value for the topExtent animation
+                    double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+                    return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
+                  },
                 ),
               ],
             );
