@@ -190,7 +190,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
       if(heightContext != null){
         if(sheetExtent.state > 0.8){
-          headerHeight = heightContext!.size!.height - statusBarHeight;
+          headerHeight = heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top;
         }
         headerHeight = heightContext!.size!.height;
         setState(() {});
@@ -201,7 +201,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   void refreshHeight(){
     if(heightContext != null){
       if(sheetExtent.state > 0.8){
-        headerHeight = heightContext!.size!.height - statusBarHeight;
+        headerHeight = heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top;
       }
       headerHeight = heightContext!.size!.height;
       setState(() {});
