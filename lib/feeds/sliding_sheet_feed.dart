@@ -194,10 +194,10 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   }
 
   void refreshHeight(){
-    // if(heightContext != null){
-    //   headerHeight = heightContext!.size!.height;
-    //   setState(() {});
-    // }
+    if(heightContext != null){
+      headerHeight = heightContext!.size!.height;
+      setState(() {});
+    }
   }
 
   @override
