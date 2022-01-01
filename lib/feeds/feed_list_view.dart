@@ -2,7 +2,6 @@ import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_interactive_keyboard/flutter_interactive_keyboard.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 
 ///Defines the laoding state
@@ -184,24 +183,16 @@ class _FeedListViewState extends State<FeedListView> {
                   widget.headerBuilder!(context),
 
                 Expanded(
-                  child: KeyboardManagerWidget(
-                    onKeyboardOpen: (){
-                      keyBoardOpen = true;
-                    },
-                    onKeyboardClose: (){
-                      keyBoardOpen = false;
-                    },
-                    child: SingleChildScrollView(
-                      physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                      controller: scrollController,
-                      child: wrapperBuilder(
-                        context: context,
-                        child: Column(
-                          children: [
-                            for (var i = 0; i < items.length; i++)
-                              _buildChild(items, i),
-                          ],
-                        ),
+                  child: SingleChildScrollView(
+                    physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                    controller: scrollController,
+                    child: wrapperBuilder(
+                      context: context,
+                      child: Column(
+                        children: [
+                          for (var i = 0; i < items.length; i++)
+                            _buildChild(items, i),
+                        ],
                       ),
                     ),
                   ),
