@@ -194,10 +194,10 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   }
 
   void refreshHeight(){
-    if(heightContext != null){
-      headerHeight = heightContext!.size!.height;
-      setState(() {});
-    }
+    // if(heightContext != null){
+    //   headerHeight = heightContext!.size!.height;
+    //   setState(() {});
+    // }
   }
 
   @override
@@ -286,12 +286,13 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                       child: Navigator(
                         key: key,
                         onPopPage: (route, child){
-                          WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
-                            if(heightContext != null){
-                              headerHeight = heightContext!.size!.height;
-                              setState(() {});
-                            }
-                          });
+                          // WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
+                          //   if(heightContext != null){
+                          //     headerHeight = heightContext!.size!.height;
+                          //     setState(() {});
+                          //   }
+                          // });
+                          // return true;
                           return true;
                         },
                         onGenerateRoute: (settings) => MaterialPageRoute(
