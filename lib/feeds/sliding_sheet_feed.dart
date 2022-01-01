@@ -400,6 +400,8 @@ class SlidingSheetFeedController extends ChangeNotifier {
 
   void refreshHeight() => _state != null ? _state!.refreshHeight() : null;
 
+  double get extent => _state != null ? _state!.mainExtent : 0.0;
+
   //Disposes of the controller and all nested controllers
   @override
   void dispose() {
