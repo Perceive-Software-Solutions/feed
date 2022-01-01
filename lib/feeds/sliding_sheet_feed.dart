@@ -183,6 +183,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   double statusBarHeight = 0.0;
 
+  double mainExtent = 0.0;
+
   @override
   void initState(){
     super.initState();
@@ -223,6 +225,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         Navigator.pop(context);
       }
     }
+    mainExtent = state.extent;
     sheetExtent.emit(state.extent);
   }
 
@@ -311,7 +314,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               childBuilder: widget.childBuilder,
                               footerHeight: widget.footerHeight,
                               placeHolder: widget.placeHolder,
-                              placeHolders: widget.placeHolders!(sheetExtent.state, headerHeight),
+                              placeHolders: widget.placeHolders!(mainExtent, headerHeight),
                               loading: widget.loading,
                               condition: widget.condition,
                               disableScroll: widget.disableScroll,
