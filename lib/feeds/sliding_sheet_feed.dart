@@ -276,7 +276,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(height: headerHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
+                Container(height: headerHeight),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
