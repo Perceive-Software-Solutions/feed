@@ -253,13 +253,15 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
             return Column(
               children: [
                 Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
-                BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-                  bloc: pageObject,
-                  builder: (context, obj){
-                    heightContext = context;
-                    //The animation value for the topExtent animation
-                    return widget.header!(context, obj);
-                  },
+                Expanded(
+                  child: BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+                    bloc: pageObject,
+                    builder: (context, obj){
+                      heightContext = context;
+                      //The animation value for the topExtent animation
+                      return widget.header!(context, obj);
+                    },
+                  ),
                 ),
               ],
             );
