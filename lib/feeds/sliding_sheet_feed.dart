@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_neumorphic_null_safety/flutter_neumorphic.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 
@@ -243,104 +244,109 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   @override
   Widget build(BuildContext context) {
     statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
-    return SlidingSheet(
-      controller: widget.controller.sheetController,
-      color: widget.color,
-      closeOnBackButtonPressed: widget.closeOnBackButtonPressed,
-      closeOnBackdropTap: widget.closeOnBackdropTap, //Closes the page when the sheet reaches the bottom
-      extendBody: widget.extendBody,
-      cornerRadius: widget.cornerRadius,
-      cornerRadiusOnFullscreen: widget.cornerRadiusOnFullscreen,
-      duration: widget.duration,
-      snapSpec: SnapSpec(
-        initialSnap: widget.initialExtent,
-        snappings: [widget.minExtent, widget.initialExtent, widget.expandedExtent],
-      ),
-      listener: sheetStateListener,
-      headerBuilder: (context, state){
-        // return widget.header != null ? widget.header!(context, pageObject.state) : SizedBox.shrink();
-        return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-          bloc: pageObject,
-          builder: (context, obj) {
+    return KeyboardVisibilityBuilder(
+      builder: (context, keyboard){
+        return SlidingSheet(
+          controller: widget.controller.sheetController,
+          color: widget.color,
+          closeOnBackButtonPressed: widget.closeOnBackButtonPressed,
+          closeOnBackdropTap: widget.closeOnBackdropTap, //Closes the page when the sheet reaches the bottom
+          extendBody: widget.extendBody,
+          cornerRadius: widget.cornerRadius,
+          cornerRadiusOnFullscreen: widget.cornerRadiusOnFullscreen,
+          isBackdropInteractable: keyboard ? false : true,
+          duration: widget.duration,
+          snapSpec: SnapSpec(
+            initialSnap: widget.initialExtent,
+            snappings: [widget.minExtent, widget.initialExtent, widget.expandedExtent],
+          ),
+          listener: sheetStateListener,
+          headerBuilder: (context, state){
+            // return widget.header != null ? widget.header!(context, pageObject.state) : SizedBox.shrink();
+            return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+              bloc: pageObject,
+              builder: (context, obj) {
+                return BlocBuilder<ConcreteCubit<double>, double>(
+                  bloc: sheetExtent,
+                  builder: (context, extent){
+                    heightContext = context;
+                    //The animation value for the topExtent animation
+                    double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+                    return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
+                  },
+                );
+              }      
+            ) : SizedBox.shrink();
+          },
+          customBuilder: (context, controller, state){
             return BlocBuilder<ConcreteCubit<double>, double>(
               bloc: sheetExtent,
-              builder: (context, extent){
-                heightContext = context;
-                //The animation value for the topExtent animation
-                double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-                return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
-              },
-            );
-          }      
-        ) : SizedBox.shrink();
-      },
-      customBuilder: (context, controller, state){
-        return BlocBuilder<ConcreteCubit<double>, double>(
-          bloc: sheetExtent,
-          builder: (context, sheetExtentValue) {
-            double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
-            double pageHeight = MediaQuery.of(context).size.height;
-            double height = sheetExtentValue > 0.8 ? 
-            pageHeight*sheetExtentValue - widget.headerHeight - statusBarHeight :  
-            pageHeight*sheetExtentValue - widget.headerHeight;
-            if(height < 0){
-              height = 100;
-            }
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(height: headerHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-                    controller: controller,
-                    child: SizedBox(
-                      height: height,
-                      child: Navigator(
-                        key: key,
-                        onGenerateRoute: (settings) => MaterialPageRoute(
-                          settings: settings,
-                          builder: (context){
-                            return MultiFeed(
-                              sheetController: widget.controller.sheetController,
-                              loaders: widget.loaders,
-                              headerSliver: widget.headerSliver,
-                              lengthFactor: widget.lengthFactor,
-                              innitalLength: widget.innitalLength,
-                              onRefresh: widget.onRefresh,
-                              controller: widget.controller.multifeedController,
-                              footerSliver: widget.footerSliver,
-                              childBuilders: widget.childBuilders,
-                              childBuilder: widget.childBuilder,
-                              footerHeight: widget.footerHeight,
-                              placeHolder: widget.placeHolder,
-                              placeHolders: widget.placeHolders!(mainExtent, headerHeight),
-                              loading: widget.loading,
-                              condition: widget.condition,
-                              disableScroll: widget.disableScroll,
-                              headerBuilder: widget.headerBuilder,
-                              wrapper: widget.wrapper,
-                              getItemID: widget.getItemID,
-                            );
-                          }
+              builder: (context, sheetExtentValue) {
+                double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
+                double pageHeight = MediaQuery.of(context).size.height;
+                double height = sheetExtentValue > 0.8 ? 
+                pageHeight*sheetExtentValue - widget.headerHeight - statusBarHeight :  
+                pageHeight*sheetExtentValue - widget.headerHeight;
+                if(height < 0){
+                  height = 100;
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(height: headerHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
+                        controller: controller,
+                        child: SizedBox(
+                          height: height,
+                          child: Navigator(
+                            key: key,
+                            onGenerateRoute: (settings) => MaterialPageRoute(
+                              settings: settings,
+                              builder: (context){
+                                return MultiFeed(
+                                  sheetController: widget.controller.sheetController,
+                                  loaders: widget.loaders,
+                                  headerSliver: widget.headerSliver,
+                                  lengthFactor: widget.lengthFactor,
+                                  innitalLength: widget.innitalLength,
+                                  onRefresh: widget.onRefresh,
+                                  controller: widget.controller.multifeedController,
+                                  footerSliver: widget.footerSliver,
+                                  childBuilders: widget.childBuilders,
+                                  childBuilder: widget.childBuilder,
+                                  footerHeight: widget.footerHeight,
+                                  placeHolder: widget.placeHolder,
+                                  placeHolders: widget.placeHolders!(mainExtent, headerHeight),
+                                  loading: widget.loading,
+                                  condition: widget.condition,
+                                  disableScroll: widget.disableScroll,
+                                  headerBuilder: widget.headerBuilder,
+                                  wrapper: widget.wrapper,
+                                  getItemID: widget.getItemID,
+                                );
+                              }
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              }
             );
-          }
+          },
+          footerBuilder: (context, state){
+            return widget.footer != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+              bloc: pageObject,
+              builder: (context, obj) {
+                return widget.footer!(context, obj);
+              }
+            ) : SizedBox.shrink();
+          },
         );
-      },
-      footerBuilder: (context, state){
-        return widget.footer != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-          bloc: pageObject,
-          builder: (context, obj) {
-            return widget.footer!(context, obj);
-          }
-        ) : SizedBox.shrink();
-      },
+      }
     );
   }
 }
