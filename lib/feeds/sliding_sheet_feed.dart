@@ -286,13 +286,12 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                       child: Navigator(
                         key: key,
                         onPopPage: (route, child){
-                          // WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
-                          //   if(heightContext != null){
-                          //     headerHeight = heightContext!.size!.height;
-                          //     setState(() {});
-                          //   }
-                          // });
-                          // return true;
+                          WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
+                            if(heightContext != null){
+                              headerHeight = heightContext!.size!.height;
+                              setState(() {});
+                            }
+                          });
                           return true;
                         },
                         onGenerateRoute: (settings) => MaterialPageRoute(

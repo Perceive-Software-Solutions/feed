@@ -87,7 +87,6 @@ class _FeedListViewState extends State<FeedListView> {
     _syncProviders(widget.itemsCubit.state);
 
     widget.sheetController != null ? scrollController.addListener(() {
-      print(MediaQuery.of(context).viewInsets.bottom);
       if(keyBoardOpen){
         return;
       }
