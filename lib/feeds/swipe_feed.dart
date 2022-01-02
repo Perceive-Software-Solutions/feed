@@ -153,8 +153,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
   ///Controls automating swipes
   List<SwipeFeedCardController> swipeFeedCardControllers = [];
 
-  late AnimationController controller;
-
   bool connectivity = true;
 
   EdgeInsets get padding => widget.padding ?? EdgeInsets.zero;
@@ -178,8 +176,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       // _loadMore();
       _refresh();
     }
-
-    controller = new AnimationController(vsync: this);
 
     checkConnectivity();
 
@@ -548,93 +544,80 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard){
-            if(keyboard){
-              controller.animateTo(1.0, duration: Duration(milliseconds: 200), curve: Curves.easeInOutCubic);
-            }
-            else{
-              controller.animateTo(0.0, duration: Duration(milliseconds: 200), curve: Curves.easeInOutCubic);
-            }
-            return AnimatedBuilder(
-              animation: controller,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, (keyboard && !(show is HideSwipeFeedCardState)) ? (show is ExpandSwipeFeedCardState) ? 0 : -1 * controller.value * (mediaQuery.viewInsets.bottom - padding.bottom) : 0),
-                  child: AnimatedPadding(
-                    duration: duration,
-                    padding: show is ExpandSwipeFeedCardState ? EdgeInsets.zero : padding,
-                    child: GestureDetector(
-                      onTap: itemCubit.item1 != null && widget.canExpand != null && 
-                      widget.canExpand!(itemCubit.item1!) && show is ShowSwipeFeedCardState && 
-                      isExpandable && !keyboard ? (){
-                        itemCubit.item2.emit(ExpandSwipeFeedCardState());
-                      } : null,
-                      child: Opacity(
-                        opacity: keyboard && show is HideSwipeFeedCardState ? 0.0 : 1.0,
-                        child: SwipeFeedCard(
-                          blur: show is HideSwipeFeedCardState && show.overlay == null,
-                          startTopAlignment: widget.startTopAlignment,
-                          startBottomAlignment: widget.startBottomAlignment,
-                          topAlignment: widget.topAlignment,
-                          bottomAlignment: widget.bottomAlignment,
-                          iconPadding: widget.iconPadding,
-                          iconScale: widget.iconScale,
-                          swipeOverride: itemCubit.item1 != null,
-                          overlayMaxDuration: widget.overlayMaxDuration,
-                          icons: widget.icons,
-                          swipeFeedController: widget.controller,
-                          fillController: fillController,
-                          swipeFeedCardController: swipeFeedCardControllers[index],
-                          lowerBound: widget.lowerBound,
-                          heightOfCard: widget.heightOfCard,
-                          overlay: (forwardAnimation, reverseAnimation, index){
-                            if(widget.overlayBuilder != null && itemCubit.item1 != null)
-                              return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
-                            return null;
-                          },
-                          onPanUpdate: (double dx, double dy, [double? maxX, double? maxYTop, double? maxYBot]) {
-                            if(show is ExpandSwipeFeedCardState){
-                              itemCubit.item2.emit(ShowSwipeFeedCardState());
-                            }
-                          },
-                          overrideSwipeAlert: (index, direction){
-                              return widget.overrideSwipeAlert!(index, itemCubit.item1, direction);
-                          },
-                          swipeAlert: widget.swipeAlert,
-                          keyboardOpen: keyboard,
-                          show: show is ShowSwipeFeedCardState || show is ExpandSwipeFeedCardState,
-                          onFill: (fill, iconPosition, cardPosition, overrideLock) {
-                            fillBar(fill, iconPosition, cardPosition, overrideLock);
-                          },
+            return AnimatedPadding(
+              duration: duration,
+              padding: show is ExpandSwipeFeedCardState ? EdgeInsets.zero : (keyboard ? padding.copyWith(bottom: 0): padding),
+              child: GestureDetector(
+                onTap: itemCubit.item1 != null && widget.canExpand != null && 
+                widget.canExpand!(itemCubit.item1!) && show is ShowSwipeFeedCardState && 
+                isExpandable && !keyboard ? (){
+                  itemCubit.item2.emit(ExpandSwipeFeedCardState());
+                } : null,
+                child: Opacity(
+                  opacity: keyboard && show is HideSwipeFeedCardState ? 0.0 : 1.0,
+                  child: SwipeFeedCard(
+                    blur: show is HideSwipeFeedCardState && show.overlay == null,
+                    startTopAlignment: widget.startTopAlignment,
+                    startBottomAlignment: widget.startBottomAlignment,
+                    topAlignment: widget.topAlignment,
+                    bottomAlignment: widget.bottomAlignment,
+                    iconPadding: widget.iconPadding,
+                    iconScale: widget.iconScale,
+                    swipeOverride: itemCubit.item1 != null,
+                    overlayMaxDuration: widget.overlayMaxDuration,
+                    icons: widget.icons,
+                    swipeFeedController: widget.controller,
+                    fillController: fillController,
+                    swipeFeedCardController: swipeFeedCardControllers[index],
+                    lowerBound: widget.lowerBound,
+                    heightOfCard: widget.heightOfCard,
+                    overlay: (forwardAnimation, reverseAnimation, index){
+                      if(widget.overlayBuilder != null && itemCubit.item1 != null)
+                        return widget.overlayBuilder!(forwardAnimation, reverseAnimation, index, itemCubit.item1!);
+                      return null;
+                    },
+                    onPanUpdate: (double dx, double dy, [double? maxX, double? maxYTop, double? maxYBot]) {
+                      if(show is ExpandSwipeFeedCardState){
+                        itemCubit.item2.emit(ShowSwipeFeedCardState());
+                      }
+                    },
+                    overrideSwipeAlert: (index, direction){
+                        return widget.overrideSwipeAlert!(index, itemCubit.item1, direction);
+                    },
+                    swipeAlert: widget.swipeAlert,
+                    keyboardOpen: keyboard,
+                    show: show is ShowSwipeFeedCardState || show is ExpandSwipeFeedCardState,
+                    onFill: (fill, iconPosition, cardPosition, overrideLock) {
+                      fillBar(fill, iconPosition, cardPosition, overrideLock);
+                    },
 
-                          onContinue: itemCubit.item1 != null ? (dir, overlay) async {
-                            if(widget.onContinue != null){
-                              await widget.onContinue!(dir!, itemCubit.item1!);
-                            }
-                            _removeCard(overlay);
-                          } : null,
-                          onDismiss: (){
-                            // Nothing
-                          },
-                          onSwipe: (dx, dy, reverseAnimation, dir) {
-                            if(widget.onSwipe != null && itemCubit.item1 != null){
-                              widget.onSwipe!(dx, dy, dir, reverseAnimation, itemCubit.item1!);
-                            }
-                          },
-                          onPanEnd: () {
-                            // Nothing
-                          },
-                          child: AnimatedSwitcher(
-                            duration: Duration(milliseconds: 200),
-                            child: _loadCard(context, itemCubit.item1, !(show is HideSwipeFeedCardState), index, show is ExpandSwipeFeedCardState, hiddenChild, (){
-                              itemCubit.item2.emit(ShowSwipeFeedCardState());
-                            },
-                          ),
-                        ),
-                      ),
+                    onContinue: itemCubit.item1 != null ? (dir, overlay) async {
+                      if(widget.onContinue != null){
+                        await widget.onContinue!(dir!, itemCubit.item1!);
+                      }
+                      _removeCard(overlay);
+                    } : null,
+                    onDismiss: (){
+                      // Nothing
+                    },
+                    onSwipe: (dx, dy, reverseAnimation, dir) {
+                      if(widget.onSwipe != null && itemCubit.item1 != null){
+                        widget.onSwipe!(dx, dy, dir, reverseAnimation, itemCubit.item1!);
+                      }
+                    },
+                    onPanEnd: () {
+                      // Nothing
+                    },
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 200),
+                      child: _loadCard(context, itemCubit.item1, !(show is HideSwipeFeedCardState), index, show is ExpandSwipeFeedCardState, hiddenChild, (){
+                        itemCubit.item2.emit(ShowSwipeFeedCardState());
+                      },
                     ),
                   ),
-                ));
-              }
+                ),
+              ),
+            ),
             );
           },
         );

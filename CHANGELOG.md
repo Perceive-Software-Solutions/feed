@@ -1,3 +1,7 @@
+## [0.3.10] v0.3.10
+
+* Removed keyboard translation on swipe feed
+
 ## [0.3.9] v0.3.9
 
 * Upgraded add item interface for multifeed
