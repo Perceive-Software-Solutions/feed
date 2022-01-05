@@ -1,3 +1,7 @@
+## [0.3.11] v0.3.11
+
+* Added fill bar and remove item controls to swipe feed.
+
 ## [0.3.10] v0.3.10
 
 * Removed keyboard translation on swipe feed

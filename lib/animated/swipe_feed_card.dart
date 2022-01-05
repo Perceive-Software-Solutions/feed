@@ -13,7 +13,9 @@ class HideSwipeFeedCardState extends SwipeFeedCardState{
 
   final Widget? overlay;
 
-  HideSwipeFeedCardState([this.overlay]);
+  final String text;
+
+  HideSwipeFeedCardState([this.overlay, this.text = '']);
 
 }
 class ShowSwipeFeedCardState extends SwipeFeedCardState{}

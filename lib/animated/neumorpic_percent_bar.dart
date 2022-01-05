@@ -49,6 +49,9 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   //Set to true on complete fill
   bool complete = false;
 
+  //The current title if there is no icon position
+  String backgroundTitle = '';
+
   Duration alignmentDuration = Duration(milliseconds: 0);
 
   //Retreives the fill percentage relative to the direction
@@ -95,7 +98,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       return 'Agree';
     }
     else{
-      return '';
+      return backgroundTitle;
     }
   }
 
@@ -134,6 +137,8 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     if(lockAnimation) return;
 
     complete = false;
+
+    backgroundTitle = '';
 
     if(cardPosition != newCardPosition){
 
@@ -207,6 +212,15 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
     });
   }
 
+  void clearBar([String text = '']){
+    setState(() {
+      lockAnimation = false;
+      iconDirection = null;
+      cardPosition = null;
+      backgroundTitle = text;
+    });
+  }
+
   void setDirection(IconPosition newIconPosition, CardPosition newCardPosition){
     setState(() {
       lockAnimation = true;
@@ -272,7 +286,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                         child: Text(
                           iconDirection == IconPosition.TOP ? '' :
                           '${(fill.abs() * 100).toStringAsFixed(0)}%',
-                          style: textStyles.headline5!.copyWith(
+                          style: widget.style ?? textStyles.headline5?.copyWith(
                             fontSize: 16,
                             color: Colors.black,
                             fontWeight: FontWeight.w600
@@ -289,12 +303,12 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                       bottom: 16.5,
                       child: AnimatedAlign(
                         duration: iconDirection == IconPosition.TOP && complete ? Duration(milliseconds: 600) : Duration(milliseconds: 0),
-                        alignment: (complete && iconDirection == IconPosition.TOP) ? Alignment.center : alignment,
+                        alignment: (complete && iconDirection == IconPosition.TOP) || (iconDirection == null && backgroundTitle.isNotEmpty) ? Alignment.center : alignment,
                         child: Container(
                           child: Text(
                             title,
                             textAlign: cardPosition != CardPosition.Left ? TextAlign.left : TextAlign.right,
-                            style: widget.style != null ? widget.style! : TextStyle(fontSize: 16, letterSpacing: -0.32, height: 1.188, fontWeight: FontWeight.w600)
+                            style: widget.style ?? TextStyle(fontSize: 16, letterSpacing: -0.32, height: 1.188, fontWeight: FontWeight.w600)
                           ),
                         ),
                       ),
@@ -408,6 +422,8 @@ class PercentBarController extends ChangeNotifier {
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   void setDirection(IconPosition iconPosition, CardPosition cardPosition) => _state == null ? null : _state!.setDirection(iconPosition, cardPosition);
+
+  void clearBar([String title = '']) => _state == null ? null : _state!.clearBar(title);
 
   //Disposes of the controller
   @override

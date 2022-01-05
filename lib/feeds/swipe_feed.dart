@@ -197,8 +197,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     widget.controller._bind(this);
   }
 
-  bool setCardState(SwipeFeedCardState state){
+  bool setCardState(SwipeFeedCardState state,){
     if(cubit.state.isNotEmpty){
+      if(state is HideSwipeFeedCardState) clearBar(state.text);
       cubit.state[0].item2.emit(state);
       return true;
     }
@@ -225,6 +226,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       //Minimizes current card and replaces it
 
       //Set the current first item state to hidden
+      clearBar();
       items[0].item2.emit(HideSwipeFeedCardState());
       await Future.delayed(Duration(seconds: 1));
 
@@ -246,6 +248,57 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     });
   }
 
+  ///Removes the top most item from the multi feed, runs a predefined function before continuing
+  Future<void> animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>)? then]) async {
+    var items = [...cubit.state];
+
+    if(items.isEmpty || items[0].item1 == null){
+      //Does nothing
+      return;
+    }
+    // //Minimizes current card and replaces it
+    // //Set the current first item state to hidden
+    // if(!(items[0].item2.state is HideSwipeFeedCardState)){
+    // }
+    bool longDelay = !(items[0].item2.state is HideSwipeFeedCardState);
+    
+    items[0].item2.emit(HideSwipeFeedCardState());
+    
+    if(longDelay)
+      clearBar();
+    await Future.delayed(Duration(milliseconds: longDelay ? 1000 : 300));
+
+    ///DO NOT REMOVE FIRST ITEM
+    items = [
+      items[0],
+      ...((then?.call(items.sublist(1))) ?? items.sublist(1))
+    ];
+
+    assert(items.isNotEmpty);
+
+    //Remove the item
+    if(items.length == 1) {
+      items[0] = Tuple2(null, items[0].item2);
+    }
+    else{
+      items[0] = Tuple2(items[1].item1, items[0].item2);
+      items.removeAt(1);
+    }
+
+    cubit.emit(items);
+
+    //Maximizes the card
+    await Future.delayed(Duration(milliseconds: 400)).then((value){
+      if(cubit.state[0].item1 == null){
+        cubit.state[0].item2.emit(HideSwipeFeedCardState(!connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
+      }
+      else{
+        items[0].item2.emit(ShowSwipeFeedCardState());
+      }
+    });
+
+  }
+
   void checkConnectivity() async {
     ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
     connectivity = connectivityResult != ConnectivityResult.none;
@@ -253,6 +306,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await fillController.completeFillBar(value, duration, direction, cardPosition);
   Future<void> fillBar(double value, IconPosition? direction, CardPosition cardPosition, [bool overrideLock = false]) async => await fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
+  void clearBar([String text = '']) => fillController.clearBar(text);
 
   void swipeRight(){
     if(!lock){
@@ -288,7 +342,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         }
       }
       Future.delayed(Duration(milliseconds: 400)).then((value){
-        fillBar(0.0, null, CardPosition.Left);
+        clearBar();
         cubit.emit([...cubit.state]..removeAt(0));
         if(cubit.state.length <= LOAD_MORE_LIMIT){
           _loadMore();
@@ -734,6 +788,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
+  
+  void clearBar([String title = '']) => _state == null ? null : _state!.clearBar(title);
 
   void addItem(T item) => _state != null ? _state!.addItem(item) : null;
 
@@ -742,6 +798,8 @@ class SwipeFeedController<T> extends ChangeNotifier {
   void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
 
   void removeItem(String id) => _state != null ? _state!.removeItem(id) : null;
+
+  void animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>)? then]) => _state != null ? _state!.animatedRemove(then) : null;
 
   void swipeRight() => _state != null ? _state!.swipeRight() : null;
 
