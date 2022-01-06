@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:example/widgets/multi_feed.dart';
 import 'package:feed/feed.dart';
 import 'package:feed/feeds/sliding_sheet_feed.dart';
@@ -26,7 +28,13 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       pageCount: 3,
       initialPage: 1,
       keepPage: true,
-      vsync: this
+      vsync: this,
+      gridDelegateGenerator: (index) {
+        if(index != 1) {
+          return null;
+        }
+        return FeedGridViewDelegate(padding: const EdgeInsets.all(8));
+      },
     );
 
   }
@@ -65,25 +73,20 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
     );
   }
 
-  Widget childBuilder(dynamic item){
+  Widget childBuilder(dynamic item, int index){
     var list = ['2', '59', '60', '61', '63', '64'];
+    bool isGrid = sheetController.multifeedController.isGridIndex(index);
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            height: 1,
-            color: Colors.white,
-          ),
-          Container(
-            // color: Colors.white,
-            height: 75,
-            child: Center(
-              child: Text(list[item % 6], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))
-            ),
-          ),
-        ],
+      padding: EdgeInsets.all( isGrid ? 0 : 8),
+      child: Container(
+        height: lerpDouble(75, 275, (item % 6) / 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32)
+        ),
+        child: Center(
+          child: Text(list[item % 6], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))
+        ),
       ),
     );
   }
@@ -129,6 +132,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       controller: sheetController,
       //Params
       color: Colors.white,
+      staticSheet: true,
       closeOnBackButtonPressed: true,
       closeOnBackdropTap: true, //Closes the page when the sheet reaches the bottom
       extendBody: true,
@@ -167,7 +171,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
           onTap: (){
             sheetController.push(MultiFeedExample(sheetController: sheetController.sheetController));
           },
-          child: childBuilder(item)
+          child: childBuilder(item, index)
         );
       },
       placeHolders: (extet, height){

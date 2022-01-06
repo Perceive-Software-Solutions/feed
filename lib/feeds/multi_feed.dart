@@ -449,6 +449,7 @@ class _MultiFeedState extends State<MultiFeed> {
               sheetController: widget.sheetController,
               controller: widget.controller!.scrollControllers![j],
               itemsCubit: itemsCubit[j],
+              gridDelegate: widget.controller?.getDelegateAtIndex(j),
               disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
               footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
               wrapper: widget.wrapper == null ? null : (BuildContext context, Widget child){
@@ -523,6 +524,9 @@ class MultiFeedController extends ChangeNotifier {
   ///The amount of pages in the multi feed
   int _pageCount;
 
+  ///Holds the grid delegates for the index defined by the key
+  Map<int, FeedGridViewDelegate?> _gridDelegates;
+
   ///Controllers for the individual list
   List<ScrollController>? _scrollControllers;
 
@@ -533,7 +537,7 @@ class MultiFeedController extends ChangeNotifier {
   PageController? _pageController;
 
   ///Private constructor
-  MultiFeedController._(this._pageCount, this._pageController, this._tabController, this._scrollControllers);
+  MultiFeedController._(this._pageCount, this._pageController, this._tabController, this._scrollControllers, this._gridDelegates);
 
   ///Default constuctor
   ///Creates the nested controllers
@@ -545,7 +549,8 @@ class MultiFeedController extends ChangeNotifier {
     TickerProvider? vsync,
     List<double>? initialOffsets,
     List<bool>? keepScrollOffsets,
-    List<String>? debugLabels
+    List<String>? debugLabels,
+    Map<int, FeedGridViewDelegate?> indexedGridDelegates = const {}
   }){
     assert(initialOffsets == null || initialOffsets.length == pageCount);
     assert(keepScrollOffsets == null || keepScrollOffsets.length == pageCount);
@@ -559,6 +564,7 @@ class MultiFeedController extends ChangeNotifier {
         initialScrollOffset: initialOffsets?.elementAt(index) ?? 0.0,
         keepScrollOffset: keepScrollOffsets?.elementAt(index) ?? true
       )),
+      indexedGridDelegates
     );
   }
 
@@ -582,6 +588,12 @@ class MultiFeedController extends ChangeNotifier {
 
   ///Adds an item to the beginning of the stated multi feed
   void addItem(dynamic item, int index) => _state!.addItem(item, index);
+
+  ///Retreives the grid delegate at the index
+  FeedGridViewDelegate? getDelegateAtIndex(int index) => _gridDelegates[index];
+
+  ///Determines if the current index is a grid view
+  bool isGridIndex(int index) => getDelegateAtIndex(index) != null;
 
   ///Reloads the feed state based on the original size parameter
   ScrollController? scrollControllerAtIndex(int index) => _scrollControllers![index];

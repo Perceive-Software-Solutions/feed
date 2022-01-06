@@ -3,6 +3,7 @@ import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 ///Defines the laoding state
 enum FeedLoadingState {
@@ -10,6 +11,23 @@ enum FeedLoadingState {
   LOADED, //Loaded but do not display
   DISPLAY, //Display item
   FIRST, //Start the loading process
+}
+
+///The specification for a gridview, if passed into the feed, transforms it into a grid feed
+class FeedGridViewDelegate{
+
+  final int crossAxisCount;
+  final double mainAxisSpacing;
+  final double crossAxisSpacing;
+  final EdgeInsets padding;
+
+  FeedGridViewDelegate({
+    this.crossAxisCount = 2, 
+    this.mainAxisSpacing = 8, 
+    this.crossAxisSpacing = 8, 
+    this.padding = EdgeInsets.zero
+  });
+
 }
 
 class FeedListView extends StatefulWidget {
@@ -44,6 +62,9 @@ class FeedListView extends StatefulWidget {
   ///The header builder
   final Widget Function(BuildContext context)? headerBuilder;
 
+  ///If defined builds this feed in grid mode
+  final FeedGridViewDelegate? gridDelegate;
+
   const FeedListView({ 
     Key? key, 
     required this.sheetController,
@@ -55,7 +76,8 @@ class FeedListView extends StatefulWidget {
     this.footerHeight, 
     this.headerBuilder, 
     this.wrapper, 
-    this.loading,
+    this.loading, 
+    this.gridDelegate,
   }) : super(key: key);
 
   @override
@@ -157,6 +179,36 @@ class _FeedListViewState extends State<FeedListView> {
     return child;
   }
 
+  Widget listBuilder(BuildContext context, List items){
+
+    ///Simple List
+    Widget list = Column(
+      children: [
+        for (var i = 0; i < items.length; i++)
+          _buildChild(items, i),
+      ],
+    );
+
+    if(widget.gridDelegate != null){
+      //Grid list
+      list = MasonryGridView.count(
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        crossAxisCount: widget.gridDelegate!.crossAxisCount,
+        mainAxisSpacing: widget.gridDelegate!.mainAxisSpacing,
+        crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
+        padding: widget.gridDelegate!.padding,
+        itemCount: items.length,
+        itemBuilder: (context, index) => _buildChild(items, index),
+      );
+    }
+
+    return wrapperBuilder(
+      context: context,
+      child: list
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -184,17 +236,9 @@ class _FeedListViewState extends State<FeedListView> {
 
                 Expanded(
                   child: SingleChildScrollView(
-                    physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                    physics: widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                     controller: scrollController,
-                    child: wrapperBuilder(
-                      context: context,
-                      child: Column(
-                        children: [
-                          for (var i = 0; i < items.length; i++)
-                            _buildChild(items, i),
-                        ],
-                      ),
-                    ),
+                    child: listBuilder(context, items),
                   ),
                 ),
               ],

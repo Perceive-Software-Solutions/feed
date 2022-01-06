@@ -20,6 +20,9 @@ class SlidingSheetFeed extends StatefulWidget {
   /// Cintroller for the sheet and the multi feed within
   final SlidingSheetFeedController controller;
 
+  ///If toggled ensures that the sheet controls the scroll body until expansion
+  final bool staticSheet;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Sliding Sheet ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   /// Corner radius when it is not fully expanded
@@ -159,7 +162,8 @@ class SlidingSheetFeed extends StatefulWidget {
     this.headerBuilder,
     this.wrapper,
     this.getItemID,
-    this.headerHeight = 60
+    this.headerHeight = 60,
+    this.staticSheet = false
   }) : super(key: key);
 
   @override
@@ -181,6 +185,8 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   double statusBarHeight = 0.0;
 
   double mainExtent = 0.0;
+
+  late bool disableSheet = widget.staticSheet;
 
   @override
   void initState(){
@@ -222,8 +228,24 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         Navigator.pop(context);
       }
     }
+    else if(disableSheet && state.extent > 0.8){
+      setState(() {
+        disableSheet = false;
+      });
+    }
+    else if(!disableSheet && state.extent < 0.8 && widget.staticSheet){
+      setState(() {
+        disableSheet = true;
+      });
+      for (ScrollController? controller in widget.controller.multifeedController.scrollControllers ?? []) {
+        try{
+          controller?.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOutCubic);
+        }catch(e){}
+      }
+    }
     mainExtent = state.extent;
     sheetExtent.emit(state.extent);
+    widget.controller._update();
   }
 
   Future<dynamic> pushPage(Widget page, [dynamic pageObj]) {
@@ -284,7 +306,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
               height = 100;
             }
             return Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               children: [
                 Container(height: headerHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
                 Expanded(
@@ -313,7 +335,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               placeHolders: widget.placeHolders?.call(mainExtent, headerHeight) ?? [],
                               loading: widget.loading,
                               condition: widget.condition,
-                              disableScroll: widget.disableScroll,
+                              disableScroll: disableSheet || (widget.disableScroll ?? false),
                               headerBuilder: widget.headerBuilder,
                               wrapper: widget.wrapper,
                               getItemID: widget.getItemID,
@@ -365,7 +387,8 @@ class SlidingSheetFeedController extends ChangeNotifier {
     TickerProvider? vsync,
     List<double>? initialOffsets,
     List<bool>? keepScrollOffsets,
-    List<String>? debugLabels
+    List<String>? debugLabels,
+    FeedGridViewDelegate? Function(int index)? gridDelegateGenerator,
   }){
     return SlidingSheetFeedController._(
       SheetController(),
@@ -378,6 +401,11 @@ class SlidingSheetFeedController extends ChangeNotifier {
         initialOffsets: initialOffsets,
         keepScrollOffsets: keepScrollOffsets,
         debugLabels: debugLabels,
+        indexedGridDelegates: Map<int, FeedGridViewDelegate?>.fromIterable(
+          List.generate(pageCount, (i) => i),
+          key: (e) => e,
+          value: (e) => gridDelegateGenerator?.call(e)
+        )
       )
     );
   }
