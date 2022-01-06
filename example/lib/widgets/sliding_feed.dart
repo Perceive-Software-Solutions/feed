@@ -42,33 +42,23 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
 
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Widget headerBuilder(){
-    return SizedBox(
-      height: 176,
+  Widget headerBuilder(Widget child){
+    return Container(
+      color: Colors.yellow[100],
+      // height: 10,
       child: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, bottom: 30),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 0, right: 34),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.grey),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const Spacer(),
-                  const Text('Single Feed', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                  const Spacer()
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 32, bottom: 32),
-              child: Text('Asynchronous list that loads depending on position of list', textAlign: TextAlign.center),
-            ),
+
+            child,
+
+            Container(
+              height: 50,
+              // alignment: Alignment.bottomCenter,
+              
+            )
           ],
         ),
       ),
@@ -80,6 +70,7 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             height: 1,
@@ -153,25 +144,25 @@ class _SlidingFeedExampleState extends State<SlidingFeedExample> with TickerProv
       // header: (context, i, child){
       //   return headerBuilder();
       // },
-      footer: (context, _){
-        return SafeArea(
-          bottom: true,
-          child: Container(
-            height: 100,
-            width: MediaQuery.of(context).size.width,
-            color: Colors.white,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-              child: TextField()
-            )
-          ),
-        );
-      },
-      //Builders
-      // headerBuilder: (context, i){
-      //   return headerBuilder();
+      // footer: (context, _){
+      //   return SafeArea(
+      //     bottom: true,
+      //     child: Container(
+      //       height: 83,
+      //       width: MediaQuery.of(context).size.width,
+      //       color: Colors.blue[100],
+      //       child: Padding(
+      //         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      //         child: TextField()
+      //       )
+      //     ),
+      //   );
       // },
-      childBuilder: (item, isLast) {
+      //Builders
+      header: (context, _, child){
+        return headerBuilder(child);
+      },
+      childBuilder: (item, index, isLast) {
         return GestureDetector(
           onTap: (){
             sheetController.push(MultiFeedExample(sheetController: sheetController.sheetController));

@@ -123,7 +123,7 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
                     return Tuple2(List.generate(size, (i) => i + index), (index + size).toString());
                   }),
                     //item builder for each element of the feed dependant on the data from ther loaders
-                  childBuilder: (item, isLast) {
+                  childBuilder: (item, index, isLast) {
 
                     var list = ['2', '59', '60', '61', '63', '64'];
 

@@ -38,8 +38,6 @@ class MultiFeed extends StatefulWidget {
 
   final Future Function()? onRefresh;
 
-  final List<MultiFeedBuilder>? childBuilders;
-
   final MultiFeedBuilder? childBuilder;
 
   ///defines the height to offset the body
@@ -81,7 +79,6 @@ class MultiFeed extends StatefulWidget {
       this.innitalLength,
       this.onRefresh,
       this.footerSliver,
-      this.childBuilders,
       this.childBuilder,
       this.footerHeight,
       this.placeHolders,
@@ -92,8 +89,7 @@ class MultiFeed extends StatefulWidget {
       this.headerBuilder,
       this.getItemID,
       this.wrapper})
-      : assert(childBuilders == null || childBuilders.length == loaders.length),
-        assert(controller == null || controller.length == loaders.length),
+      : assert(controller == null || controller.length == loaders.length),
         super(key: key);
 
   @override
@@ -353,7 +349,7 @@ class _MultiFeedState extends State<MultiFeed> {
 
     //use pending
     if(pending[feedIndex].isNotEmpty){
-      loaded = Tuple2([...pending[feedIndex]], tokens[feedIndex]!);
+      loaded = Tuple2([...pending[feedIndex]], tokens[feedIndex]);
 
       if(mounted){
 
@@ -371,7 +367,7 @@ class _MultiFeedState extends State<MultiFeed> {
     }
     //Load more
     else{
-      loaded = await widget.loaders[feedIndex](newSize, tokens[feedIndex]!);
+      loaded = await widget.loaders[feedIndex](newSize, tokens[feedIndex]);
 
       //The loaded items
       List loadedItems = loaded.item1;
@@ -482,11 +478,9 @@ class _MultiFeedState extends State<MultiFeed> {
                       ),
                     ],
                   );
-                } else if (widget.childBuilders != null) {
-                  return widget.childBuilders![j](items[i], items.length - 1 == i);
                 }
                 else if(widget.childBuilder != null){
-                  return widget.childBuilder!(items[i], items.length - 1 == i);
+                  return widget.childBuilder!(items[i], j, items.length - 1 == i);
                 }
         
                 return _loadCard(items, i);

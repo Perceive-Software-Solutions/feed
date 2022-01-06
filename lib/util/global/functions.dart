@@ -78,8 +78,11 @@ typedef FeedLoader<T> = Future<Tuple2<List<T>, String?>> Function(int size, [Str
 ///The close function shrinks the card
 typedef SwipeFeedBuilder<T> = Widget Function(T value, bool isLast, bool expanded, void Function() close);
 
+///Builder for the feed items
+typedef FeedBuilder<T> = Widget Function(T item, bool isLast);
+
 ///Builder for the multi feed items
-typedef MultiFeedBuilder = Widget Function(dynamic item, bool isLast);
+typedef MultiFeedBuilder = Widget Function(dynamic item, int index, bool isLast);
 
 ///A function that returns an wrapper for a widget
 typedef IndexWidgetWrapper = Widget Function(BuildContext context, Widget child, int index);

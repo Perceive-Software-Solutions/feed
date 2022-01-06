@@ -92,9 +92,6 @@ class SlidingSheetFeed extends StatefulWidget {
   /// Refresh function
   final Future Function()? onRefresh;
 
-  /// Children builder
-  final List<MultiFeedBuilder>? childBuilders;
-
   /// Child builder
   final MultiFeedBuilder? childBuilder;
 
@@ -152,7 +149,6 @@ class SlidingSheetFeed extends StatefulWidget {
     this.innitalLength,
     this.onRefresh,
     this.footerSliver,
-    this.childBuilders,
     this.childBuilder,
     this.footerHeight,
     this.placeHolders,
@@ -311,7 +307,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               onRefresh: widget.onRefresh,
                               controller: widget.controller.multifeedController,
                               footerSliver: widget.footerSliver,
-                              childBuilders: widget.childBuilders,
                               childBuilder: widget.childBuilder,
                               footerHeight: widget.footerHeight,
                               placeHolder: widget.placeHolder,

@@ -20,7 +20,7 @@ class Feed extends StatefulWidget {
 
   final Future Function()? onRefresh;
 
-  final MultiFeedBuilder? childBuilder;
+  final FeedBuilder? childBuilder;
 
   ///defines the height to offset the body
   final double? footerHeight;
