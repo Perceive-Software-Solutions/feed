@@ -1,3 +1,7 @@
+## [0.3.12] v0.3.12
+
+* Added Grid Feed Option
+
 ## [0.3.11] v0.3.11
 
 * Added fill bar and remove item controls to swipe feed.
