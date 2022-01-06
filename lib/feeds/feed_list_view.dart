@@ -191,7 +191,7 @@ class _FeedListViewState extends State<FeedListView> {
 
     if(widget.gridDelegate != null){
       //Grid list
-      list = MasonryGridView.count(
+      list = StaggeredGridView.countBuilder(
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         crossAxisCount: widget.gridDelegate!.crossAxisCount,
@@ -200,7 +200,18 @@ class _FeedListViewState extends State<FeedListView> {
         padding: widget.gridDelegate!.padding,
         itemCount: items.length,
         itemBuilder: (context, index) => _buildChild(items, index),
+        staggeredTileBuilder: (index) => StaggeredTile.fit(1),
       );
+      // list = MasonryGridView.count(
+      //   physics: NeverScrollableScrollPhysics(),
+      //   shrinkWrap: true,
+      //   crossAxisCount: widget.gridDelegate!.crossAxisCount,
+      //   mainAxisSpacing: widget.gridDelegate!.mainAxisSpacing,
+      //   crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
+      //   padding: widget.gridDelegate!.padding,
+      //   itemCount: items.length,
+      //   itemBuilder: (context, index) => _buildChild(items, index),
+      // );
     }
 
     return wrapperBuilder(

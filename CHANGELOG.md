@@ -1,6 +1,10 @@
+## [0.3.13] v0.3.13
+
+* Downgraded staggered grid version.
+
 ## [0.3.12] v0.3.12
 
-* Added Grid Feed Option
+* Added Grid Feed Option.
 
 ## [0.3.11] v0.3.11
 
