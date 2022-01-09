@@ -178,7 +178,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   late ConcreteCubit<double> sheetExtent = ConcreteCubit<double>(widget.initialExtent);
 
-  double headerHeight = 70;
+  ConcreteCubit<double> headerHeight = ConcreteCubit<double>(70);
 
   BuildContext? heightContext;
 
@@ -194,11 +194,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
       if(heightContext != null){
-        if(sheetExtent.state > 0.8){
-          headerHeight = heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top;
-        }
-        headerHeight = heightContext!.size!.height;
-        setState(() {});
+        headerHeight.emit(heightContext!.size!.height);
       }
     });
   }
@@ -206,12 +202,11 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   void refreshHeight(){
     if(heightContext != null){
       if(sheetExtent.state > 0.8){
-        headerHeight = heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top;
+        headerHeight.emit(heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top);
       }
-      else{
-        headerHeight = heightContext!.size!.height;
-      }
-      setState(() {});
+      // else{
+      //   headerHeight.emit(heightContext!.size!.height);
+      // }
     }
   }
 
@@ -290,60 +285,65 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
       },
       customBuilder: (context, controller, state){
         return BlocBuilder<ConcreteCubit<double>, double>(
-          bloc: sheetExtent,
-          builder: (context, sheetExtentValue) {
-            double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
-            double pageHeight = MediaQuery.of(context).size.height;
-            double height = sheetExtentValue > 0.8 ? 
-            pageHeight*sheetExtentValue - widget.headerHeight - statusBarHeight :  
-            pageHeight*sheetExtentValue - widget.headerHeight;
-            if(height < 0){
-              height = 100;
-            }
-            return Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Container(height: headerHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-                    controller: controller,
-                    child: SizedBox(
-                      height: height,
-                      child: Navigator(
-                        key: key,
-                        onGenerateRoute: (settings) => MaterialPageRoute(
-                          settings: settings,
-                          builder: (context){
-                            return MultiFeed(
-                              sheetController: widget.controller.sheetController,
-                              loaders: widget.loaders,
-                              headerSliver: widget.headerSliver,
-                              lengthFactor: widget.lengthFactor,
-                              innitalLength: widget.innitalLength,
-                              onRefresh: widget.onRefresh,
-                              controller: widget.controller.multifeedController,
-                              footerSliver: widget.footerSliver,
-                              extent: widget.initialExtent,
-                              minExtent: widget.minExtent,
-                              childBuilder: widget.childBuilder,
-                              footerHeight: widget.footerHeight,
-                              placeHolder: widget.placeHolder,
-                              placeHolders: widget.placeHolders?.call(mainExtent, headerHeight) ?? [],
-                              loading: widget.loading,
-                              condition: widget.condition,
-                              disableScroll: disableSheet || (widget.disableScroll ?? false),
-                              headerBuilder: widget.headerBuilder,
-                              wrapper: widget.wrapper,
-                              getItemID: widget.getItemID,
-                            );
-                          }
+          bloc: headerHeight,
+          builder: (context, hHeight) {
+            return BlocBuilder<ConcreteCubit<double>, double>(
+              bloc: sheetExtent,
+              builder: (context, sheetExtentValue) {
+                double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
+                double pageHeight = MediaQuery.of(context).size.height;
+                double height = sheetExtentValue > 0.8 ? 
+                pageHeight*sheetExtentValue - hHeight - statusBarHeight :  
+                pageHeight*sheetExtentValue - hHeight;
+                if(height < 0){
+                  height = 100;
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Container(height: hHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
+                        controller: controller,
+                        child: SizedBox(
+                          height: height,
+                          child: Navigator(
+                            key: key,
+                            onGenerateRoute: (settings) => MaterialPageRoute(
+                              settings: settings,
+                              builder: (context){
+                                return MultiFeed(
+                                  sheetController: widget.controller.sheetController,
+                                  loaders: widget.loaders,
+                                  headerSliver: widget.headerSliver,
+                                  lengthFactor: widget.lengthFactor,
+                                  innitalLength: widget.innitalLength,
+                                  onRefresh: widget.onRefresh,
+                                  controller: widget.controller.multifeedController,
+                                  footerSliver: widget.footerSliver,
+                                  extent: widget.initialExtent,
+                                  minExtent: widget.minExtent,
+                                  childBuilder: widget.childBuilder,
+                                  footerHeight: widget.footerHeight,
+                                  placeHolder: widget.placeHolder,
+                                  placeHolders: widget.placeHolders?.call(mainExtent, hHeight) ?? [],
+                                  loading: widget.loading,
+                                  condition: widget.condition,
+                                  disableScroll: disableSheet || (widget.disableScroll ?? false),
+                                  headerBuilder: widget.headerBuilder,
+                                  wrapper: widget.wrapper,
+                                  getItemID: widget.getItemID,
+                                );
+                              }
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              }
             );
           }
         );
@@ -420,6 +420,8 @@ class SlidingSheetFeedController extends ChangeNotifier {
   void _update() => notifyListeners();
 
   void refreshHeight() => _state != null ? _state!.refreshHeight() : null;
+
+
 
   double get extent => _state != null ? _state!.mainExtent : 0.0;
 
