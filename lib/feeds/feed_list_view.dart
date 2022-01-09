@@ -67,6 +67,8 @@ class FeedListView extends StatefulWidget {
 
   final double extent;
 
+  final double minExtent;
+
   const FeedListView({ 
     Key? key, 
     required this.sheetController,
@@ -74,6 +76,7 @@ class FeedListView extends StatefulWidget {
     this.onLoad, 
     required this.builder, 
     required this.itemsCubit,
+    this.minExtent = 0.0,
     this.extent = 0.7,
     this.controller, 
     this.footerHeight, 
@@ -128,7 +131,7 @@ class _FeedListViewState extends State<FeedListView> {
           else if(widget.sheetController!.state!.extent == widget.extent){
             snapping = true;
             Future.delayed(Duration.zero, () {
-              widget.sheetController!.snapToExtent(0.0, duration: Duration(milliseconds: 300));
+              widget.sheetController!.snapToExtent(widget.minExtent, duration: Duration(milliseconds: 300));
             });
             Future.delayed(Duration(milliseconds: 300)).then((value) => {
               snapping = false

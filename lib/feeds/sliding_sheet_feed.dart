@@ -325,6 +325,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               controller: widget.controller.multifeedController,
                               footerSliver: widget.footerSliver,
                               extent: widget.initialExtent,
+                              minExtent: widget.minExtent,
                               childBuilder: widget.childBuilder,
                               footerHeight: widget.footerHeight,
                               placeHolder: widget.placeHolder,

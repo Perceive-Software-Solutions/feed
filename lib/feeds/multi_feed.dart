@@ -69,6 +69,8 @@ class MultiFeed extends StatefulWidget {
 
   final double extent;
 
+  final double minExtent;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const MultiFeed(
@@ -88,9 +90,9 @@ class MultiFeed extends StatefulWidget {
       this.loading,
       this.condition = false, 
       this.extent = 0.7,
+      this.minExtent = 0.0,
       this.disableScroll, 
       this.headerBuilder,
-      
       this.getItemID,
       this.wrapper})
       : assert(controller == null || controller.length == loaders.length),
@@ -451,6 +453,7 @@ class _MultiFeedState extends State<MultiFeed> {
           KeepAliveWidget(
             child: FeedListView(
               extent: widget.extent,
+              minExtent: widget.minExtent,
               sheetController: widget.sheetController,
               controller: widget.controller!.scrollControllers![j],
               itemsCubit: itemsCubit[j],
