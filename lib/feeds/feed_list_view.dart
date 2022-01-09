@@ -65,13 +65,16 @@ class FeedListView extends StatefulWidget {
   ///If defined builds this feed in grid mode
   final FeedGridViewDelegate? gridDelegate;
 
+  final double extent;
+
   const FeedListView({ 
     Key? key, 
     required this.sheetController,
     this.disableScroll = false, 
     this.onLoad, 
     required this.builder, 
-    required this.itemsCubit, 
+    required this.itemsCubit,
+    this.extent = 0.7,
     this.controller, 
     this.footerHeight, 
     this.headerBuilder, 
@@ -116,13 +119,13 @@ class _FeedListViewState extends State<FeedListView> {
           if(widget.sheetController!.state!.extent == 1.0){
             snapping = true;
             Future.delayed(Duration.zero, () {
-              widget.sheetController!.snapToExtent(0.7, duration: Duration(milliseconds: 300));
+              widget.sheetController!.snapToExtent(widget.extent, duration: Duration(milliseconds: 300));
               Future.delayed(Duration(milliseconds: 300)).then((value) => {
                 snapping = false
               });
             });
           }
-          else if(widget.sheetController!.state!.extent == 0.7){
+          else if(widget.sheetController!.state!.extent == widget.extent){
             snapping = true;
             Future.delayed(Duration.zero, () {
               widget.sheetController!.snapToExtent(0.0, duration: Duration(milliseconds: 300));

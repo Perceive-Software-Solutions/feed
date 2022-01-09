@@ -228,20 +228,15 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         Navigator.pop(context);
       }
     }
-    else if(disableSheet && state.extent > 0.8){
+    else if(disableSheet && state.extent >= widget.expandedExtent){
       setState(() {
         disableSheet = false;
       });
     }
-    else if(!disableSheet && state.extent < 0.8 && widget.staticSheet){
+    else if(!disableSheet && state.extent < widget.expandedExtent && widget.staticSheet){
       setState(() {
         disableSheet = true;
       });
-      for (ScrollController? controller in widget.controller.multifeedController.scrollControllers ?? []) {
-        try{
-          controller?.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOutCubic);
-        }catch(e){}
-      }
     }
     mainExtent = state.extent;
     sheetExtent.emit(state.extent);
@@ -329,6 +324,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                               onRefresh: widget.onRefresh,
                               controller: widget.controller.multifeedController,
                               footerSliver: widget.footerSliver,
+                              extent: widget.initialExtent,
                               childBuilder: widget.childBuilder,
                               footerHeight: widget.footerHeight,
                               placeHolder: widget.placeHolder,

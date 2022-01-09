@@ -67,6 +67,8 @@ class MultiFeed extends StatefulWidget {
   ///The optional function used to wrap the list view
   final IndexWidgetWrapper? wrapper;
 
+  final double extent;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const MultiFeed(
@@ -85,8 +87,10 @@ class MultiFeed extends StatefulWidget {
       this.placeHolder,
       this.loading,
       this.condition = false, 
+      this.extent = 0.7,
       this.disableScroll, 
       this.headerBuilder,
+      
       this.getItemID,
       this.wrapper})
       : assert(controller == null || controller.length == loaders.length),
@@ -446,6 +450,7 @@ class _MultiFeedState extends State<MultiFeed> {
         tabs.add(
           KeepAliveWidget(
             child: FeedListView(
+              extent: widget.extent,
               sheetController: widget.sheetController,
               controller: widget.controller!.scrollControllers![j],
               itemsCubit: itemsCubit[j],
