@@ -1,3 +1,7 @@
+## [0.3.14] v0.3.14
+
+* Fixed dynamic height for sliding sheet
+
 ## [0.3.13] v0.3.13
 
 * Downgraded staggered grid version.
