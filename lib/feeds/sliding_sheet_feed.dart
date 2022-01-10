@@ -201,11 +201,17 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   void refreshHeight(){
     if(heightContext != null){
-      if(sheetExtent.state > 0.8){
-        headerHeight.emit(heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top);
-      }
+      // if(sheetExtent.state > 0.8){
+      //   headerHeight.emit(heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top);
+      // }
       // else{
-      //   headerHeight.emit(heightContext!.size!.height);
+        double value = MediaQueryData.fromWindow(window).padding.top * (Functions.animateOver(sheetExtent.state, percent: 0.9));
+        if(!value.isNegative){
+          headerHeight.emit(heightContext!.size!.height - value);
+        }
+        else{
+          headerHeight.emit(heightContext!.size!.height);
+        }
       // }
     }
   }
