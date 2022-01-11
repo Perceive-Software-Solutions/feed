@@ -4,13 +4,10 @@ import 'dart:ui';
 import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_neumorphic_null_safety/flutter_neumorphic.dart';
-import 'package:sliding_sheet/sliding_sheet.dart';
+import 'package:perceive_slidable/sliding_sheet.dart';
 
 /// Uses package [SlidingSheet] and widget [MultiFeed]
 /// Creates a multi feed that can manage its own context and list inside of a bottom modal sheet
@@ -188,9 +185,13 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   late bool disableSheet = widget.staticSheet;
 
+  late SlidingSheetStateController slidingSheetStateController;
+
   @override
   void initState(){
     super.initState();
+
+    slidingSheetStateController = SlidingSheetStateController();
 
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
       if(heightContext != null){
@@ -201,10 +202,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   void refreshHeight(){
     if(heightContext != null){
-      // if(sheetExtent.state > 0.8){
-      //   headerHeight.emit(heightContext!.size!.height - MediaQueryData.fromWindow(window).padding.top);
-      // }
-      // else{
         double value = MediaQueryData.fromWindow(window).padding.top * (Functions.animateOver(sheetExtent.state, percent: 0.9));
         if(!value.isNegative){
           headerHeight.emit(heightContext!.size!.height - value);
@@ -212,7 +209,6 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
         else{
           headerHeight.emit(heightContext!.size!.height);
         }
-      // }
     }
   }
 
@@ -261,56 +257,43 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
     return SlidingSheet(
       controller: widget.controller.sheetController,
       color: widget.color,
-      closeOnBackButtonPressed: widget.closeOnBackButtonPressed,
+      closeSheetOnBackButtonPressed: widget.closeOnBackButtonPressed,
       closeOnBackdropTap: widget.closeOnBackdropTap, //Closes the page when the sheet reaches the bottom
       extendBody: widget.extendBody,
       cornerRadius: widget.cornerRadius,
-      cornerRadiusOnFullscreen: widget.cornerRadiusOnFullscreen,
+      cornerRadiusWhenExpanded: widget.cornerRadiusOnFullscreen,
       duration: widget.duration,
+      slidingSheetStateController: slidingSheetStateController,
       snapSpec: SnapSpec(
         initialSnap: widget.initialExtent,
         snappings: [widget.minExtent, widget.initialExtent, widget.expandedExtent],
       ),
       listener: sheetStateListener,
-      // headerBuilder: (context, state){
-      //   // return widget.header != null ? widget.header!(context, pageObject.state) : SizedBox.shrink();
-      //   return widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-      //     bloc: pageObject,
-      //     builder: (context, obj) {
-      //       return BlocBuilder<ConcreteCubit<double>, double>(
-      //         bloc: sheetExtent,
-      //         builder: (context, extent){
-      //           heightContext = context;
-      //           //The animation value for the topExtent animation
-      //           double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-      //           return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
-      //         },
-      //       );
-      //     }      
-      //   ) : SizedBox.shrink();
-      // },
       customBuilder: (context, controller, state){
         return Navigator(
           key: key,
           onGenerateRoute: (settings) => MaterialPageRoute(
             settings: settings,
             builder: (context){
+              Widget header = BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
+                bloc: pageObject,
+                builder: (context, obj) {
+                  return BlocBuilder<ConcreteCubit<double>, double>(
+                    bloc: sheetExtent,
+                    builder: (context, extent){
+                      heightContext = context;
+                      //The animation value for the topExtent animation
+                      double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+                      return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
+                    },
+                  );
+                }      
+              );
               return Stack(
                 children: [
-                  widget.header != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-                    bloc: pageObject,
-                    builder: (context, obj) {
-                      return BlocBuilder<ConcreteCubit<double>, double>(
-                        bloc: sheetExtent,
-                        builder: (context, extent){
-                          heightContext = context;
-                          //The animation value for the topExtent animation
-                          double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-                          return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
-                        },
-                      );
-                    }      
-                  ) : SizedBox.shrink(),
+                  widget.header != null ? 
+                  slidingSheetStateController.delegateInteractions(header) ?? header : 
+                  SizedBox.shrink(),
 
                   BlocBuilder<ConcreteCubit<double>, double>(
                     bloc: headerHeight,
@@ -446,7 +429,7 @@ class SlidingSheetFeedController extends ChangeNotifier {
 
   void refreshHeight() => _state != null ? _state!.refreshHeight() : null;
 
-
+  Widget? delegateInderations(Widget child) => _state != null ? _state!.slidingSheetStateController.delegateInteractions(child) : null;
 
   double get extent => _state != null ? _state!.mainExtent : 0.0;
 

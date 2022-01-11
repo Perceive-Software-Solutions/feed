@@ -2,8 +2,8 @@ import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:perceive_slidable/sliding_sheet.dart';
 
 ///Defines the laoding state
 enum FeedLoadingState {
