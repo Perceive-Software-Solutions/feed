@@ -1,3 +1,7 @@
+## [0.3.15] v0.3.15
+
+* Updated packages with perceive_slidable
+
 ## [0.3.14] v0.3.14
 
 * Fixed dynamic height for sliding sheet
