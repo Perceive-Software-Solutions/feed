@@ -157,6 +157,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
   bool connectivity = true;
 
+  ///The collective state since the last refresh
+  InitialFeedState<T> collectiveState = InitialFeedState<T>(
+    items: [],
+    hasMore: true,
+    pageToken: null
+  );
+
   EdgeInsets get padding => widget.padding ?? EdgeInsets.zero;
 
   Duration get duration => widget.duration ?? Duration(milliseconds: 0);
@@ -215,6 +222,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       else{
 
         cubit.emit(cubitItems);
+
+        collectiveState = state;
 
         setState(() {
           pageToken = state.pageToken;
@@ -423,6 +432,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
       return;
     }
 
+    collectiveState = InitialFeedState<T>(
+      items: [],
+      hasMore: true,
+      pageToken: null
+    );
+
     // Emit Loading State
     final showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
     final placeholder = Tuple2(null, showCubit);
@@ -476,7 +491,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             });
         }
 
-        cubit.emit([...oldItems, ...cubitItems]);
+        final newState = [...oldItems, ...cubitItems];
+
+        //Update collective feed state
+        collectiveState = InitialFeedState<T>(
+          items: newState.where((e) => e.item1 != null).map((e) => e.item1!).toList(),
+          hasMore: hasMore,
+          pageToken: pageToken
+        );
+
+        cubit.emit(newState);
         lock = false;
       });
     }
@@ -542,6 +566,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           oldItems.removeLast();
         }
         
+        //Update collective feed state
+        collectiveState = InitialFeedState<T>(
+          items: [...collectiveState.items, ...newItems],
+          hasMore: hasMore,
+          pageToken: pageToken
+        );
+
         cubit.emit([...oldItems, ...cubitItems]);
         lock = false;
       });
@@ -806,7 +837,10 @@ class SwipeFeedController<T> extends ChangeNotifier {
   void _update() => notifyListeners();
 
   ///Retreives the list of items from the feed
-  List<T> get list => _state!.items;
+  List<T> get list => _state!.cubit.state.where((e) => e.item1 != null).map((e) => e.item1!).toList();
+
+  ///The state of the feed since the last refresh
+  InitialFeedState<T> get collectiveState => _state!.collectiveState;
 
   ///Reloads the feed state based on the original size parameter
   void loadMore() => _state!._loadMore();

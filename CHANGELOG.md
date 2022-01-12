@@ -1,3 +1,8 @@
+## [0.3.17] v0.3.17
+
+* Added collective state to swipe feed to track all the loaded in data wince refresh.
+* Bug fixes for clearbar function
+
 ## [0.3.16] v0.3.16
 
 * Swipefeed load more bug fixes

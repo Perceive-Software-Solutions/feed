@@ -218,6 +218,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       iconDirection = null;
       cardPosition = null;
       backgroundTitle = text;
+      fillController.animateTo(0, duration: Duration.zero);
     });
   }
 
