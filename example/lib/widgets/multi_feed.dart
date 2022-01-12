@@ -2,7 +2,7 @@ import 'package:feed/feed.dart';
 import 'package:flutter/material.dart';
 import 'package:feed/feeds/multi_feed.dart';
 import 'package:tuple/tuple.dart';
-import 'package:sliding_sheet/sliding_sheet.dart';
+import 'package:perceive_slidable/sliding_sheet.dart';
 import 'package:flutter_interactive_keyboard/flutter_interactive_keyboard.dart';
 
 

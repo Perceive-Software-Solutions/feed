@@ -588,6 +588,9 @@ class MultiFeedController extends ChangeNotifier {
   ///Retreives the list of items from the feed
   bool hasMore(index) => _state!.loadMore[index];
 
+  ///Retreives the list of feed token at the index
+  String? pageToken(index) => _state!.tokens[index];
+
   ///Determines if an index has been refreshed
   bool isNotRefreshed(index) => _state!.isNotRefreshed(index);
 

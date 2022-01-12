@@ -43,7 +43,6 @@ dependency_overrides:
 
 dev_dependencies:
   flutter_interactive_keyboard: ^0.2.0
-  sliding_sheet: ^0.5.2
   flutter_test:
     sdk: flutter
 

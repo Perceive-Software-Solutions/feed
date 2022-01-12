@@ -6,9 +6,11 @@ import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
+import 'package:feed/util/state/feed_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter_neumorphic_null_safety/flutter_neumorphic.dart';
 import 'package:tuple/tuple.dart';
 
 //______________________________  Exports  __________________________________\\
@@ -26,7 +28,7 @@ class SwipeFeed<T> extends StatefulWidget {
     required this.objectKey,
     this.percentBarPadding,
     this.background,
-    this.loadManually = false, 
+    this.initialState, 
     this.onSwipe, 
     this.onContinue,
     this.overlayBuilder,
@@ -102,8 +104,8 @@ class SwipeFeed<T> extends StatefulWidget {
   ///A loader for the feed
   final FeedLoader<T> loader;
 
-  ///Set to `true` if you want to prevent the feed from loading onCreate
-  final bool loadManually;
+  ///If defined, then the refresh is not called on init and the feed state is provided
+  final InitialFeedState<T>? initialState;
 
   ///Controller for the swipe feed
   final SwipeFeedController controller;
@@ -172,9 +174,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     swipeFeedCardControllers.add(SwipeFeedCardController());
     swipeFeedCardControllers.add(SwipeFeedCardController());
 
-    if(!widget.loadManually) {
+    if(widget.initialState == null) {
       // _loadMore();
       _refresh();
+    }
+    else{
+      populateInitialState(widget.initialState!);
     }
 
     checkConnectivity();
@@ -195,6 +200,29 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
     //Bind the controller
     widget.controller._bind(this);
+  }
+
+  void populateInitialState(InitialFeedState<T> state){
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+
+      List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
+          state.items.length, (i) => Tuple2(state.items[i], ConcreteCubit<SwipeFeedCardState>(i == 0 ? ShowSwipeFeedCardState() : HideSwipeFeedCardState())));
+
+      if(cubitItems.isEmpty){
+        _refresh();
+      }
+      else{
+
+        cubit.emit(cubitItems);
+
+        setState(() {
+          pageToken = state.pageToken;
+          hasMore = state.hasMore;
+        });
+      }
+
+    });
   }
 
   bool setCardState(SwipeFeedCardState state,){
@@ -508,6 +536,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           Future.delayed(Duration(milliseconds: 500)).then((value){
             showCubit.emit(HideSwipeFeedCardState(!connectivity ? widget.noConnectivityPlaceHolder : widget.noPollsPlaceHolder));
           });
+        }
+        else if(cubitItems.isNotEmpty && oldItems.isNotEmpty && oldItems.last.item1 == null){
+          //Remove null value at end
+          oldItems.removeLast();
         }
         
         cubit.emit([...oldItems, ...cubitItems]);

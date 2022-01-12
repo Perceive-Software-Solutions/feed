@@ -1,3 +1,8 @@
+## [0.3.16] v0.3.16
+
+* Swipefeed load more bug fixes
+* Added initial state to swipe feed
+
 ## [0.3.15] v0.3.15
 
 * Updated packages with perceive_slidable

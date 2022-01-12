@@ -4,7 +4,7 @@ import 'package:example/widgets/multi_feed.dart';
 import 'package:example/widgets/sliding_feed.dart';
 import 'package:example/widgets/swipe_feed.dart';
 import 'package:flutter/material.dart';
-import 'package:sliding_sheet/sliding_sheet.dart';
+import 'package:perceive_slidable/sliding_sheet.dart';
 
 void main() {
   runApp(const MyApp());
