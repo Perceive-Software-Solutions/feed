@@ -1,3 +1,7 @@
+## [0.3.18] v0.3.18
+
+* Fixed Load more glitch inside of multifeed
+
 ## [0.3.17] v0.3.17
 
 * Added collective state to swipe feed to track all the loaded in data wince refresh.
