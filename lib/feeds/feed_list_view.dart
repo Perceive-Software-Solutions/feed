@@ -160,6 +160,11 @@ class _FeedListViewState extends State<FeedListView> {
     //Difference in the items and providers lengths
     int newCubitLength = items.length - itemLoadState.length;
 
+    if(newCubitLength < 0){
+      itemLoadState = [];
+      return;
+    }
+
     //Creates new cubits for non included items
     List<ConcreteCubit<FeedLoadingState>> newCubits = List.generate(newCubitLength, (i){
       return ConcreteCubit(FeedLoadingState.BLOCK);
