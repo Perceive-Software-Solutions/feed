@@ -849,7 +849,7 @@ class SwipeFeedController<T> extends ChangeNotifier {
   void refresh() => _state!._refresh();
 
   ///Reloads the feed state based on the original size parameter
-  void reset() => _state!._reset();
+  Future<void> reset() => _state!._reset();
 
   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
 

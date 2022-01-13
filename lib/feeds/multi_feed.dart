@@ -341,6 +341,30 @@ class _MultiFeedState extends State<MultiFeed> {
     }
   }
 
+  Future<void> _loadFromPending() async {
+
+    Tuple2<List, String?> loaded;
+
+    //use pending
+    if(pending[feedIndex].isNotEmpty){
+      loaded = Tuple2([...pending[feedIndex]], tokens[feedIndex]);
+
+      if(mounted){
+
+        List newItems = _allocateToPending(loaded.item1, feedIndex);
+        tokens[feedIndex] = loaded.item2;
+
+        await _incrementallyAddItems(newItems, feedIndex);
+
+        //Set the loading to false
+        loading[feedIndex] = false;
+
+        //Notifies all the controller lisneteners
+        widget.controller?._update();
+      }
+    }
+  }
+
   ///The function run to load more items onto the page
   Future<void> _loadMore(int feedIndex) async {
 
@@ -467,6 +491,9 @@ class _MultiFeedState extends State<MultiFeed> {
                 // print(loadMore[j]);
                 if(loading[j] == false && loadMore[j] == true) {
                   _loadMore(j);
+                }
+                else{
+                  _loadFromPending();
                 }
               },
               builder: (context, i, items){
@@ -595,7 +622,7 @@ class MultiFeedController extends ChangeNotifier {
   bool isNotRefreshed(index) => _state!.isNotRefreshed(index);
 
   ///Reloads the feed state based on the original size parameter
-  void reload(int index) => _state!._refresh(index);
+  Future<void> reload(int index) => _state!._refresh(index);
 
   ///Adds an item to the beginning of the stated multi feed
   void addItem(dynamic item, int index) => _state!.addItem(item, index);
