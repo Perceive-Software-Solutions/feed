@@ -2,8 +2,8 @@ library Feed;
 
 export 'package:feed/feeds/multi_feed.dart';
 export 'package:feed/feeds/feed.dart';
-export 'package:feed/swipeFeed/swipe_feed.dart';
-export 'package:feed/swipeFeedCard/swipe_feed_card.dart';
+export 'package:feed/reference/swipe_feed_reference.dart';
+export 'package:feed/reference/swipe_feed_card_reference.dart';
 export 'package:feed/feeds/compact_feed.dart';
 export 'package:feed/feeds/sliding_sheet_feed.dart';
 export 'package:feed/util/icon_position.dart';

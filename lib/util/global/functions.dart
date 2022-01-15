@@ -76,7 +76,7 @@ typedef FeedLoader<T> = Future<Tuple2<List<T>, String?>> Function(int size, [Str
 
 ///A Builder for the swipe feed
 ///The close function shrinks the card
-typedef SwipeFeedBuilder<T> = Widget Function(T value, bool isLast, bool expanded, void Function() close);
+typedef SwipeFeedBuilder<T> = Widget Function(T value, bool expanded, void Function() close);
 
 ///Builder for the feed items
 typedef FeedBuilder<T> = Widget Function(T item, bool isLast);
