@@ -58,11 +58,8 @@ class SwipeCard extends StatefulWidget {
     this.controller,
     required this.onSwipe,
     this.child,
-    this.disableVeritical = false,
-    this.disableHorizontal = false,
     this.onPanUpdate,
     this.opacityChange = false,
-    this.movable = true, this.onPanEnd, this.onStartSwipe
   }) : super(key: key);
 
   @override
@@ -82,32 +79,17 @@ class SwipeCard extends StatefulWidget {
 
   final SwipeCardController? controller;
 
-  ///If the card moves in reponse to swipe actions
-  final bool movable;
-
   ///Disbales all swiping on the card
   final bool swipable;
 
   ///Call back function that calls the onSwipe with the DismissDirection
-  final Function(double dx, double dy, DismissDirection, bool fling)? onSwipe;
-
-  ///Call back function that calls the onSwipe with the DismissDirection
-  final Function(DismissDirection)? onStartSwipe;
+  final Function(double dx, double dy, DismissDirection)? onSwipe;
 
   ///The internal child widget
   final Widget? child;
-
-  ///Allows for the disabling of veritcal swiping on the card
-  final bool disableVeritical;
-
-  ///Allows for the disabling of horizaontal swiping on the card
-  final bool disableHorizontal;
-
+  
   ///The function that runs when the pan is updated
   final Function(double dx, double dy, [double maxX, double maxYTop, double maxYBot])? onPanUpdate;
-
-  ///The callback function run when the pan is finished
-  final Function()? onPanEnd;
 
   ///whether or not the card should fade out opacity
   final bool opacityChange;
@@ -268,41 +250,36 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Calculates the rotation
   double get angle => lerpDouble(0, 10, xDrag / MediaQuery.of(context).size.width)! / 45;
 
-  ///Retreives the active swiper value
-  double get getActiveValue{
-    
-    //List of animation controllers for this widget
-    List<AnimationController> animations = [leftSwiper, rightSwiper, downSwiper, upSwiper];
-
-    //The largest value
-    double largestValue = 0.0;
-
-    //Compute largest value
-    for (AnimationController animation in animations) {
-      double animationValue = (animation.value);
-      if(animationValue > largestValue){
-        largestValue = animationValue;
-      }
+  ///Returns an animation controller based of given direction
+  AnimationController swiper(DismissDirection direction){
+    switch (direction) {
+      case DismissDirection.startToEnd:
+        return rightSwiper;
+      case DismissDirection.endToStart:
+        return leftSwiper;
+      case DismissDirection.up:
+        return upSwiper;
+      case DismissDirection.down:
+        return downSwiper;
+      default:
+        return rightSwiper;
     }
-
-    //Return largest value
-    return largestValue;
   }
 
-  ///Dtermines if there is an animator that is reversing
-  bool get reversing {
-    //List of animation controllers for this widget
-    List<AnimationController> animations = [leftSwiper, rightSwiper, downSwiper, upSwiper];
-
-    //Determine if there is one reversing
-    for (AnimationController animation in animations) {
-      if((animation.status) == AnimationStatus.reverse){
-        return true;
-      }
+  /// Returns the animation values based on a DimissDirection
+  double value(DismissDirection direction){
+    switch (direction) {
+      case DismissDirection.startToEnd:
+        return rightSwiper.value;
+      case DismissDirection.endToStart:
+        return leftSwiper.value;
+      case DismissDirection.up:
+        return upSwiper.value;
+      case DismissDirection.down:
+        return downSwiper.value;
+      default:
+        return rightSwiper.value;
     }
-
-    //Default return false
-    return false;
   }
 
   /*
@@ -619,14 +596,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     //Updtes the card position
     _updateSwipers(d.delta.dx, d.delta.dy);
 
-    //Updates the angle
-    // if ((xDrag.abs() < 5 && yDrag.abs() < 5)) {
-    //   double radAngle = d.delta.direction;
-    //   // isHorz = ((radAngle > -(pi / 6) && radAngle < (pi / 6)) ||
-    //   //     (radAngle > ((5 * pi) / 6) && radAngle < ((7 * pi) / 6)));
-    //   setState(() {});
-    // }
-
     //Calls any  binded call backs
     if(widget.onPanUpdate != null)
       widget.onPanUpdate!(xDrag, yDrag, horizontalSwipeThresh, topSwipeThresh, bottomSwipeThresh);
@@ -636,10 +605,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   void _onPanEnd(DragEndDetails d) async {
 
     if (swipable != true) return;
-
-    //Calls the callback function if it's defined
-    if(widget.onPanEnd != null)
-      widget.onPanEnd!();
     
     //Determines the swipe direction if there is a signal
     DismissDirection? startSwipeSignal;
@@ -654,36 +619,19 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       startSwipeSignal = _swipeCard();
     }
     
-    //Swipe has started
-    if(startSwipeSignal != null){
-      //Sends a callback if there is one defined
-      if(widget.onStartSwipe != null) {
-        if(fling == true){
-          await Future.delayed(FLING_DURATION);
-        }
 
-        widget.onStartSwipe!(startSwipeSignal);
-      }
-    }
-    else{
+    if(startSwipeSignal == null){
       //Otherwise reset the positions
       reverse();
     }
   }
 
-  void swipeRight(){
-    rightSwiper.duration = FLING_DURATION;
-    rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
-    // _haptic(startSwipeSignal, 1000, 1);
-    widget.onSwipe!(100, 0, DismissDirection.startToEnd, true);
-    swipable = false;
-  }
-
-  void swipeLeft(){
-    leftSwiper.duration = FLING_DURATION;
-    leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
-    // _haptic(startSwipeSignal, 1000, 1);
-    widget.onSwipe!(-100, 0, DismissDirection.endToStart, true);
+  /// Swiped card in a specified direction
+  void swipe(DismissDirection direction){
+    AnimationController controller = swiper(direction);
+    controller.duration = FLING_DURATION;
+    controller.forward(from: xDrag / cardSwipeLimitX); //animate
+    widget.onSwipe!(100, 0, DismissDirection.startToEnd);
     swipable = false;
   }
 
@@ -710,7 +658,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.startToEnd, true);
+        widget.onSwipe!(flingX, flingY, DismissDirection.startToEnd);
         swipable = false;
         return DismissDirection.startToEnd; //set signal
       }
@@ -728,7 +676,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.endToStart, true);
+        widget.onSwipe!(flingX, flingY, DismissDirection.endToStart);
         swipable = false;
         return DismissDirection.endToStart; //set signal
       }
@@ -749,7 +697,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
             }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.down, true);
+        widget.onSwipe!(flingX, flingY, DismissDirection.down);
         swipable = false;
         return DismissDirection.down; //set signal
       }
@@ -767,7 +715,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.up, true);
+        widget.onSwipe!(flingX, flingY, DismissDirection.up);
         swipable = false;
         return DismissDirection.up; //set signal
       }
@@ -798,7 +746,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       rightSwiper.duration = SWIPE_DURATION_X;
 
       rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.startToEnd, false);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.startToEnd);
       swipable = false;
       return DismissDirection.startToEnd; //set signal
     }
@@ -807,7 +755,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       leftSwiper.duration = SWIPE_DURATION_X;
 
       leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.endToStart, false);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.endToStart);
       swipable = false;
       return DismissDirection.endToStart; //set signal
     }
@@ -816,7 +764,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       downSwiper.duration = SWIPE_DURATION_Y;
 
       downSwiper.forward(from: yDrag / cardSwipeLimitY); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.down, false);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.down);
       swipable = false;
       return DismissDirection.down; //set signal
     } 
@@ -825,7 +773,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       upSwiper.duration = SWIPE_DURATION_Y;
 
       upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.up, false);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.up);
       swipable = false;
       return DismissDirection.up; //set signal
     }
@@ -930,10 +878,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
               ? min(xDrag / 2 / 360, (10 * pi) / 180)
               : max(xDrag / 2 / 360, -(10 * pi) / 180)),
               */
-          angle: widget.movable == false || rotation == SwipeCardAngle.None ? 0
+          angle: rotation == SwipeCardAngle.None ? 0
             : (rotation == SwipeCardAngle.Top ? 1 : -1) * angle,
           child: Transform.translate(
-              offset: widget.movable == false ? Offset.zero : Offset(xDrag, yDrag), child: widget.child ?? Container()),
+              offset: Offset(xDrag, yDrag), child: widget.child ?? Container()),
         ),
       ),
     );
@@ -950,42 +898,14 @@ class SwipeCardController extends ChangeNotifier {
 
   void _bind(_SwipeCardState bind) => _state = bind;
 
-  ///Update call back from the controller
-  void _update() => _state != null ? notifyListeners() : null;
-
   ///Reverses any active animations
   void reverse() => _state!.reverse();
 
-  ///Sets the swipable state
-  void setSwipe(bool swipe) => _state!.setSwipeable(swipe);
+  ///Swipe card in a designated direction
+  void swipe(DismissDirection direction) => _state != null ? _state!.swipe(direction) : null;
 
-  void swipeRight() => _state!.swipeRight();
-
-  void swipeLeft() => _state!.swipeLeft();
-
-  ///Gets the largest active swiper value
-  double get largetSwiperValue => _state!.getActiveValue;
-
-  ///Gets the largest active swiper value
-  double get right =>  _state!.rightSwiper.value;
-
-  ///Gets the largest active swiper value
-  double get left => _state!.leftSwiper.value;
-
-  ///Gets the largest active swiper value
-  double get up => _state!.upSwiper.value;
-
-  ///Gets the largest active swiper value
-  double get down => _state!.downSwiper.value;
-
-  ///Gets the largest active swiper value
-  double get x => max(right, left);
-
-  ///Gets the largest active swiper value
-  double get y => max(up, down);
-
-  ///Determines if there is a swiper that is reversing
-  bool get reversing => _state!.reversing;
+  ///Get values of the card from a designated direction
+  double value(DismissDirection direction) => _state != null ? _state!.value(direction) : 0;
 
   //Disposes of the controller
   @override

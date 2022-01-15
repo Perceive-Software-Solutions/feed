@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:connectivity/connectivity.dart';
 import 'package:feed/animated/neumorpic_percent_bar.dart';
-import 'package:feed/animated/swipe_feed_card.dart';
+import 'package:feed/swipeFeedCard/swipe_feed_card.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
@@ -754,7 +754,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         //Percent bar displaying current vote
         Padding(
           padding: widget.percentBarPadding ?? EdgeInsets.only(left: 8 + padding.left, right: 8 + padding.right, top: padding.top + 6, bottom: padding.top),
-          child: KeepAliveWidget(
+          child: KeepAliveWidget( 
             key: Key('PollPage - Bar - KeepAlive'),
             child: NeumorpicPercentBar(
               key: Key('PollPage - Bar'),
