@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_neumorphic_null_safety/flutter_neumorphic.dart';
 import 'package:perceive_slidable/sliding_sheet.dart';
+import 'package:tuple/tuple.dart';
 
 /// Uses package [SlidingSheet] and widget [MultiFeed]
 /// Creates a multi feed that can manage its own context and list inside of a bottom modal sheet
@@ -125,6 +126,9 @@ class SlidingSheetFeed extends StatefulWidget {
   ///Retreives the item id, used to ensure the prevention of duplcicate additions
   final String Function(dynamic item)? getItemID;
 
+  /// Items that will be pinned to the top of the list on init
+  final List<Tuple2<dynamic, int>>? pinnedItems;
+
   //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const SlidingSheetFeed({ 
@@ -160,7 +164,8 @@ class SlidingSheetFeed extends StatefulWidget {
     this.wrapper,
     this.getItemID,
     this.headerHeight = 60,
-    this.staticSheet = false
+    this.staticSheet = false,
+    this.pinnedItems
   }) : super(key: key);
 
   @override
@@ -340,6 +345,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
                                       headerBuilder: widget.headerBuilder,
                                       wrapper: widget.wrapper,
                                       getItemID: widget.getItemID,
+                                      pinnedItems: widget.pinnedItems,
                                     ) 
                                   ),
                                 ),

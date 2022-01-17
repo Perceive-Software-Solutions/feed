@@ -67,6 +67,9 @@ class MultiFeed extends StatefulWidget {
   ///The optional function used to wrap the list view
   final IndexWidgetWrapper? wrapper;
 
+  /// Items that will be pinned to the top of the list on init
+  final List<Tuple2<dynamic, int>>? pinnedItems;
+
   final double extent;
 
   final double minExtent;
@@ -94,7 +97,8 @@ class MultiFeed extends StatefulWidget {
       this.disableScroll, 
       this.headerBuilder,
       this.getItemID,
-      this.wrapper})
+      this.wrapper,
+      this.pinnedItems})
       : assert(controller == null || controller.length == loaders.length),
         super(key: key);
 
@@ -190,6 +194,18 @@ class _MultiFeedState extends State<MultiFeed> {
 
     //Loads the innitial set of items
     _refresh(feedIndex, false);
+
+    if(widget.pinnedItems != null){
+      pinItems();
+    }
+
+  }
+
+  /// Initially pin items to the top of the list
+  void pinItems(){
+    for(Tuple2<dynamic, int> pinnedItem in widget.pinnedItems!){
+      addItem(pinnedItem.item1, pinnedItem.item2);
+    }
   }
 
   int sizeAtIndex(int index){
@@ -444,19 +460,13 @@ class _MultiFeedState extends State<MultiFeed> {
 
   ///Keps track of the added items are removes them from future loads
   void addItem(dynamic item, int index){
-    // if(isNotRefreshed(index)){
-    //   //Refresh the list instead of adding
-    //   _refresh(index, false);
-    // }
-    // else{
-      List addNewItem = [item, ...itemsCubit[index].state];
-      itemsCubit[index].emit(addNewItem);
+    List addNewItem = [item, ...itemsCubit[index].state];
+    itemsCubit[index].emit(addNewItem);
 
-      //track added items only oif the [getItemID] function is defined
-      if(widget.getItemID != null){
-        addedItems[index][widget.getItemID!(item)] = true;
-      }
-    // }
+    //track added items only oif the [getItemID] function is defined
+    if(widget.getItemID != null){
+      addedItems[index][widget.getItemID!(item)] = true;
+    }
   }
 
   ///Builds the tabs used in the custom scroll view
