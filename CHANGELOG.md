@@ -1,3 +1,7 @@
+## [0.3.20] v0.3.20
+
+* Added pinned item inside multifeed
+
 ## [0.3.18] v0.3.18
 
 * Fixed Load more glitch inside of multifeed
