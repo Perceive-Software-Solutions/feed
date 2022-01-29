@@ -1,3 +1,7 @@
+## [0.3.21] v0.3.21
+
+* Listen to the extent of the sliding sheet feed
+
 ## [0.3.20] v0.3.20
 
 * Added pinned item inside multifeed

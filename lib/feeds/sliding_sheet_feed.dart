@@ -73,6 +73,9 @@ class SlidingSheetFeed extends StatefulWidget {
   /// Disables scrolling the sheet
   final bool disableSheetScroll;
 
+  /// Listen to the extent of the sheet
+  final Function()? listener;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Multi-Feed ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   /// Loader for the feed
@@ -165,7 +168,8 @@ class SlidingSheetFeed extends StatefulWidget {
     this.getItemID,
     this.headerHeight = 60,
     this.staticSheet = false,
-    this.pinnedItems
+    this.pinnedItems,
+    this.listener
   }) : super(key: key);
 
   @override
@@ -225,6 +229,9 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
   }
 
   void sheetStateListener(SheetState state){
+    if(widget.listener != null){
+      widget.listener!();
+    }
     if(state.extent == 0.0){
       if(Navigator.canPop(context)){
         Navigator.pop(context);
