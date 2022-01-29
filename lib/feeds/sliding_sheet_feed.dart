@@ -74,7 +74,7 @@ class SlidingSheetFeed extends StatefulWidget {
   final bool disableSheetScroll;
 
   /// Listen to the extent of the sheet
-  final Function()? listener;
+  final Function(SheetState)? listener;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Multi-Feed ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -230,7 +230,7 @@ class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
 
   void sheetStateListener(SheetState state){
     if(widget.listener != null){
-      widget.listener!();
+      widget.listener!(state);
     }
     if(state.extent == 0.0){
       if(Navigator.canPop(context)){
