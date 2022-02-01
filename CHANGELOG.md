@@ -1,3 +1,7 @@
+## [0.3.23] v0.3.23
+
+* Added ability to modify multi feed state from controller
+
 ## [0.3.21] v0.3.21
 
 * Listen to the extent of the sliding sheet feed

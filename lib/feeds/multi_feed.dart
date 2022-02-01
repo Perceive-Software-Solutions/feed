@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:feed/feed.dart';
 import 'package:feed/feeds/feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
@@ -253,6 +254,43 @@ class _MultiFeedState extends State<MultiFeed> {
     }
   }
 
+  
+  ///Clears the state on a feed index
+  void clearFeed(int index){
+    setState(() {
+      pending[index] = [];
+      sizes[index] = 0;
+      tokens[index] = null;
+      loading[index] = false;
+      loadMore[index] = true;
+      addedItems[index] = {};
+    });
+    itemsCubit[index].emit([]);
+  }
+  
+  ///Clears the state on a feed index
+  void setFeedState(int index, InitialFeedState state) async {
+    // itemsCubit[index].emit([]); //clear previous state
+
+    late final list;
+    pending[index] = [];
+    sizes[index] = 0;
+    tokens[index] = state.pageToken;
+    loading[index] = false;
+    loadMore[index] = state.hasMore;
+    addedItems[index] = {};
+
+    //Retreive list
+    list = _allocateToPending(state.items, index);
+
+    // print('ok');
+    
+
+    //Add items
+    await _incrementallyAddItems(list, index, true);
+    setState(() {});
+  }
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Builds the type of item card
@@ -289,12 +327,12 @@ class _MultiFeedState extends State<MultiFeed> {
   }
 
   //TODO: chnage
-  Future<void> _incrementallyAddItems(List newItems, int index) async {
+  Future<void> _incrementallyAddItems(List newItems, int index, [bool clear = false]) async {
 
     for (var i = 0; i < newItems.length; i++) {
       
       await Future.delayed(Duration(milliseconds: ITEM_ADD_DELAY)).then((_){
-        List addNewItem = [...itemsCubit[index].state, newItems[i]];
+        List addNewItem = [...(clear && i == 0 ? [] : itemsCubit[index].state), newItems[i]];
 
         itemsCubit[index].emit( addNewItem );
         
@@ -406,6 +444,7 @@ class _MultiFeedState extends State<MultiFeed> {
 
         //Set the loading to false
         loading[feedIndex] = false;
+        setState(() {});
 
         //Notifies all the controller lisneteners
         widget.controller?._update();
@@ -633,6 +672,12 @@ class MultiFeedController extends ChangeNotifier {
 
   ///Reloads the feed state based on the original size parameter
   Future<void> reload(int index) => _state!._refresh(index);
+
+  ///Adds an item to the beginning of the stated multi feed
+  void clear(int index) => _state!.clearFeed(index);
+
+  ///Adds an item to the beginning of the stated multi feed
+  void setState(int index, InitialFeedState state) => _state!.setFeedState(index, state);
 
   ///Adds an item to the beginning of the stated multi feed
   void addItem(dynamic item, int index) => _state!.addItem(item, index);
