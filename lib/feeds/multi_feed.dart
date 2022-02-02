@@ -254,6 +254,14 @@ class _MultiFeedState extends State<MultiFeed> {
     }
   }
 
+  void removeItem(dynamic item, [dynamic Function(dynamic item)? retreivalFunction]){
+
+    for (var cubit in itemsCubit) {
+      List items = [...cubit.state];
+      items.removeWhere((element) => (retreivalFunction != null ? retreivalFunction(element) : element) == item);
+      cubit.emit(items);
+    }
+  }
   
   ///Clears the state on a feed index
   void clearFeed(int index){
@@ -673,7 +681,10 @@ class MultiFeedController extends ChangeNotifier {
   ///Reloads the feed state based on the original size parameter
   Future<void> reload(int index) => _state!._refresh(index);
 
-  ///Adds an item to the beginning of the stated multi feed
+  ///Removes an item from all the feeds
+  void removeItem(dynamic item, {dynamic Function(dynamic item)? retreivalFunction}) => _state!.removeItem(item, retreivalFunction);
+
+  ///Clears the indexed feed
   void clear(int index) => _state!.clearFeed(index);
 
   ///Adds an item to the beginning of the stated multi feed

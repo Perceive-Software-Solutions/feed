@@ -1,3 +1,7 @@
+## [0.3.24] v0.3.24
+
+* Added ability to remove items from multifeed
+
 ## [0.3.23] v0.3.23
 
 * Added ability to modify multi feed state from controller
