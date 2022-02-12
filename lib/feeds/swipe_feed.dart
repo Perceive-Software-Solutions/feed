@@ -663,6 +663,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           builder: (context, keyboard){
             return AnimatedPadding(
               duration: duration,
+              curve: Curves.easeInOutCubic,
               padding: show is ExpandSwipeFeedCardState ? EdgeInsets.zero : (keyboard ? padding.copyWith(bottom: 0): padding),
               child: GestureDetector(
                 onTap: itemCubit.item1 != null && widget.canExpand != null && 
