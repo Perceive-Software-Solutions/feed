@@ -54,6 +54,9 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
   Duration alignmentDuration = Duration(milliseconds: 0);
 
+  ///If set to true displays a questionmark instead of a percentage
+  bool nullFill = false;
+
   //Retreives the fill percentage relative to the direction
   double get fill {
     return fillController.value;
@@ -85,7 +88,10 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
   ///Retreives the title based on the direction
   String get title {
-    if(iconDirection == IconPosition.BOTTOM){
+    if(iconDirection == IconPosition.BOTTOM && complete){
+      return 'Score';
+    }
+    else if(iconDirection == IconPosition.BOTTOM){
       return 'Trust';
     }
     else if(iconDirection == IconPosition.TOP){
@@ -177,15 +183,21 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
         await fillController.animateTo(newFill);
       }
       else {
-        await fillController.animateTo(newFill, duration: Duration.zero);
+        await fillController.animateTo(newFill, duration: Duration.zero, curve: Curves.easeInOutCubic);
       }
 
       lockAnimation = false;
     }
   }
 
-  Future<void> completeFillBar(double newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
+  Future<void> completeFillBar(double? newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
 
+    if(newFill == null){
+      nullFill = true;
+    }
+    else{
+      nullFill = false;
+    }
     if(newCardPosition != null && cardPosition != newCardPosition){
       setState(() {
         cardPosition = newCardPosition;
@@ -203,7 +215,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
         iconDirection = newDirection;
       }
 
-      fillController.animateTo(newFill, duration: duration).then((value) {
+      fillController.animateTo(newFill ?? 0.5, duration: duration, curve: Curves.easeInOutCubic).then((value) {
         lockAnimation = false;
       });
       setState(() {
@@ -215,6 +227,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   void clearBar([String text = '']){
     setState(() {
       lockAnimation = false;
+      nullFill = false;
       iconDirection = null;
       cardPosition = null;
       backgroundTitle = text;
@@ -285,8 +298,8 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                         Alignment.centerRight : 
                         Alignment.centerLeft,
                         child: Text(
-                          iconDirection == IconPosition.TOP ? '' :
-                          '${(fill.abs() * 100).toStringAsFixed(0)}%',
+                          iconDirection == IconPosition.TOP || (!complete && iconDirection == IconPosition.BOTTOM) ? '' :
+                          '${nullFill ? '??' : (fill.abs() * 100).toStringAsFixed(0)}%',
                           style: widget.style ?? textStyles.headline5?.copyWith(
                             fontSize: 16,
                             color: Colors.black,
@@ -303,8 +316,9 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                       top: 16.5,
                       bottom: 16.5,
                       child: AnimatedAlign(
-                        duration: iconDirection == IconPosition.TOP && complete ? Duration(milliseconds: 600) : Duration(milliseconds: 0),
-                        alignment: (complete && iconDirection == IconPosition.TOP) || (iconDirection == null && backgroundTitle.isNotEmpty) ? Alignment.center : alignment,
+                        curve: Curves.easeInOutCubic,
+                        duration: (iconDirection == IconPosition.TOP || iconDirection == IconPosition.BOTTOM) && complete ? Duration(milliseconds: iconDirection == IconPosition.BOTTOM ? 600 : 300) : Duration(milliseconds: 0),
+                        alignment: (!complete && iconDirection == IconPosition.BOTTOM) || (complete && iconDirection == IconPosition.TOP) || (iconDirection == null && backgroundTitle.isNotEmpty) ? Alignment.center : alignment,
                         child: Container(
                           child: Text(
                             title,
@@ -420,7 +434,7 @@ class PercentBarController extends ChangeNotifier {
 
   Future<void> fillBar(double value, IconPosition? direction, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? null : await _state!.fillBar(value, direction, cardPosition);
 
-  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
+  Future<void> completeFillBar(double? value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? null : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
   void setDirection(IconPosition iconPosition, CardPosition cardPosition) => _state == null ? null : _state!.setDirection(iconPosition, cardPosition);
 

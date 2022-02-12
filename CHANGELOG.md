@@ -1,3 +1,7 @@
+## [0.3.25] v0.3.25
+
+* Added centered swipe down for percent bar
+
 ## [0.3.24] v0.3.24
 
 * Added ability to remove items from multifeed
