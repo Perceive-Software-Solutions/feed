@@ -509,6 +509,7 @@ class _MultiFeedState extends State<MultiFeed> {
   void addItem(dynamic item, int index){
     List addNewItem = [item, ...itemsCubit[index].state];
     itemsCubit[index].emit(addNewItem);
+    sizes[index] = sizes[index] + 1;
 
     //track added items only oif the [getItemID] function is defined
     if(widget.getItemID != null){

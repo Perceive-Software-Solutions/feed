@@ -772,45 +772,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             
             return Stack(
               children: [
-                // state.length <= 1 ? 
-                // (widget.noPollsPlaceHolder != null && connectivity == false ? 
-                  // AnimatedSwitcher(
-                  //   duration: Duration(milliseconds: 300),
-                  //   reverseDuration: Duration(milliseconds: 300),
-                  //   child: state.length == 1 ? Padding(
-                  //     key: Key("Display-Background-No-Polls-Or-Connectivity"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.background?.call())),
-                  //   ) : Padding(
-                  //     key: Key("Display-No-Polls-Or-Connectivity"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.noConnectivityPlaceHolder!),
-                  //     ),
-                  //   )
-                  // ) : widget.noPollsPlaceHolder != null ? 
-                  // AnimatedSwitcher(
-                  //   duration: Duration(milliseconds: 300),
-                  //   reverseDuration: Duration(milliseconds: 300),
-                  //   child: state.length == 1 ? Padding(
-                  //     key: Key("Display-Background-No-Polls"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.background?.call())),
-                  //   ) : Padding(
-                  //     key: Key("Display-No-Polls"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.noPollsPlaceHolder!),
-                  //     ),
-                  //   )) : 
-                  // SizedBox.shrink()) : SizedBox.shrink(),
-
                 _buildCard(1),
 
                 _buildCard(0),

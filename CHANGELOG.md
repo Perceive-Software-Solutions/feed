@@ -1,3 +1,11 @@
+## [0.3.27] v0.3.28
+
+* Fixed Animation bug on percent bar
+
+## [0.3.27] v0.3.27
+
+* Fixed disappearing comments on pin
+
 ## [0.3.25] v0.3.25
 
 * Fixed animation curve
