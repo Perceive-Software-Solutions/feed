@@ -49,6 +49,9 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   //Set to true on complete fill
   bool complete = false;
 
+  //Set to true on determine if the animation is complete for the text
+  bool animationComplete = false;
+
   //The current title if there is no icon position
   String backgroundTitle = '';
 
@@ -142,7 +145,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
   Future<void> fillBar(double newFill, IconPosition? newDirection, CardPosition newCardPosition, [bool overrideLock = false]) async {
     if(lockAnimation) return;
 
-    complete = false;
+    animationComplete = false;
 
     backgroundTitle = '';
 
@@ -188,6 +191,14 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
 
       lockAnimation = false;
     }
+
+
+    if(complete && newFill == 0){
+      nullFill = false;
+      complete = false;
+      setState(() {});
+    }
+
   }
 
   Future<void> completeFillBar(double? newFill, Duration duration, [IconPosition? newDirection, CardPosition? newCardPosition]) async {
@@ -210,6 +221,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
       fillController.stop();
 
       complete = true;
+      animationComplete = true;
 
       if(newDirection != null && newDirection != iconDirection){
         iconDirection = newDirection;
@@ -298,7 +310,7 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                         Alignment.centerRight : 
                         Alignment.centerLeft,
                         child: Text(
-                          iconDirection == IconPosition.TOP || (!complete && iconDirection == IconPosition.BOTTOM) ? '' :
+                          iconDirection == IconPosition.TOP || (!animationComplete && iconDirection == IconPosition.BOTTOM) ? '' :
                           '${nullFill ? '??' : (fill.abs() * 100).toStringAsFixed(0)}%',
                           style: widget.style ?? textStyles.headline5?.copyWith(
                             fontSize: 16,
@@ -317,8 +329,8 @@ class _NeumorpicPercentBarState extends State<NeumorpicPercentBar> with TickerPr
                       bottom: 16.5,
                       child: AnimatedAlign(
                         curve: Curves.easeInOutCubic,
-                        duration: (iconDirection == IconPosition.TOP || iconDirection == IconPosition.BOTTOM) && complete ? Duration(milliseconds: iconDirection == IconPosition.BOTTOM ? 600 : 300) : Duration(milliseconds: 0),
-                        alignment: (!complete && iconDirection == IconPosition.BOTTOM) || (complete && iconDirection == IconPosition.TOP) || (iconDirection == null && backgroundTitle.isNotEmpty) ? Alignment.center : alignment,
+                        duration: (iconDirection == IconPosition.TOP || iconDirection == IconPosition.BOTTOM) && complete ? Duration(milliseconds: iconDirection == IconPosition.BOTTOM && animationComplete ? 600 : 300) : Duration(milliseconds: 0),
+                        alignment: (!animationComplete && iconDirection == IconPosition.BOTTOM) || (complete && iconDirection == IconPosition.TOP) || (iconDirection == null && backgroundTitle.isNotEmpty) ? Alignment.center : alignment,
                         child: Container(
                           child: Text(
                             title,
