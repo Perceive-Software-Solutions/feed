@@ -98,7 +98,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.3.25"
+    version: "0.3.26"
   flutter:
     dependency: "direct main"
     description: flutter
