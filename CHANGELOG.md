@@ -1,4 +1,8 @@
-## [0.3.27] v0.3.28
+## [0.3.29] v0.3.29
+
+* Remade Feed similar to MultiFeed
+
+## [0.3.28] v0.3.28
 
 * Fixed Animation bug on percent bar
 

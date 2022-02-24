@@ -79,7 +79,7 @@ typedef FeedLoader<T> = Future<Tuple2<List<T>, String?>> Function(int size, [Str
 typedef SwipeFeedBuilder<T> = Widget Function(T value, bool isLast, bool expanded, void Function() close);
 
 ///Builder for the feed items
-typedef FeedBuilder<T> = Widget Function(T item, bool isLast);
+typedef FeedBuilder = Widget Function(dynamic item, bool isLast);
 
 ///Builder for the multi feed items
 typedef MultiFeedBuilder = Widget Function(dynamic item, int index, bool isLast);
