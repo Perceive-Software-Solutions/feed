@@ -23,6 +23,9 @@ import 'package:tuple/tuple.dart';
 /// `Supports: Posts, Polls, All Objects if childBuilder is present`
 class Feed extends StatefulWidget {
 
+  ///Determines if the the feed should initially load, defaulted to true
+  final bool initiallyLoad;
+
   ///Ensures the feed is manualy loaded and does not have its own scroll controller
   final bool compact;
 
@@ -99,6 +102,7 @@ class Feed extends StatefulWidget {
       this.getItemID,
       this.wrapper,
       this.compact = false,
+      this.initiallyLoad = true,
       this.pinnedItems})
       : super(key: key);
 
@@ -177,7 +181,9 @@ class _FeedState extends State<Feed> {
     itemsCubit = ConcreteCubit<List>([]);
 
     //Loads the innitial set of items
-    _refresh(false);
+    
+    if(widget.initiallyLoad)
+      _refresh(false);
 
     if(widget.pinnedItems != null){
       pinItems();
@@ -199,7 +205,7 @@ class _FeedState extends State<Feed> {
     widget.controller?._bind(this);
 
     //Refresh feed on key change
-    if (widget.key.toString() != old.key.toString()) {
+    if (widget.key.toString() != old.key.toString() && !widget.compact) {
       _refresh(false);
     }
   }
@@ -295,6 +301,7 @@ class _FeedState extends State<Feed> {
 
     //Set the loading to true
     loading = true;
+    setState(() {});
 
     //Retreives items
     Tuple2<List, String?> loaded = await widget.loader(loadSize);
@@ -348,6 +355,7 @@ class _FeedState extends State<Feed> {
 
         //Set the loading to false
         loading = false;
+        setState(() {});
 
         //Notifies all the controller lisneteners
         widget.controller?._update();
@@ -364,6 +372,7 @@ class _FeedState extends State<Feed> {
 
     //Set the loading to true
     loading = true;
+    setState(() {});
     int newSize = LENGTH_INCREASE_FACTOR;
     Tuple2<List, String?> loaded;
 

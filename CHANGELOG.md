@@ -1,3 +1,7 @@
+## [0.3.30] v0.3.30
+
+* Added features to grid and regular feed
+
 ## [0.3.29] v0.3.29
 
 * Remade Feed similar to MultiFeed
