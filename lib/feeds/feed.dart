@@ -323,7 +323,7 @@ class _FeedState extends State<Feed> {
       tokens = loaded.item2;
 
 
-      if(loadedItems.length < loadSize){
+      if(loaded.item2 == null){
         loadMore = false;
       }
 
@@ -389,6 +389,9 @@ class _FeedState extends State<Feed> {
 
         //Set the loading to false
         loading = false;
+        if(tokens == null && newItems.length == loaded.item1.length){
+          loadMore = false;
+        }
         setState(() {});
 
         //Notifies all the controller lisneteners
@@ -413,8 +416,7 @@ class _FeedState extends State<Feed> {
 
         tokens = loaded.item2;
 
-
-        if(loadedItems.length < newSize){
+        if(loaded.item2 == null && newItems.length == loaded.item1.length){
           loadMore = false;
         }
 

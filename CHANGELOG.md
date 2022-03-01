@@ -1,3 +1,7 @@
+## [0.3.31] v0.3.31
+
+* Fixed load more bugs in feed
+
 ## [0.3.30] v0.3.30
 
 * Added features to grid and regular feed
@@ -17,7 +21,7 @@
 ## [0.3.25] v0.3.25
 
 * Fixed animation curve
-  
+
 ## [0.3.25] v0.3.25
 
 * Added centered swipe down for percent bar

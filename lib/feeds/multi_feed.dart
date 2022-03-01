@@ -388,7 +388,7 @@ class _MultiFeedState extends State<MultiFeed> {
       tokens[feedIndex] = loaded.item2;
 
 
-      if(loadedItems.length < loadSize){
+      if(loaded.item2 == null){
         loadMore[feedIndex] = false;
       }
 
@@ -452,6 +452,10 @@ class _MultiFeedState extends State<MultiFeed> {
 
         //Set the loading to false
         loading[feedIndex] = false;
+        
+        if(tokens[feedIndex] == null && newItems.length == loaded.item1.length){
+          loadMore[feedIndex] = false;
+        }
         setState(() {});
 
         //Notifies all the controller lisneteners
@@ -476,8 +480,7 @@ class _MultiFeedState extends State<MultiFeed> {
 
         tokens[feedIndex] = loaded.item2;
 
-
-        if(loadedItems.length < newSize){
+        if(loaded.item2 == null && newItems.length == loaded.item1.length){
           loadMore[feedIndex] = false;
         }
 
