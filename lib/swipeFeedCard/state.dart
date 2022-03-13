@@ -1,11 +1,26 @@
+import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
 
-enum FeedCardState{
-  SwipeCardHideState,
-  SwipeCardShowState,
-  SwipeCardExpandState,
+// enum FeedCardState{
+//   SwipeCardHideState,
+//   SwipeCardShowState,
+//   SwipeCardExpandState,
+// }
+
+class FeedCardState {}
+
+class SwipeCardHideState extends FeedCardState{
+  final Widget? overlay;
+  SwipeCardHideState([this.overlay]);
 }
 
+class SwipeCardShowState extends FeedCardState{
+  SwipeCardShowState();
+}
+
+class SwipeCardExpandState extends FeedCardState{
+  SwipeCardExpandState();
+}
 class SwipeFeedCardState extends FortState{
 
   final FeedCardState state;
@@ -15,8 +30,15 @@ class SwipeFeedCardState extends FortState{
   });
 
   factory SwipeFeedCardState.initial() => SwipeFeedCardState(
-    state: FeedCardState.SwipeCardHideState
+    state: SwipeCardHideState()
   );
+
+  static Tower<SwipeFeedCardState> tower(){
+    return Tower<SwipeFeedCardState>(
+      _swipeFeedCardStateReducer,
+      initialState: SwipeFeedCardState.initial()
+    );
+  }
 
   @override
   FortState copyWith(FortState other) {
@@ -36,7 +58,7 @@ class SetSwipeFeedCardState extends SwipeFeedCardEvent{
   SetSwipeFeedCardState(this.state);
 }
 
-SwipeFeedCardState swipeFeedCardStateReducer(SwipeFeedCardState state, dynamic event){
+SwipeFeedCardState _swipeFeedCardStateReducer(SwipeFeedCardState state, dynamic event){
   if(event is SwipeFeedCardEvent){
     return SwipeFeedCardState(
       state: setSwipeFeedCardStateReducer(state, event)
