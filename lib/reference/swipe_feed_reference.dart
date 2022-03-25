@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:connectivity/connectivity.dart';
 import 'package:feed/animated/neumorpic_percent_bar.dart';
 import 'package:feed/reference/swipe_feed_card_reference.dart';
+import 'package:feed/swipeFeed/swipe_feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
@@ -220,17 +221,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         _refresh();
       }
       else{
-
         cubit.emit(cubitItems);
-
         collectiveState = state;
-
         setState(() {
           pageToken = state.pageToken;
           hasMore = state.hasMore;
         });
       }
-
     });
   }
 
@@ -826,59 +823,59 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 
 }
 
-///Controller for the feed
-class SwipeFeedController<T> extends ChangeNotifier {
-  late _SwipeFeedState<T>? _state;
+// ///Controller for the feed
+// class SwipeFeedController<T> extends ChangeNotifier {
+//   late _SwipeFeedState<T>? _state;
 
-  ///Binds the feed state
-  void _bind(_SwipeFeedState<T> bind) => _state = bind;
+//   ///Binds the feed state
+//   void _bind(_SwipeFeedState<T> bind) => _state = bind;
 
-  //Called to notify all listners
-  void _update() => notifyListeners();
+//   //Called to notify all listners
+//   void _update() => notifyListeners();
 
-  ///Retreives the list of items from the feed
-  List<T> get list => _state!.cubit.state.where((e) => e.item1 != null).map((e) => e.item1!).toList();
+//   ///Retreives the list of items from the feed
+//   List<T> get list => _state!.cubit.state.where((e) => e.item1 != null).map((e) => e.item1!).toList();
 
-  ///The state of the feed since the last refresh
-  InitialFeedState<T> get collectiveState => _state!.collectiveState;
+//   ///The state of the feed since the last refresh
+//   InitialFeedState<T> get collectiveState => _state!.collectiveState;
 
-  ///Reloads the feed state based on the original size parameter
-  void loadMore() => _state!._loadMore();
+//   ///Reloads the feed state based on the original size parameter
+//   void loadMore() => _state!._loadMore();
 
-  ///Refreshes the feed replacing the page token
-  void refresh() => _state!._refresh();
+//   ///Refreshes the feed replacing the page token
+//   void refresh() => _state!._refresh();
 
-  ///Reloads the feed state based on the original size parameter
-  Future<void> reset() => _state!._reset();
+//   ///Reloads the feed state based on the original size parameter
+//   Future<void> reset() => _state!._reset();
 
-  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
+//   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
 
-  Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
+//   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
   
-  void clearBar([String title = '']) => _state == null ? null : _state!.clearBar(title);
+//   void clearBar([String title = '']) => _state == null ? null : _state!.clearBar(title);
 
-  void addItem(T item) => _state != null ? _state!.addItem(item) : null;
+//   void addItem(T item) => _state != null ? _state!.addItem(item) : null;
 
-  Future<void> animateItem(T item) async => _state != null ? await _state!.animateItem(item) : null;
+//   Future<void> animateItem(T item) async => _state != null ? await _state!.animateItem(item) : null;
 
-  void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
+//   void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
 
-  void removeItem(String id) => _state != null ? _state!.removeItem(id) : null;
+//   void removeItem(String id) => _state != null ? _state!.removeItem(id) : null;
 
-  void animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>)? then]) => _state != null ? _state!.animatedRemove(then) : null;
+//   void animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>)? then]) => _state != null ? _state!.animatedRemove(then) : null;
 
-  void swipeRight() => _state != null ? _state!.swipeRight() : null;
+//   void swipeRight() => _state != null ? _state!.swipeRight() : null;
 
-  void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
+//   void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
 
-  void setLock(bool lock) => _state != null ? _state!.setLock(lock) : null;
+//   void setLock(bool lock) => _state != null ? _state!.setLock(lock) : null;
 
-  bool setCardState(SwipeFeedCardStateReference cardState) => _state != null ? _state!.setCardState(cardState) : false;
+//   bool setCardState(SwipeFeedCardStateReference cardState) => _state != null ? _state!.setCardState(cardState) : false;
 
-  //Disposes of the controller
-  @override
-  void dispose() {
-    _state = null;
-    super.dispose();
-  }
-}
+//   //Disposes of the controller
+//   @override
+//   void dispose() {
+//     _state = null;
+//     super.dispose();
+//   }
+// }

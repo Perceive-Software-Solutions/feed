@@ -530,20 +530,20 @@ class _SwipeFeedCardReferenceState extends State<SwipeFeedCardReference> {
 }
 
 ///Controller for the feed
-class SwipeFeedCardController extends ChangeNotifier {
-  late _SwipeFeedCardReferenceState? _state;
+// class SwipeFeedCardController extends ChangeNotifier {
+//   late _SwipeFeedCardReferenceState? _state;
 
-  ///Binds the feed state
-  void _bind(_SwipeFeedCardReferenceState bind) => _state = bind;
+//   ///Binds the feed state
+//   void _bind(_SwipeFeedCardReferenceState bind) => _state = bind;
 
-  void swipeRight() => _state != null ? _state!.swipeRight() : null;
+//   void swipeRight() => _state != null ? _state!.swipeRight() : null;
 
-  void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
+//   void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
 
-  //Disposes of the controller
-  @override
-  void dispose() {
-    _state = null;
-    super.dispose();
-  }
-}
+//   //Disposes of the controller
+//   @override
+//   void dispose() {
+//     _state = null;
+//     super.dispose();
+//   }
+// }

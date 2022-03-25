@@ -89,7 +89,7 @@ class SwipeCard extends StatefulWidget {
   final Widget? child;
   
   ///The function that runs when the pan is updated
-  final Function(double dx, double dy, [double maxX, double maxYTop, double maxYBot])? onPanUpdate;
+  final Function(double dx, double dy)? onPanUpdate;
 
   ///whether or not the card should fade out opacity
   final bool opacityChange;
@@ -474,7 +474,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag, horizontalSwipeThresh, topSwipeThresh, bottomSwipeThresh);
+            widget.onPanUpdate!(xDrag, yDrag);
         });
       })
       ..addStatusListener((status) {
@@ -496,7 +496,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag, horizontalSwipeThresh, topSwipeThresh, bottomSwipeThresh);
+            widget.onPanUpdate!(xDrag, yDrag);
         });
       })
       ..addStatusListener((status) {
@@ -518,7 +518,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag, horizontalSwipeThresh, topSwipeThresh, bottomSwipeThresh);
+            widget.onPanUpdate!(xDrag, yDrag);
         });
       })
       ..addStatusListener((status) { 
@@ -540,7 +540,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag, horizontalSwipeThresh, topSwipeThresh, bottomSwipeThresh);
+            widget.onPanUpdate!(xDrag, yDrag);
         });
       })
       ..addStatusListener((status) { 
@@ -598,7 +598,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //Calls any  binded call backs
     if(widget.onPanUpdate != null)
-      widget.onPanUpdate!(xDrag, yDrag, horizontalSwipeThresh, topSwipeThresh, bottomSwipeThresh);
+      widget.onPanUpdate!(xDrag, yDrag);
   }
 
   ///Called when the user finger is lifted after a pan

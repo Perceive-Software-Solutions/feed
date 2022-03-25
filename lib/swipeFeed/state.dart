@@ -1,6 +1,8 @@
 import 'package:connectivity/connectivity.dart';
+import 'package:feed/feed.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/state/feed_state.dart';
 import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
 import 'package:tuple/tuple.dart';
@@ -230,21 +232,66 @@ void refresh(Store<SwipeFeedState> store) async {
   }
 }
 
-/// Removes a card from the list
-void removeItem(Store<SwipeFeedState> store){
-  if(store.state.items.length >= 2){
-    if(store.state.items[1].item1 != null){
-      store.state.items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+ThunkAction<SwipeFeedState> populateInitialState(InitialFeedState state){
+  return (Store<SwipeFeedState> store){
+
+    /// Generate new items
+    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items = 
+      List<Tuple2<dynamic, Store<SwipeFeedCardState>>>.generate(
+      state.items.length, (i) => Tuple2(state.items[i], SwipeFeedCardState.tower()));
+
+    if(items.isEmpty){
+      store.dispatch(refresh);
     }
     else{
-      store.state.items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
+      store.dispatch(_SetItemsEvent(items));
+      store.dispatch(_SetPageTokenEvent(state.pageToken));
+      store.dispatch(_SetHasMoreEvent(state.hasMore));
     }
-  }
-  if(store.state.items.isNotEmpty && store.state.items[0].item1 != null){
-    store.dispatch(_SetItemsEvent([...store.state.items]..removeAt(0)));
-    if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
-      store.dispatch(loadMore);
+  };
+}
+
+/// Removes a card from the list
+ThunkAction<SwipeFeedState> removeItem([AdjustList? then]){
+  return (Store<SwipeFeedState> store) async {
+    var items = [...store.state.items];
+
+    if(!items.isEmpty || items[0].item1 != null){
+      items = [
+        items[0],
+        ...((then?.call(items.sublist(1))) ?? items.sublist(1))
+      ];
+
+      assert(items.isNotEmpty);
+
+      if(items.length > 1){
+        items[0] = Tuple2(items[1].item1, items[0].item2);
+        items.removeAt(1);
+      }
+
+      store.dispatch(_SetItemsEvent(items));
     }
+
+    await Future.delayed(Duration(milliseconds: 400)).then((value){
+      if(store.state.items[0].item1 == null){
+        store.state.items[0].item2.dispatch(
+          SetSwipeFeedCardState(
+            SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)
+          )
+        );
+      }
+      else{
+        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      }
+    });
+  };
+}
+
+void removeFirstItem(Store<SwipeFeedState> store){
+  List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items = store.state.items;
+  store.dispatch(_SetItemsEvent([...items]..removeAt(0)));
+  if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
+    store.dispatch(loadMore);
   }
 }
 
