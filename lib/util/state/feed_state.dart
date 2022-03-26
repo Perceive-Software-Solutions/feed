@@ -2,7 +2,7 @@
 ///A class that contains the state of a single feed
 class InitialFeedState<T> {
 
-  final List<T> items;
+  final List<dynamic> items;
   final String? pageToken;
   final bool hasMore;
 

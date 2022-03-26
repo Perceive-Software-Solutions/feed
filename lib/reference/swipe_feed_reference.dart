@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:connectivity/connectivity.dart';
 import 'package:feed/animated/neumorpic_percent_bar.dart';
-import 'package:feed/reference/swipe_feed_card_reference.dart';
+import 'package:feed/reference/swipe_feed_card_reference.txt';
 import 'package:feed/swipeFeed/swipe_feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
@@ -18,9 +18,9 @@ import 'package:tuple/tuple.dart';
 
 ///Primary poll page for the application. 
 ///Holds a feed of popular polls and in swipe cards
-class SwipeFeed<T> extends StatefulWidget {
+class SwipeFeedReference<T> extends StatefulWidget {
 
-  const SwipeFeed({ 
+  const SwipeFeedReference({ 
     Key? key, 
     this.childBuilder,
     required this.loader,
@@ -54,7 +54,7 @@ class SwipeFeed<T> extends StatefulWidget {
   }): super(key: key);
 
   @override
-  _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
+  _SwipeFeedReferenceState<T> createState() => _SwipeFeedReferenceState<T>();
 
   final AlignmentGeometry? topAlignment;
 
@@ -128,7 +128,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final TextStyle? style;
 }
 
-class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin{
+class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin{
 
   static const int LENGTH_INCREASE_FACTOR = 10;
 
@@ -338,7 +338,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
     connectivity = connectivityResult != ConnectivityResult.none;
   }
 
-  Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await fillController.completeFillBar(value, duration, direction, cardPosition);
+  Future<void> completeFillBar(double? value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => await fillController.completeFillBar(value, duration, direction, cardPosition);
   Future<void> fillBar(double value, IconPosition? direction, CardPosition cardPosition, [bool overrideLock = false]) async => await fillController.fillBar(min(0.75, value * 0.94), direction, cardPosition, overrideLock);
   void clearBar([String text = '']) => fillController.clearBar(text);
 
@@ -547,11 +547,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
         List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>.generate(
           newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState())));
 
-        // if(oldItems.isEmpty && cubitItems.isNotEmpty){
-        //   Future.delayed(Duration(milliseconds: 300)).then((value){
-        //     cubitItems[0].item2.emit(ShowSwipeFeedCardState());
-        //   });
-        // }
+        if(oldItems.isEmpty && cubitItems.isNotEmpty){
+          Future.delayed(Duration(milliseconds: 300)).then((value){
+            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
+          });
+        }
 
         if(cubitItems.isEmpty && wasEmpty && showCubit != null){
           Future.delayed(Duration(milliseconds: 500)).then((value){
@@ -660,6 +660,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
           builder: (context, keyboard){
             return AnimatedPadding(
               duration: duration,
+              curve: Curves.easeInOutCubic,
               padding: show is ExpandSwipeFeedCardState ? EdgeInsets.zero : (keyboard ? padding.copyWith(bottom: 0): padding),
               child: GestureDetector(
                 onTap: itemCubit.item1 != null && widget.canExpand != null && 
@@ -768,45 +769,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
             
             return Stack(
               children: [
-                // state.length <= 1 ? 
-                // (widget.noPollsPlaceHolder != null && connectivity == false ? 
-                  // AnimatedSwitcher(
-                  //   duration: Duration(milliseconds: 300),
-                  //   reverseDuration: Duration(milliseconds: 300),
-                  //   child: state.length == 1 ? Padding(
-                  //     key: Key("Display-Background-No-Polls-Or-Connectivity"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.background?.call())),
-                  //   ) : Padding(
-                  //     key: Key("Display-No-Polls-Or-Connectivity"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.noConnectivityPlaceHolder!),
-                  //     ),
-                  //   )
-                  // ) : widget.noPollsPlaceHolder != null ? 
-                  // AnimatedSwitcher(
-                  //   duration: Duration(milliseconds: 300),
-                  //   reverseDuration: Duration(milliseconds: 300),
-                  //   child: state.length == 1 ? Padding(
-                  //     key: Key("Display-Background-No-Polls"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.background?.call())),
-                  //   ) : Padding(
-                  //     key: Key("Display-No-Polls"),
-                  //     padding: EdgeInsets.only(top: 74),
-                  //     child: Padding(
-                  //       padding: padding,
-                  //       child: Center(child: widget.noPollsPlaceHolder!),
-                  //     ),
-                  //   )) : 
-                  // SizedBox.shrink()) : SizedBox.shrink(),
-
                 _buildCard(1),
 
                 _buildCard(0),
@@ -848,9 +810,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClie
 //   ///Reloads the feed state based on the original size parameter
 //   Future<void> reset() => _state!._reset();
 
-//   Future<void> completeFillBar(double value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
-
-//   Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
+  // Future<void> completeFillBar(double? value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
   
 //   void clearBar([String title = '']) => _state == null ? null : _state!.clearBar(title);
 

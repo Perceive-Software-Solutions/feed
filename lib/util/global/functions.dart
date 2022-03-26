@@ -83,7 +83,7 @@ typedef AdjustList<T> = List<Tuple2<T?, Store<SwipeFeedCardState>>> Function(Lis
 typedef SwipeFeedBuilder<T> = Widget Function(T value, bool expanded, void Function() close);
 
 ///Builder for the feed items
-typedef FeedBuilder<T> = Widget Function(T item, bool isLast);
+typedef FeedBuilder = Widget Function(dynamic item, bool isLast);
 
 ///Builder for the multi feed items
 typedef MultiFeedBuilder = Widget Function(dynamic item, int index, bool isLast);

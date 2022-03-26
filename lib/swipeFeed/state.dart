@@ -69,9 +69,13 @@ class SwipeFeedState<T> extends FortState<T>{
 
 class SwipeFeedEvent{}
 
+class ResetEvent extends SwipeFeedEvent{
+  ResetEvent();
+}
+
 /// Private
-class _SetItemsEvent extends SwipeFeedEvent{
-  List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items;
+class _SetItemsEvent<T> extends SwipeFeedEvent{
+  List<Tuple2<T?, Store<SwipeFeedCardState>>> items;
   _SetItemsEvent(this.items);
 }
 
@@ -80,8 +84,8 @@ class _SetPageTokenEvent extends SwipeFeedEvent{
   _SetPageTokenEvent(this.pageToken);
 }
 
-class _SetPreviousPollsEvent extends SwipeFeedEvent{
-  List<dynamic>? items;
+class _SetPreviousPollsEvent<T> extends SwipeFeedEvent{
+  List<T>? items;
   _SetPreviousPollsEvent(this.items);
 }
 
@@ -112,8 +116,20 @@ class SetConnectivityEvent extends SwipeFeedEvent{
  
 */
 
-SwipeFeedState swipeFeedStateReducer(SwipeFeedState state, dynamic event){
+SwipeFeedState<T> swipeFeedStateReducer<T>(SwipeFeedState<T> state, dynamic event){
   if(event is SwipeFeedEvent){
+    if(event is ResetEvent){
+      return SwipeFeedState(
+        items: [Tuple2(null, SwipeFeedCardState.tower())],
+        previousPolls: [],
+        pageToken: null,
+        noMoreItems: state.noMoreItems,
+        connectivityError: state.connectivityError,
+        loader: state.loader,
+        hasMore: true,
+        loading: false
+      );
+    }
     return SwipeFeedState(
       items: setItemsReducer(state, event),
       pageToken: setPageTokenReducer(state, event),
@@ -149,8 +165,8 @@ bool setLoadingReducer(SwipeFeedState state, dynamic event){
   return state.loading;
 }
 
-List<Tuple2<dynamic, Store<SwipeFeedCardState>>> setItemsReducer(SwipeFeedState state, dynamic event){
-  if(event is _SetItemsEvent){
+List<Tuple2<T?, Store<SwipeFeedCardState>>> setItemsReducer<T>(SwipeFeedState<T> state, dynamic event){
+  if(event is _SetItemsEvent<T>){
     return event.items;
   }
   return state.items;
@@ -163,8 +179,8 @@ String? setPageTokenReducer(SwipeFeedState state, dynamic event){
   return state.pageToken;
 }
 
-List<dynamic>? setPreviousPollsReducer(SwipeFeedState state, dynamic event){
-  if(event is _SetPreviousPollsEvent){
+List<T>? setPreviousPollsReducer<T>(SwipeFeedState<T> state, dynamic event){
+  if(event is _SetPreviousPollsEvent<T>){
     return event.items;
   }
   return state.previousPolls;
@@ -183,61 +199,75 @@ List<dynamic>? setPreviousPollsReducer(SwipeFeedState state, dynamic event){
 */
 
 /// Refreshes the feed, ensure null value at the end of the list
-void refresh(Store<SwipeFeedState> store) async {
-  bool loading = store.state.loading;
-  if(!loading){
+ThunkAction<SwipeFeedState<T>> refresh<T>([Function? onComplete]) {
+  return (Store<SwipeFeedState<T>> store) async {
+    bool loading = store.state.loading;
+    if(!loading){
 
-    store.dispatch(_SetLoadingEvent(true));
+      store.dispatch(_SetLoadingEvent(true));
 
-    // Ensure one element is present inside of the list
-    final showItem = SwipeFeedCardState.tower();
-    final placeholder = Tuple2(null, showItem);
-    store.dispatch(_SetItemsEvent([placeholder]));
+      // Ensure one element is present inside of the list
+      final showItem = SwipeFeedCardState.tower();
+      final placeholder = Tuple2(null, showItem);
+      store.dispatch(_SetItemsEvent([placeholder]));
 
-    // Show loading state
-    showItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      // Show loading state
+      showItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
 
-    // Load more items
-    Tuple2<List<dynamic>, String?> loaded = await store.state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, null);
+      // Load more items
+      Tuple2<List<T>, String?> loaded = await (store as Store<SwipeFeedState<T>>).state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, null);
 
-    // New Items Loaded
-    List<dynamic> newItems = loaded.item1;
+      // New Items Loaded
+      List<T> newItems = loaded.item1;
 
-    // Old items will be empty but just a procaution
-    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> oldItems = store.state.items;
+      // Old items will be empty but just a procaution
+      List<Tuple2<T?, Store<SwipeFeedCardState>>> oldItems = store.state.items;
 
-    String? pageToken = loaded.item2;
+      String? pageToken = loaded.item2;
 
-    //If there is no next page, then has more is false
-    if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
-      store.dispatch(_SetHasMoreEvent(false));
-    }
+      //If there is no next page, then has more is false
+      if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
+        store.dispatch(_SetHasMoreEvent(false));
+      }
 
-    /// Generate new items
-    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items = 
-      List<Tuple2<dynamic, Store<SwipeFeedCardState>>>.generate(
-      newItems.length, (i) => Tuple2(newItems[i], SwipeFeedCardState.tower()));
+      /// Generate new items
+      List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
+        List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
+        newItems.length, (i) => Tuple2(newItems[i], SwipeFeedCardState.tower()));
 
-    if(oldItems[0].item1 == null){
-      //No replacement occured, animate loading card into no polls card
-      if(store.state.hasMore == false){
-        showItem.dispatch(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems));
+      if(oldItems[0].item1 == null){
+        //No replacement occured, animate loading card into no polls card
+        if(store.state.hasMore == false){
+          showItem.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
+        }
+      }
+
+      // Shift add new items into state
+      final newState = shiftAdd(oldItems, items);
+
+      // Show first card
+      if(newState.isNotEmpty && newState[0].item1 != null){
+        newState[0] = Tuple2(newState[0].item1, SwipeFeedCardState.tower(SwipeCardShowState()));
+      }
+
+      print("~~~~~~~~~ NEW ITEMS Refresh ~~~~~~~~~~");
+      print(newState);
+
+      store.dispatch(_SetItemsEvent(newState));
+
+      if(onComplete != null){
+        onComplete();
       }
     }
-
-    // Shift add new items into state
-    final newState = shiftAdd(oldItems, items);
-
-    store.dispatch(_SetItemsEvent(newState));
-  }
+  };
 }
 
-ThunkAction<SwipeFeedState> populateInitialState(InitialFeedState state){
-  return (Store<SwipeFeedState> store){
+ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state){
+  return (Store<SwipeFeedState<T>> store){
 
     /// Generate new items
-    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items = 
-      List<Tuple2<dynamic, Store<SwipeFeedCardState>>>.generate(
+    List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
+      List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
       state.items.length, (i) => Tuple2(state.items[i], SwipeFeedCardState.tower()));
 
     if(items.isEmpty){
@@ -251,9 +281,30 @@ ThunkAction<SwipeFeedState> populateInitialState(InitialFeedState state){
   };
 }
 
-/// Removes a card from the list
-ThunkAction<SwipeFeedState> removeItem([AdjustList? then]){
-  return (Store<SwipeFeedState> store) async {
+/// Removes a card only after being swiped
+ThunkAction<SwipeFeedState<T>> removeCard<T>(){
+  return (Store<SwipeFeedState<T>> store) async {
+    List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
+    if(items.length >= 2) {
+      if(items[1].item1 == null){
+        items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
+      }
+      else{
+        items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      }
+    }
+
+    items.removeAt(0);
+    store.dispatch(_SetItemsEvent(items));
+    if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
+      store.dispatch(loadMore);
+    }
+  };
+}
+
+/// Removes a card from the list, do not use when the card is being swiped
+ThunkAction<SwipeFeedState<T>> removeItem<T>([AdjustList<T>? then]){
+  return (Store<SwipeFeedState<T>> store) async {
     var items = [...store.state.items];
 
     if(!items.isEmpty || items[0].item1 != null){
@@ -269,7 +320,22 @@ ThunkAction<SwipeFeedState> removeItem([AdjustList? then]){
         items.removeAt(1);
       }
 
+      print("~~~~~~~~~~~~ Exsisting Items ~~~~~~~~~~~~");
+      print(items);
+
+      // Set new items
       store.dispatch(_SetItemsEvent(items));
+
+      //Maximizes the card
+      await Future.delayed(Duration(milliseconds: 400)).then((value){
+        if(store.state.items[0].item1 == null){
+          store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
+        }
+        else{
+          print("DISPATCHING NEW SHOW STATE");
+          items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+        }
+      });
     }
 
     await Future.delayed(Duration(milliseconds: 400)).then((value){
@@ -287,17 +353,22 @@ ThunkAction<SwipeFeedState> removeItem([AdjustList? then]){
   };
 }
 
-void removeFirstItem(Store<SwipeFeedState> store){
-  List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items = store.state.items;
-  store.dispatch(_SetItemsEvent([...items]..removeAt(0)));
-  if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
-    store.dispatch(loadMore);
-  }
+ThunkAction<SwipeFeedState<T>> removeItemById<T>(String id, String Function(T) objectKey){
+  return (Store<SwipeFeedState<T>> store) async {
+    List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
+    if(items.isNotEmpty && id == objectKey(items[0].item1!)){
+      items.remove(0);
+      if(items.isNotEmpty){
+        items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      }
+      store.dispatch(_SetItemsEvent(items));
+    }
+  };
 }
 
 // Ensures there is always a placeholder card at the end of the list
 // Loads More items
-void loadMore(Store<SwipeFeedState> store) async {
+void loadMore<T>(Store<SwipeFeedState<T>> store) async {
   // Ensure not loading
   if(!store.state.loading || store.state.hasMore){
 
@@ -310,21 +381,21 @@ void loadMore(Store<SwipeFeedState> store) async {
     var placeholder;
     if(wasEmpty || store.state.items.last.item1 != null){
       showItem = SwipeFeedCardState.tower();
-      placeholder = Tuple2<dynamic, Store<SwipeFeedCardState>>(null, showItem);
-      store.dispatch(_SetItemsEvent([...store.state.items, placeholder]));
+      placeholder = Tuple2<T?, Store<SwipeFeedCardState>>(null, showItem);
+      store.dispatch(_SetItemsEvent<T>([...store.state.items, placeholder]));
     }
 
     // Load More Items
-    Tuple2<List<dynamic>, String?> loaded = await store.state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, store.state.pageToken);
+    Tuple2<List<T>, String?> loaded = await store.state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, store.state.pageToken);
 
-    List<dynamic> newItems = loaded.item1;
-    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> oldItems = store.state.items;
+    List<T> newItems = loaded.item1;
+    List<Tuple2<T?, Store<SwipeFeedCardState>>> oldItems = store.state.items;
 
     store.dispatch(_SetPageTokenEvent(loaded.item2));
 
     /// Generate new items
-    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items = 
-      List<Tuple2<dynamic, Store<SwipeFeedCardState>>>.generate(
+    List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
+      List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
       newItems.length, (i) => Tuple2(newItems[i], SwipeFeedCardState.tower()));
 
     if(store.state.items.isEmpty && wasEmpty && showItem != null){
@@ -338,22 +409,35 @@ void loadMore(Store<SwipeFeedState> store) async {
 }
 
 /// Adds a new item to the top of the list
-ThunkAction<SwipeFeedState> addItem(dynamic item) {
-  return (Store<SwipeFeedState> store) async {
+ThunkAction<SwipeFeedState<T>> addItem<T>(T item, [Function? onComplete]) {
+  return (Store<SwipeFeedState<T>> store) async {
     if(store.state.items.isNotEmpty){
       store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
+      /// Duration After Hiding
+      /// This is the functional duration not the actual animation
+      /// Insert HERE
     }
-    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> addNewItem = 
+    List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = 
     [Tuple2(item, SwipeFeedCardState.tower()), ...store.state.items];
     store.dispatch(_SetItemsEvent(addNewItem));
+    /// Duration For showing the Card
+    /// This is the functional duration not the actual animation
+    /// Insert Here
+    await Future.delayed(Duration(seconds: 1)).then((value){
+      store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+    });
+    
+    if(onComplete != null){
+      onComplete();
+    }
   };
 }
 
 /// updates an item in the feed
-ThunkAction<SwipeFeedState> updateItem(dynamic item, String id){
-  return (Store<SwipeFeedState> store) async {
-    List<Tuple2<dynamic, Store<SwipeFeedCardState>>> items = store.state.items;
-    if(items.isNotEmpty && items[0].item1 != null){
+ThunkAction<SwipeFeedState<T>> updateItem<T>(T item, String id, String Function(T) objectKey){
+  return (Store<SwipeFeedState<T>> store) async {
+    List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
+    if(items.isNotEmpty && items[0].item1 != null && id == objectKey(items[0].item1!)){
       items.remove(items[0]);
       store.dispatch(_SetItemsEvent(items));
       store.dispatch(addItem(item));
@@ -373,7 +457,7 @@ ThunkAction<SwipeFeedState> updateItem(dynamic item, String id){
 */
 
 // Adds new Items after old items but before the null value at the end of the list
-List<Tuple2<dynamic, Store<SwipeFeedCardState>>> shiftAdd(List<Tuple2<dynamic, Store<SwipeFeedCardState>>> oldItems, List<Tuple2<dynamic, Store<SwipeFeedCardState>>> newItems){
+List<Tuple2<T?, Store<SwipeFeedCardState>>> shiftAdd<T>(List<Tuple2<T?, Store<SwipeFeedCardState>>> oldItems, List<Tuple2<T, Store<SwipeFeedCardState>>> newItems){
   int index = oldItems.indexWhere((element) => element.item1 == null);
   if(index == -1){
     return [Tuple2(null, SwipeFeedCardState.tower())];

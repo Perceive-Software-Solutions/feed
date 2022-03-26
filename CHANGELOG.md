@@ -1,3 +1,47 @@
+## [0.3.31] v0.3.31
+
+* Fixed load more bugs in feed
+
+## [0.3.30] v0.3.30
+
+* Added features to grid and regular feed
+
+## [0.3.29] v0.3.29
+
+* Remade Feed similar to MultiFeed
+
+## [0.3.28] v0.3.28
+
+* Fixed Animation bug on percent bar
+
+## [0.3.27] v0.3.27
+
+* Fixed disappearing comments on pin
+
+## [0.3.25] v0.3.25
+
+* Fixed animation curve
+
+## [0.3.25] v0.3.25
+
+* Added centered swipe down for percent bar
+
+## [0.3.24] v0.3.24
+
+* Added ability to remove items from multifeed
+
+## [0.3.23] v0.3.23
+
+* Added ability to modify multi feed state from controller
+
+## [0.3.21] v0.3.21
+
+* Listen to the extent of the sliding sheet feed
+
+## [0.3.20] v0.3.20
+
+* Added pinned item inside multifeed
+
 ## [0.3.18] v0.3.18
 
 * Fixed Load more glitch inside of multifeed

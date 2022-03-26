@@ -29,14 +29,14 @@ class SwipeFeedCardState extends FortState{
     required this.state
   });
 
-  factory SwipeFeedCardState.initial() => SwipeFeedCardState(
-    state: SwipeCardHideState()
+  factory SwipeFeedCardState.initial([FeedCardState? cardState]) => SwipeFeedCardState(
+    state: cardState ?? SwipeCardHideState()
   );
 
-  static Tower<SwipeFeedCardState> tower(){
+  static Tower<SwipeFeedCardState> tower([FeedCardState? cardState]){
     return Tower<SwipeFeedCardState>(
       _swipeFeedCardStateReducer,
-      initialState: SwipeFeedCardState.initial()
+      initialState: SwipeFeedCardState.initial(cardState)
     );
   }
 

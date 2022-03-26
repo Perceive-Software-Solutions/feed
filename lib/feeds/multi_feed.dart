@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:feed/feed.dart';
 import 'package:feed/feeds/feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
@@ -67,6 +68,9 @@ class MultiFeed extends StatefulWidget {
   ///The optional function used to wrap the list view
   final IndexWidgetWrapper? wrapper;
 
+  /// Items that will be pinned to the top of the list on init
+  final List<Tuple2<dynamic, int>>? pinnedItems;
+
   final double extent;
 
   final double minExtent;
@@ -94,7 +98,8 @@ class MultiFeed extends StatefulWidget {
       this.disableScroll, 
       this.headerBuilder,
       this.getItemID,
-      this.wrapper})
+      this.wrapper,
+      this.pinnedItems})
       : assert(controller == null || controller.length == loaders.length),
         super(key: key);
 
@@ -190,6 +195,18 @@ class _MultiFeedState extends State<MultiFeed> {
 
     //Loads the innitial set of items
     _refresh(feedIndex, false);
+
+    if(widget.pinnedItems != null){
+      pinItems();
+    }
+
+  }
+
+  /// Initially pin items to the top of the list
+  void pinItems(){
+    for(Tuple2<dynamic, int> pinnedItem in widget.pinnedItems!){
+      addItem(pinnedItem.item1, pinnedItem.item2);
+    }
   }
 
   int sizeAtIndex(int index){
@@ -237,6 +254,51 @@ class _MultiFeedState extends State<MultiFeed> {
     }
   }
 
+  void removeItem(dynamic item, [dynamic Function(dynamic item)? retreivalFunction]){
+
+    for (var cubit in itemsCubit) {
+      List items = [...cubit.state];
+      items.removeWhere((element) => (retreivalFunction != null ? retreivalFunction(element) : element) == item);
+      cubit.emit(items);
+    }
+  }
+  
+  ///Clears the state on a feed index
+  void clearFeed(int index){
+    setState(() {
+      pending[index] = [];
+      sizes[index] = 0;
+      tokens[index] = null;
+      loading[index] = false;
+      loadMore[index] = true;
+      addedItems[index] = {};
+    });
+    itemsCubit[index].emit([]);
+  }
+  
+  ///Clears the state on a feed index
+  void setFeedState(int index, InitialFeedState state) async {
+    // itemsCubit[index].emit([]); //clear previous state
+
+    late final list;
+    pending[index] = [];
+    sizes[index] = 0;
+    tokens[index] = state.pageToken;
+    loading[index] = false;
+    loadMore[index] = state.hasMore;
+    addedItems[index] = {};
+
+    //Retreive list
+    list = _allocateToPending(state.items, index);
+
+    // print('ok');
+    
+
+    //Add items
+    await _incrementallyAddItems(list, index, true);
+    setState(() {});
+  }
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Builds the type of item card
@@ -273,12 +335,12 @@ class _MultiFeedState extends State<MultiFeed> {
   }
 
   //TODO: chnage
-  Future<void> _incrementallyAddItems(List newItems, int index) async {
+  Future<void> _incrementallyAddItems(List newItems, int index, [bool clear = false]) async {
 
     for (var i = 0; i < newItems.length; i++) {
       
       await Future.delayed(Duration(milliseconds: ITEM_ADD_DELAY)).then((_){
-        List addNewItem = [...itemsCubit[index].state, newItems[i]];
+        List addNewItem = [...(clear && i == 0 ? [] : itemsCubit[index].state), newItems[i]];
 
         itemsCubit[index].emit( addNewItem );
         
@@ -326,7 +388,7 @@ class _MultiFeedState extends State<MultiFeed> {
       tokens[feedIndex] = loaded.item2;
 
 
-      if(loadedItems.length < loadSize){
+      if(loaded.item2 == null){
         loadMore[feedIndex] = false;
       }
 
@@ -390,6 +452,11 @@ class _MultiFeedState extends State<MultiFeed> {
 
         //Set the loading to false
         loading[feedIndex] = false;
+        
+        if(tokens[feedIndex] == null && newItems.length == loaded.item1.length){
+          loadMore[feedIndex] = false;
+        }
+        setState(() {});
 
         //Notifies all the controller lisneteners
         widget.controller?._update();
@@ -413,8 +480,7 @@ class _MultiFeedState extends State<MultiFeed> {
 
         tokens[feedIndex] = loaded.item2;
 
-
-        if(loadedItems.length < newSize){
+        if(loaded.item2 == null && newItems.length == loaded.item1.length){
           loadMore[feedIndex] = false;
         }
 
@@ -444,19 +510,14 @@ class _MultiFeedState extends State<MultiFeed> {
 
   ///Keps track of the added items are removes them from future loads
   void addItem(dynamic item, int index){
-    // if(isNotRefreshed(index)){
-    //   //Refresh the list instead of adding
-    //   _refresh(index, false);
-    // }
-    // else{
-      List addNewItem = [item, ...itemsCubit[index].state];
-      itemsCubit[index].emit(addNewItem);
+    List addNewItem = [item, ...itemsCubit[index].state];
+    itemsCubit[index].emit(addNewItem);
+    sizes[index] = sizes[index] + 1;
 
-      //track added items only oif the [getItemID] function is defined
-      if(widget.getItemID != null){
-        addedItems[index][widget.getItemID!(item)] = true;
-      }
-    // }
+    //track added items only oif the [getItemID] function is defined
+    if(widget.getItemID != null){
+      addedItems[index][widget.getItemID!(item)] = true;
+    }
   }
 
   ///Builds the tabs used in the custom scroll view
@@ -623,6 +684,15 @@ class MultiFeedController extends ChangeNotifier {
 
   ///Reloads the feed state based on the original size parameter
   Future<void> reload(int index) => _state!._refresh(index);
+
+  ///Removes an item from all the feeds
+  void removeItem(dynamic item, {dynamic Function(dynamic item)? retreivalFunction}) => _state!.removeItem(item, retreivalFunction);
+
+  ///Clears the indexed feed
+  void clear(int index) => _state!.clearFeed(index);
+
+  ///Adds an item to the beginning of the stated multi feed
+  void setState(int index, InitialFeedState state) => _state!.setFeedState(index, state);
 
   ///Adds an item to the beginning of the stated multi feed
   void addItem(dynamic item, int index) => _state!.addItem(item, index);
