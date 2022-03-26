@@ -250,9 +250,6 @@ ThunkAction<SwipeFeedState<T>> refresh<T>([Function? onComplete]) {
         newState[0] = Tuple2(newState[0].item1, SwipeFeedCardState.tower(SwipeCardShowState()));
       }
 
-      print("~~~~~~~~~ NEW ITEMS Refresh ~~~~~~~~~~");
-      print(newState);
-
       store.dispatch(_SetItemsEvent(newState));
 
       if(onComplete != null){
@@ -293,12 +290,14 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
         items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
       }
     }
-
-    items.removeAt(0);
-    store.dispatch(_SetItemsEvent(items));
-    if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
-      store.dispatch(loadMore);
-    }
+    // Duration it takes for card to make it off the screen
+    await Future.delayed(Duration(milliseconds: 400)).then((value){
+      items.removeAt(0);
+      store.dispatch(_SetItemsEvent(items));
+      if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
+        store.dispatch(loadMore);
+      }
+    });
   };
 }
 
@@ -320,9 +319,6 @@ ThunkAction<SwipeFeedState<T>> removeItem<T>([AdjustList<T>? then]){
         items.removeAt(1);
       }
 
-      print("~~~~~~~~~~~~ Exsisting Items ~~~~~~~~~~~~");
-      print(items);
-
       // Set new items
       store.dispatch(_SetItemsEvent(items));
 
@@ -332,7 +328,6 @@ ThunkAction<SwipeFeedState<T>> removeItem<T>([AdjustList<T>? then]){
           store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
         }
         else{
-          print("DISPATCHING NEW SHOW STATE");
           items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
         }
       });

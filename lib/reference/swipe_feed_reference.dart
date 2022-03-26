@@ -671,6 +671,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
                 child: Opacity(
                   opacity: keyboard && show is HideSwipeFeedCardState ? 0.0 : 1.0,
                   child: SwipeFeedCard(
+                    
                     blur: show is HideSwipeFeedCardState && show.overlay == null,
                     startTopAlignment: widget.startTopAlignment,
                     startBottomAlignment: widget.startBottomAlignment,

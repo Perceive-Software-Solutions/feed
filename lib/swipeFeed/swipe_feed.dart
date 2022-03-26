@@ -190,11 +190,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
     Tuple2<T?, Store<SwipeFeedCardState>> item = tower.state.items[index];
 
-    print("~~~~~~~ NEW CARD ~~~~~~~~~");
-    print(tower.state.items);
-    print(index);
-
     return SwipeFeedCard<T>(
+      key:  Key('swipefeed - card - ${item.item1 == null ? UniqueKey().toString() : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
       objectKey: (widget as SwipeFeed<T>).objectKey,
       controller: swipeFeedCardControllers[index],
       item: item,
@@ -214,7 +211,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
         return true;
       },
       onContinue: () async {
-        print("ON CONTINUE CALLED");
         _onConinue();
       },
     );
@@ -228,9 +224,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       child: StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
         converter: (store) => store.state.items,
         builder: (context, items) {
-          // print("ITEMS BUILD");
-          // print(items[0].item1);
-          // print(items[1].item1);
           return Stack(
             children: [
               _buildCard(1),

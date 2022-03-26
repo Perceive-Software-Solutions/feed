@@ -114,8 +114,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   Widget _loadCard(BuildContext context, FeedCardState state, Widget? child){
     bool isExpanded = state == SwipeCardExpandState();
     bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
-    print("~~~~~~~~~~ LOADING CARD ~~~~~~~~~~");
-    print(widget.item.item1);
+
     if(!show && widget.background != null){
       return Container(
         key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
@@ -129,7 +128,6 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       );
     }
     if(widget.childBuilder != null && widget.item.item1 != null){
-      print("RENDERING CHILD");
       //Builds custom child if childBuilder is defined
       return Container(
         key: widget.item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + (widget as SwipeFeedCard<T>).objectKey(widget.item.item1)),
@@ -147,9 +145,6 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
     return StoreConnector<SwipeFeedCardState, FeedCardState>(
       converter: (store) => store.state.state,
       builder: (context, state) {
-        print("~~~~~~~~ State Updated ~~~~~~~~~");
-        print(widget.item.item1);
-        print(state);
         Widget? hiddenChild = state is SwipeCardHideState ? state.overlay : null;
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard) {
@@ -167,7 +162,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                     ignoring: state is SwipeCardHideState && state.overlay == null,
                     child: SwipeCard(
                       controller: swipeCardController,  
-                      swipable: true,
+                      swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
                       opacityChange: true,
                       onPanUpdate: (dx, dy){
                         if(widget.item.item1 != null && widget.item.item2.state.state is SwipeCardExpandState){
