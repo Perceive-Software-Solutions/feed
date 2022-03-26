@@ -150,9 +150,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Removes card when card swipes off the screen
   /// Assigns another swipe controller to the new card
-  void _onConinue(){
+  void _onConinue() async {
     swipeFeedCardControllers.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
+    // Duration after the card is swiped off the screen
+    // Before the next card unmasks itself
+    await Future.delayed(Duration(milliseconds: 200));
     tower.dispatch(removeCard<T>());
   }
 

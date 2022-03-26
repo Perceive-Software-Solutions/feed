@@ -259,6 +259,7 @@ ThunkAction<SwipeFeedState<T>> refresh<T>([Function? onComplete]) {
   };
 }
 
+/// Hydrates the initial state from a pre-exsisting state
 ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state){
   return (Store<SwipeFeedState<T>> store){
 
@@ -291,6 +292,7 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
       }
     }
     // Duration it takes for card to make it off the screen
+    // This is after the card has been swipped away
     await Future.delayed(Duration(milliseconds: 400)).then((value){
       items.removeAt(0);
       store.dispatch(_SetItemsEvent(items));
@@ -321,18 +323,11 @@ ThunkAction<SwipeFeedState<T>> removeItem<T>([AdjustList<T>? then]){
 
       // Set new items
       store.dispatch(_SetItemsEvent(items));
-
-      //Maximizes the card
-      await Future.delayed(Duration(milliseconds: 400)).then((value){
-        if(store.state.items[0].item1 == null){
-          store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
-        }
-        else{
-          items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-        }
-      });
     }
 
+    //Maximizes the card
+    //Duration before the next card is shown
+    //This works in correlation with "one animation to rule them all"
     await Future.delayed(Duration(milliseconds: 400)).then((value){
       if(store.state.items[0].item1 == null){
         store.state.items[0].item2.dispatch(
@@ -411,6 +406,7 @@ ThunkAction<SwipeFeedState<T>> addItem<T>(T item, [Function? onComplete]) {
       /// Duration After Hiding
       /// This is the functional duration not the actual animation
       /// Insert HERE
+      await Future.delayed(Duration(milliseconds: 400));
     }
     List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = 
     [Tuple2(item, SwipeFeedCardState.tower()), ...store.state.items];
@@ -418,7 +414,7 @@ ThunkAction<SwipeFeedState<T>> addItem<T>(T item, [Function? onComplete]) {
     /// Duration For showing the Card
     /// This is the functional duration not the actual animation
     /// Insert Here
-    await Future.delayed(Duration(seconds: 1)).then((value){
+    await Future.delayed(Duration(milliseconds: 400)).then((value){
       store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
     });
     

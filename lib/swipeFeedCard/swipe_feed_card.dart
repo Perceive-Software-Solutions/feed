@@ -193,7 +193,16 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   Widget build(BuildContext context) {
     return StoreProvider(
       store: widget.item.item2,
-      child: buildSwipeCard(context),
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          return ScaleTransition(
+            scale: animation,
+            child: child,
+          );
+        },
+        child: buildSwipeCard(context),
+      ),
     );
   }
 }
