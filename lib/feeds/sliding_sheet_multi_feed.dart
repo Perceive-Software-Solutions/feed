@@ -34,7 +34,7 @@ class SlidingSheetMultiFeed extends StatelessWidget {
   final double minExtent;
 
   /// The persistent footer on the sliding sheet
-  final Widget Function(BuildContext context, SheetState, double)? footerBuilder;
+  final Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder;
 
   /// Listeners
   final Function(double extent)? extentListener;
@@ -83,7 +83,7 @@ class SlidingSheetMultiFeed extends StatelessWidget {
     double initialExtent = 0.4,
     double expandedExtent = 1.0,
     double minExtent = 0.0,
-    Widget Function(BuildContext context, SheetState, double)? footerBuilder,
+    Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder,
     Function(double extent)? extentListener,
     bool isBackgroundIntractable = false,
     bool closeOnBackdropTap = true,
@@ -128,7 +128,7 @@ class SlidingSheetMultiFeed extends StatelessWidget {
     double initialExtent = 0.4,
     double expandedExtent = 1.0,
     double minExtent = 0.0,
-    Widget Function(BuildContext context, SheetState, double)? footerBuilder,
+    Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder,
     Function(double extent)? extentListener,
     bool isBackgroundIntractable = false,
     bool closeOnBackdropTap = true,
@@ -222,8 +222,9 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
     required this.wrapper,
     required this.pinnedItems,
     required this.header,
-    int? initialPage
-  }) : super(pageCount: loaders.length, initialPage: initialPage ?? ((loaders.length - 1)/2).ceil());
+    int? initialPage,
+    dynamic delegateObject
+  }) : super(pageCount: loaders.length, initialPage: initialPage ?? ((loaders.length - 1)/2).ceil(), delegateObject: delegateObject);
 
   Widget feedWrapperBuilder(BuildContext context, Widget child, int pageIndex){
     return wrapper?.call(context, child, pageIndex) ?? child;

@@ -43,7 +43,7 @@ class PerceiveSlidable extends StatefulWidget {
   /// The optional builder for the body of the sheet
   final Widget Function(BuildContext context, SheetState?, double)? customBodyBuilder;
   /// The persistent footer on the sliding sheet
-  final Widget Function(BuildContext context, SheetState, double)? footerBuilder;
+  final Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder;
 
   /// Listeners
   final Function(double extent)? extentListener;
@@ -212,7 +212,16 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
         );
       },
       footerBuilder: (context, state){
-        return widget.footerBuilder != null ? widget.footerBuilder!(context, state, state.extent) : SizedBox.shrink();
+        return widget.footerBuilder != null ? StoreProvider(
+          store: tower,
+          child: StoreConnector<PerceiveSlidableState, dynamic>(
+            distinct: true,
+            converter: (store) => store.state.delegates.last.delegateObject,
+            builder: (context, object) {
+              return widget.footerBuilder!(context, state, object);
+            }
+          )
+        ) : SizedBox.shrink();
       },
     );
   }
@@ -269,9 +278,6 @@ class _PerceiveSlidableDelegateBuilder extends StatefulWidget {
   final double mediumExtent;
   final double minExtent;
 
-  ///The status bar height
-  final dynamic pageObject;
-
   const _PerceiveSlidableDelegateBuilder({ 
     Key? key,
     required this.delegate,
@@ -281,7 +287,6 @@ class _PerceiveSlidableDelegateBuilder extends StatefulWidget {
     required this.expandedExtent,
     required this.mediumExtent,
     required this.minExtent,
-    this.pageObject,
     required this.staticSheet,
   }) : super(key: key);
 
@@ -344,7 +349,7 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
       builder: (context, extent) {
         //The animation value for the topExtent animation
         double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-        return widget.delegate.headerBuilder(context, widget.pageObject, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
+        return widget.delegate.headerBuilder(context, widget.delegate.delegateObject, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
       }
     );
 
@@ -425,6 +430,8 @@ abstract class PerceiveSlidableDelegate{
   final List<ScrollController> scrollControllers;
   late TabController tabController;
 
+  final dynamic delegateObject;
+
   PerceiveSlidableController get sheetController => delegateState!.widget.controller;
 
   Store<PerceiveSlidableState> get stateTower => delegateState!.tower;
@@ -432,7 +439,7 @@ abstract class PerceiveSlidableDelegate{
   ///The state of the delegate builder
   _PerceiveSlidableDelegateBuilderState? delegateState;
 
-  PerceiveSlidableDelegate({required this.pageCount, this.initialPage = 0})
+  PerceiveSlidableDelegate({required this.pageCount, this.initialPage = 0, this.delegateObject})
     : scrollControllers = List.generate(pageCount, (index) => ScrollController());
   
   void _delegateSheetStateListener(BuildContext context, SheetState state){
@@ -479,7 +486,7 @@ abstract class PerceiveSlidableDelegate{
 /// Provides a builder that provides the current scroll controller
 abstract class ScrollablePerceiveSlidableDelegate extends PerceiveSlidableDelegate{
 
-  ScrollablePerceiveSlidableDelegate({required int pageCount, int initialPage = 0}) : super(pageCount: pageCount, initialPage: initialPage);
+  ScrollablePerceiveSlidableDelegate({required int pageCount, int initialPage = 0, dynamic delegateObject}) : super(pageCount: pageCount, initialPage: initialPage, delegateObject: delegateObject);
 
   @override
   Widget customBodyBuilder(BuildContext context, SheetState? state, double extent, int pageIndex){
@@ -501,7 +508,9 @@ class _PerceiveSlidableBaseDelegate extends PerceiveSlidableDelegate{
     required this.extentListener,
     required this.body,
     required this.header,
-  }) : super(pageCount: 1);
+    dynamic delegateObject,
+    int? initialPage
+  }) : super(pageCount: 1, initialPage: initialPage ?? 0, delegateObject: delegateObject);
 
   @override
   void sheetListener(BuildContext context, SheetState state){

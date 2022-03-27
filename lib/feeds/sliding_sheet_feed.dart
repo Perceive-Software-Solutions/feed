@@ -67,7 +67,7 @@ class SlidingSheetFeed extends StatelessWidget {
   /// The header for the initial delegate
   final Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? headerBuilder;
   /// The persistent footer on the sliding sheet
-  final Widget Function(BuildContext context, SheetState, double)? footerBuilder;
+  final Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder;
 
   /// Listeners
   final Function(double extent)? extentListener;
