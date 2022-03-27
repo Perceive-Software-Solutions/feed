@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:feed/util/global/functions.dart';
@@ -317,6 +318,44 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
     widget.delegate._dispose();
   }
 
+  late double lastExtent = widget.controller.extent;
+
+  late Completer<bool> completer = Completer<bool>()..complete(true);
+
+  void sheetListener(double extent) async {
+    // When the sheet is switching from expanded to unexpanded
+    // and the scroll controllers are scrolled, scroll to the top
+    if(extent > widget.mediumExtent && extent < widget.expandedExtent){
+      if(lastExtent > extent && extent <= (widget.expandedExtent - widget.mediumExtent)/2 + widget.mediumExtent){
+        //Closing sheet
+        if(widget.delegate.isScrolled){
+          scrollUp();
+        }
+      }
+      lastExtent = extent;
+    }
+  }
+
+  void scrollUp() async {
+
+    if(!completer.isCompleted)
+      return;
+
+    // Ensures the scrolling only occurs once
+    completer = Completer<bool>();
+    List<Future> futures = [];
+    widget.delegate.scrollControllers.forEach((e) {futures.add(scrollControllerUp(e));});
+    await Future.wait(futures);
+    completer.complete(true);
+  }
+
+  Future<void> scrollControllerUp(ScrollController controller) async {
+    if(controller.hasClients){
+      print('BRUHHHH');
+      await controller.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOutCirc);
+    }
+  }
+
   void initiateListener(ScrollController controller){
     controller.addListener(() {
       if(controller.offset <= -50 && widget.controller.extent != widget.minExtent && !snapping){ 
@@ -349,7 +388,28 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
       builder: (context, extent) {
         //The animation value for the topExtent animation
         double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-        return widget.delegate.headerBuilder(context, widget.delegate.delegateObject, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
+        return Stack(
+          children: [
+            widget.delegate.headerBuilder(
+              context, 
+              widget.delegate.delegateObject, 
+              Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
+            ),
+
+            Align(
+              alignment: Alignment.topCenter,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: (){
+                  if(widget.delegate.isScrolled){
+                    scrollUp();
+                  }
+                },
+                child: Container(height: lerpDouble(0, statusBarHeight * 2, topExtentValue)),
+              ),
+            )
+          ],
+        );
       }
     );
 
@@ -436,6 +496,14 @@ abstract class PerceiveSlidableDelegate{
 
   Store<PerceiveSlidableState> get stateTower => delegateState!.tower;
 
+  bool get isScrolled => scrollControllers.map<double>((e){
+    try{
+      return e.offset;
+    }catch(e){
+      return 0.0;
+    }
+  }).reduce((value, offset) => value + offset) > 0;
+
   ///The state of the delegate builder
   _PerceiveSlidableDelegateBuilderState? delegateState;
 
@@ -445,6 +513,7 @@ abstract class PerceiveSlidableDelegate{
   void _delegateSheetStateListener(BuildContext context, SheetState state){
     if(delegateState != null){
       sheetListener(context, state);
+      delegateState!.sheetListener(state.extent);
     }
   }
 
