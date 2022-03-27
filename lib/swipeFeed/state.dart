@@ -216,7 +216,8 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
       });
 
       // Show loading state
-      showItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      // Note: Does this do anything
+      // showItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
 
       // Load more items
       Tuple2<List<T>, String?> loaded = await (store as Store<SwipeFeedState<T>>).state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, null);
@@ -225,6 +226,8 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
       List<T> newItems = loaded.item1;
 
       // Old items will be empty but just a procaution
+      // This will just be the null placeholder
+      // The set items event seen above ensures this
       List<Tuple2<T?, Store<SwipeFeedCardState>>> oldItems = store.state.items;
 
       String? pageToken = loaded.item2;
@@ -239,23 +242,37 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
         List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
         newItems.length, (i) => Tuple2(newItems[i], SwipeFeedCardState.tower()));
 
-      if(oldItems[0].item1 == null){
-        //No replacement occured, animate loading card into no polls card
-        if(store.state.hasMore == false){
-          showItem.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
-        }
-      }
-
       // Shift add new items into state
       final newState = shiftAdd(oldItems, items);
 
+      print("ITEMS");
+      print(items);
+      print("OLD ITEMS");
+      print(oldItems);
+      print("NEW STATE");
+      print(newState);
+
       // Show first card
       if(newState.isNotEmpty && newState[0].item1 != null){
-        newState.firstWhere((element) => element.item1 == null).item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
+        newState.firstWhere((element) => element.item1 == null).item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
         newState[0] = Tuple2(newState[0].item1, SwipeFeedCardState.tower(SwipeCardShowState()));
       }
+      else if(items.isEmpty && newState[0].item1 == null){
+        /// Animate from loading card back to hide state
+        print("Null item dispatching into hide state");
+        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
+        /// Duration between animating back to hide state and displaying no items or connectivity
+        await Future.delayed(Duration(milliseconds: 300));
+        /// Set card back to hide state because no items loaded in
+        print("SHOWING CHILD");
+        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
+      }
+      
+      /// If there are new items
+      if(items.isNotEmpty && newState[0].item1 != null){
+        store.dispatch(SetItemsEvent(newState));
+      }
 
-      store.dispatch(SetItemsEvent(newState));
       store.dispatch(_SetLoadingEvent(false));
     }
 
@@ -288,13 +305,7 @@ ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state
 /// Removes a card only after being swiped
 ThunkAction<SwipeFeedState<T>> removeCard<T>(){
   return (Store<SwipeFeedState<T>> store) async {
-    print("REMOVING CARD");
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
-    
-    for(Tuple2<T?, Store<SwipeFeedCardState>> item in items){
-      print(item.item1);
-      print(item.item2.state.state);
-    }
     if(items.length >= 2) {
       if(items[1].item1 == null){
         items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
@@ -304,12 +315,6 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
       }
     }
 
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
-    for(Tuple2<T?, Store<SwipeFeedCardState>> item in items){
-      print(item.item1);
-      print(item.item2.state.state);
-    }
     // Duration it takes for card to make it off the screen
     // This is after the card has been swipped away
     await Future.delayed(Duration(milliseconds: 400)).then((value){

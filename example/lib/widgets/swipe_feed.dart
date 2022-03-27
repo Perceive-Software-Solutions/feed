@@ -24,7 +24,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
 
   Future<Tuple2<List<String>, String?>> loadItems(int size, [String? token]) async {
     await Future.delayed(const Duration(seconds: 1));
-    return const Tuple2(['Testing1', 'Testing2', 'Testing3'], null);
+    return const Tuple2([], null);
   }
 
   @override
@@ -94,6 +94,14 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 canExpand: (item){
                   return true;
                 },
+                loadingPlaceHolder: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black, width: 3),
+                  ),
+                  child: const Center(child: Text("Loading",style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
+                ),
                 noItemsPlaceHolder: GestureDetector(
                   child: Container(
                     color: Colors.transparent,

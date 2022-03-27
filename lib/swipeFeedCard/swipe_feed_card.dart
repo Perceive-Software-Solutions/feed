@@ -124,104 +124,30 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   Widget _loadCard(BuildContext context, FeedCardState state, Widget? child){
     bool isExpanded = state is SwipeCardExpandState;
     bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
-    if(!show && child != null && widget.background != null){
-      return Stack(
-        children: [
-          Container(
-            key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
-            child: (widget as SwipeFeedCard<T>).background!(
-              context, 
-              SizedBox.expand(child: child)
-            )
-          ),
-          IgnorePointer(
-            ignoring: true,
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
-              child: !widget.isLast && widget.mask != null ? widget.mask! : 
-              Container(color: Colors.transparent)
-            ),
-          )
-        ],
+
+    if(!show && (widget as SwipeFeedCard<T>).background != null){
+      return Container(
+        key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
+        child: (widget as SwipeFeedCard<T>).background!(context, SizedBox.expand(child: child))
       );
     }
-    else if((widget as SwipeFeedCard<T>).item.item1 == null){
+    if((widget as SwipeFeedCard<T>).item.item1 == null){
       return Container(
-        key: ValueKey('SwipeFeed Placeholder Card ' + UniqueKey().toString()),
+        key: (widget as SwipeFeedCard<T>).item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Placeholder Card ' + (widget as SwipeFeedCard<T>).objectKey((widget as SwipeFeedCard<T>).item.item1)),
         child: (widget as SwipeFeedCard<T>).loadingPlaceHolder ?? SizedBox.shrink()
       );
     }
-    else if((widget as SwipeFeedCard<T>).childBuilder != null && (widget as SwipeFeedCard<T>).item.item1 != null){
+    else if((widget as SwipeFeedCard<T>).childBuilder != null && (widget as SwipeFeedCard<T>).item != null){
       //Builds custom child if childBuilder is defined
-      return Stack(
-        children: [
-          Container(
-            key: (widget as SwipeFeedCard<T>).item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + (widget as SwipeFeedCard<T>).objectKey((widget as SwipeFeedCard<T>).item.item1)),
-            child: (widget as SwipeFeedCard<T>).childBuilder!((widget as SwipeFeedCard<T>).item.item1, isExpanded, (){(widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));})
-          ),
-          IgnorePointer(
-            ignoring: true,
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
-              child: !show && widget.mask != null ? widget.mask! : 
-              Container(color: Colors.transparent)
-            ),
-          )
-        ],
+      return Container(
+        key: (widget as SwipeFeedCard<T>).item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + (widget as SwipeFeedCard<T>).objectKey((widget as SwipeFeedCard<T>).item.item1)),
+        child: (widget as SwipeFeedCard<T>).childBuilder!((widget as SwipeFeedCard<T>).item.item1, isExpanded, (){(widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));})
       );
     }
-
     else {
       throw ('T is not supported by Feed');
     }
-
-    // if(!show && (widget as SwipeFeedCard<T>).background != null){
-    //   return Container(
-    //     key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
-    //     child: (widget as SwipeFeedCard<T>).background!(context, SizedBox.expand(child: child))
-    //   );
-    // }
-    // if((widget as SwipeFeedCard<T>).item.item1 == null){
-    //   return Container(
-    //     key: (widget as SwipeFeedCard<T>).item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Placeholder Card ' + (widget as SwipeFeedCard<T>).objectKey((widget as SwipeFeedCard<T>).item.item1)),
-    //     child: (widget as SwipeFeedCard<T>).loadingPlaceHolder ?? SizedBox.shrink()
-    //   );
-    // }
-    // else if((widget as SwipeFeedCard<T>).childBuilder != null && (widget as SwipeFeedCard<T>).item != null){
-    //   //Builds custom child if childBuilder is defined
-    //   return Container(
-    //     key: (widget as SwipeFeedCard<T>).item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + (widget as SwipeFeedCard<T>).objectKey((widget as SwipeFeedCard<T>).item.item1)),
-    //     child: (widget as SwipeFeedCard<T>).childBuilder!((widget as SwipeFeedCard<T>).item.item1, isExpanded, (){(widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));})
-    //   );
-    // }
-    // else {
-    //   throw ('T is not supported by Feed');
-    // }
   }
-
-  // if(!show && widget.background != null){
-  //     return Container(
-  //       key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
-  //       child: widget.background!(context, SizedBox.expand(child: child))
-  //     );
-  //   }
-  //   if(item == null){
-  //     lock = true;
-  //     return Container(
-  //       key: item == null ? UniqueKey() : ValueKey('SwipeFeed Placeholder Card ' + widget.objectKey(item)),
-  //       child: placeholder ?? SizedBox.shrink()
-  //     );
-  //   }
-  //   else if(widget.childBuilder != null && item != null){
-  //     //Builds custom child if childBuilder is defined
-  //     return Container(
-  //       key: item == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + widget.objectKey(item)),
-  //       child: widget.childBuilder!(item, index == 1, isExpanded, close)
-  //     );
-  //   }
-  //   else {
-  //     throw ('T is not supported by Feed');
-  //   }
 
   Widget buildSwipeCard(BuildContext context){
 
