@@ -1,461 +1,227 @@
 
-import 'dart:ui';
-
 import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
-import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_neumorphic_null_safety/flutter_neumorphic.dart';
 import 'package:perceive_slidable/sliding_sheet.dart';
-import 'package:tuple/tuple.dart';
 
-/// Uses package [SlidingSheet] and widget [MultiFeed]
-/// Creates a multi feed that can manage its own context and list inside of a bottom modal sheet
-/// *** The sliding of the list relative to the sliding sheet can not currently be 
-class SlidingSheetFeed extends StatefulWidget {
+/// Creates a singular feed within a sliding sheet
+class SlidingSheetFeed extends StatelessWidget {
 
-  /// Cintroller for the sheet and the multi feed within
-  final SlidingSheetFeedController controller;
+  // Proxy Feed variables
 
-  ///If toggled ensures that the sheet controls the scroll body until expansion
-  final bool staticSheet;
+  final double? footerHeight;
 
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Sliding Sheet ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  final FeedLoader loader;
 
-  /// Corner radius when it is not fully expanded
-  /// Default 32.0
-  final double cornerRadius;
+  final FeedController? controller;
 
-  /// Corner radius when it is fully expanded
-  /// Default 0.0
-  final double cornerRadiusOnFullscreen;
-
-  /// Duration of the sliding sheet animation when sliding sheet
-  /// is first instantiated
-  /// Default Duration(miliseconds: 300)
-  final Duration duration;
-
-  /// Close the sheet on back button pressed
-  /// Default true
-  final bool closeOnBackButtonPressed;
-
-  /// Close when the background tapped
-  /// Default true
-  final bool closeOnBackdropTap;
-
-  /// If the sheet can be expanded
-  /// Default true
-  final bool extendBody;
-
-  /// Background color behind the sheet
-  /// Default Colors.transparent
-  final Color color;
-
-  /// Min extent of the sliding sheet
-  /// Default 0.0
-  final double minExtent;
-
-  /// Initial extent of the sliding sheet
-  /// Default 0.7
-  final double initialExtent;
-
-  /// Expanded extent of the sliding sheet
-  /// Default 1.0
-  final double expandedExtent;
-
-  /// Header of the sheet
-  final Widget Function(BuildContext context, dynamic pageObject, Widget spacing)? header;
-
-  /// Footer of the sheet
-  final Widget Function(BuildContext context, dynamic pageObject)? footer;
-
-  /// Disables scrolling the sheet
-  final bool disableSheetScroll;
-
-  /// Listen to the extent of the sheet
-  final Function(SheetState)? listener;
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Multi-Feed ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  /// Loader for the feed
-  final List<FeedLoader> loaders;
-
-  /// Sliver header of the feed
-  final List<Widget>? headerSliver;
-
-  /// Sliver footer of the feed
-  final List<Widget>? footerSliver;
-
-  /// Length of items loaded
   final int? lengthFactor;
 
-  /// Initial length of items loaded
-  final int? innitalLength;
+  final int? initialLength;
 
-  /// Refresh function
-  final Future Function()? onRefresh;
+  final FeedBuilder? childBuilder;
 
-  /// Child builder
-  final MultiFeedBuilder? childBuilder;
-
-  ///defines the height to offset the body
-  final double? footerHeight;
+  ///Determines if the the feed should initially load, defaulted to true
+  final bool initiallyLoad;
 
   ///Disables the scroll controller when set to true
   final bool? disableScroll;
 
-  /// Condition to hidefeed
-  final bool? condition;
-
   /// Loading state placeholders
-  final List<Widget> Function(double extent, double headerHeight)? placeHolders;
+  final Widget Function(BuildContext context, double extent)? placeholder;
 
   /// Loading widget
   final Widget? loading;
 
-  /// Corresponds to the [condition] and replaces feed with [Widget]
-  final Widget? placeHolder;
-
-  ///The header builder that prints over each multi feed
-  final Widget Function(BuildContext context, int feedIndex)? headerBuilder;
-
-  ///The optional function used to wrap the list view
-  final IndexWidgetWrapper? wrapper;
-
-  /// HeaderHeight
-  final double headerHeight;
-  
-  ///Retreives the item id, used to ensure the prevention of duplcicate additions
+  ///Retrieves the item id, used to ensure the prevention of duplicate additions
   final String Function(dynamic item)? getItemID;
 
-  /// Items that will be pinned to the top of the list on init
-  final List<Tuple2<dynamic, int>>? pinnedItems;
+  ///The optional function used to wrap the list view
+  final WidgetWrapper? wrapper;
 
-  //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  /// Items that will be pinned to the top of the list on init
+  final List<dynamic>? pinnedItems;
+
+  // Proxy sliding sheet variables
+  
+  ///Controller for the sheet
+  final PerceiveSlidableController? sheetController;
+
+  ///If the sheet should be static or not
+  final bool staticSheet;
+
+  // Colors
+  /// The background color for the sliding sheet
+  final Color? backgroundColor;
+  /// The color behind the sliding sheet
+  final Color? minBackdropColor;
+
+  // Sheet Extents
+  /// Starting extent, and the middle resting extent of the sliding sheet
+  final double initialExtent;
+  /// The max extent of the sliding sheet
+  final double expandedExtent;
+  /// The lowest possible extent for the sliding sheet
+  final double minExtent;
+
+  /// The header for the initial delegate
+  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? headerBuilder;
+  /// The persistent footer on the sliding sheet
+  final Widget Function(BuildContext context, SheetState, double)? footerBuilder;
+
+  /// Listeners
+  final Function(double extent)? extentListener;
+
+  // Editors
+  final bool isBackgroundIntractable;
+  final bool closeOnBackdropTap;
+  final bool doesPop;
 
   const SlidingSheetFeed({ 
     Key? key,
-    required this.loaders,
-    required this.controller,
-    this.minExtent = 0.0,
-    this.initialExtent = 0.7,
-    this.expandedExtent = 1.0,
-    this.cornerRadius = 32.0,
-    this.cornerRadiusOnFullscreen = 0.0,
-    this.duration = const Duration(milliseconds: 300),
-    this.closeOnBackButtonPressed = true,
-    this.closeOnBackdropTap = true,
-    this.extendBody = true,
-    this.color = Colors.transparent,
-    this.header,
-    this.footer,
-    this.disableSheetScroll = false,
-    this.headerSliver,
-    this.lengthFactor,
-    this.innitalLength,
-    this.onRefresh,
-    this.footerSliver,
-    this.childBuilder,
+    required this.loader,
+    this.controller,
     this.footerHeight,
-    this.placeHolders,
-    this.placeHolder,
+    this.lengthFactor,
+    this.initialLength,
+    this.childBuilder,
+    this.initiallyLoad = true,
+    this.disableScroll,
+    this.placeholder,
     this.loading,
-    this.condition = false, 
-    this.disableScroll, 
-    this.headerBuilder,
-    this.wrapper,
     this.getItemID,
-    this.headerHeight = 60,
-    this.staticSheet = false,
+    this.wrapper,
     this.pinnedItems,
-    this.listener
+    this.sheetController,
+    this.staticSheet = false,
+    this.backgroundColor,
+    this.minBackdropColor,
+    this.initialExtent = 0.4,
+    this.expandedExtent = 1.0,
+    this.minExtent = 0.0,
+    this.headerBuilder,
+    this.footerBuilder,
+    this.extentListener,
+    this.isBackgroundIntractable = false,
+    this.closeOnBackdropTap = true,
+    this.doesPop = true,
   }) : super(key: key);
 
   @override
-  _SlidingSheetFeedState createState() => _SlidingSheetFeedState();
-}
-
-class _SlidingSheetFeedState extends State<SlidingSheetFeed> {
-
-  GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
-
-  late ConcreteCubit<dynamic> pageObject = ConcreteCubit<dynamic>(null);
-
-  late ConcreteCubit<double> sheetExtent = ConcreteCubit<double>(widget.initialExtent);
-
-  ConcreteCubit<double> headerHeight = ConcreteCubit<double>(70);
-
-  BuildContext? heightContext;
-
-  double statusBarHeight = 0.0;
-
-  double mainExtent = 0.0;
-
-  late bool disableSheet = widget.staticSheet;
-
-  late SlidingSheetStateController slidingSheetStateController;
-
-  @override
-  void initState(){
-    super.initState();
-
-    slidingSheetStateController = SlidingSheetStateController();
-
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) { 
-      if(heightContext != null){
-        headerHeight.emit(heightContext!.size!.height);
-      }
-    });
-  }
-
-  void refreshHeight(){
-    if(heightContext != null){
-        double value = MediaQueryData.fromWindow(window).padding.top * (Functions.animateOver(sheetExtent.state, percent: 0.9));
-        if(!value.isNegative){
-          headerHeight.emit(heightContext!.size!.height - value);
-        }
-        else{
-          headerHeight.emit(heightContext!.size!.height);
-        }
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    widget.controller._bind(this);
-  }
-
-  void sheetStateListener(SheetState state){
-    if(widget.listener != null){
-      widget.listener!(state);
-    }
-    if(state.extent == 0.0){
-      if(Navigator.canPop(context)){
-        Navigator.pop(context);
-      }
-    }
-    else if(disableSheet && state.extent >= widget.expandedExtent){
-      setState(() {
-        disableSheet = false;
-      });
-    }
-    else if(!disableSheet && state.extent < widget.expandedExtent && widget.staticSheet){
-      setState(() {
-        disableSheet = true;
-      });
-    }
-    mainExtent = state.extent;
-    sheetExtent.emit(state.extent);
-    widget.controller._update();
-  }
-
-  Future<dynamic> pushPage(Widget page, [dynamic pageObj]) {
-    pageObject.emit(pageObj);
-    return key.currentState!.push(MaterialPageRoute(builder: (context) => page,));
-  }
-
-  void popPage(){
-    key.currentState!.pop(pageObject);
-    pageObject.emit(null);
-  }
-
-
-  @override
   Widget build(BuildContext context) {
-    statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
-    return SlidingSheet(
-      controller: widget.controller.sheetController,
-      color: widget.color,
-      closeSheetOnBackButtonPressed: widget.closeOnBackButtonPressed,
-      closeOnBackdropTap: widget.closeOnBackdropTap, //Closes the page when the sheet reaches the bottom
-      extendBody: widget.extendBody,
-      cornerRadius: widget.cornerRadius,
-      cornerRadiusWhenExpanded: widget.cornerRadiusOnFullscreen,
-      duration: widget.duration,
-      slidingSheetStateController: slidingSheetStateController,
-      snapSpec: SnapSpec(
-        initialSnap: widget.initialExtent,
-        snappings: [widget.minExtent, widget.initialExtent, widget.expandedExtent],
+    return PerceiveSlidable(
+      controller: sheetController,
+      staticSheet: staticSheet,
+      backgroundColor: backgroundColor,
+      minBackdropColor: minBackdropColor,
+      initialExtent: initialExtent,
+      expandedExtent: expandedExtent,
+      mediumExtent: initialExtent,
+      minExtent: minExtent,
+      footerBuilder: footerBuilder,
+      extentListener: extentListener,
+      isBackgroundIntractable: isBackgroundIntractable,
+      closeOnBackdropTap: closeOnBackdropTap,
+      doesPop: doesPop,
+      delegate: PerceiveSlidableSingleFeedDelegate(
+        loader: loader,
+        controller: controller,
+        footerHeight: footerHeight,
+        lengthFactor: lengthFactor,
+        initialLength: initialLength,
+        childBuilder: childBuilder,
+        initiallyLoad: initiallyLoad,
+        disableScroll: disableScroll,
+        placeholder: placeholder,
+        loading: loading,
+        getItemID: getItemID,
+        wrapper: wrapper,
+        pinnedItems: pinnedItems,
+        header: headerBuilder,
       ),
-      listener: sheetStateListener,
-      customBuilder: (context, controller, state){
-        return Navigator(
-          key: key,
-          onGenerateRoute: (settings) => MaterialPageRoute(
-            settings: settings,
-            builder: (context){
-              Widget header = BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-                bloc: pageObject,
-                builder: (context, obj) {
-                  return BlocBuilder<ConcreteCubit<double>, double>(
-                    bloc: sheetExtent,
-                    builder: (context, extent){
-                      heightContext = context;
-                      //The animation value for the topExtent animation
-                      double topExtentValue = Functions.animateOver(extent, percent: 0.9);
-                      return widget.header!(context, obj, Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),);
-                    },
-                  );
-                }      
-              );
-              return Stack(
-                children: [
-                  widget.header != null ? 
-                  slidingSheetStateController.delegateInteractions(header) ?? header : 
-                  SizedBox.shrink(),
-
-                  BlocBuilder<ConcreteCubit<double>, double>(
-                    bloc: headerHeight,
-                    builder: (context, hHeight) {
-                      return BlocBuilder<ConcreteCubit<double>, double>(
-                        bloc: sheetExtent,
-                        builder: (context, sheetExtentValue) {
-                          double topExtentValue = Functions.animateOver(sheetExtentValue, percent: 0.9);
-                          double pageHeight = MediaQuery.of(context).size.height;
-                          double height = sheetExtentValue > 0.8 ? 
-                          pageHeight*sheetExtentValue - hHeight - statusBarHeight :  
-                          pageHeight*sheetExtentValue - hHeight;
-                          if(height < 0){
-                            height = 100;
-                          }
-                          return Column(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Container(height: hHeight + lerpDouble(0, statusBarHeight, topExtentValue)!),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  physics: widget.disableSheetScroll ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-                                  controller: controller,
-                                  child: SizedBox(
-                                    height: height,
-                                    child: MultiFeed(
-                                      sheetController: widget.controller.sheetController,
-                                      loaders: widget.loaders,
-                                      headerSliver: widget.headerSliver,
-                                      lengthFactor: widget.lengthFactor,
-                                      innitalLength: widget.innitalLength,
-                                      onRefresh: widget.onRefresh,
-                                      controller: widget.controller.multifeedController,
-                                      footerSliver: widget.footerSliver,
-                                      extent: widget.initialExtent,
-                                      minExtent: widget.minExtent,
-                                      childBuilder: widget.childBuilder,
-                                      footerHeight: widget.footerHeight,
-                                      placeHolder: widget.placeHolder,
-                                      placeHolders: widget.placeHolders?.call(mainExtent, hHeight) ?? [],
-                                      loading: widget.loading,
-                                      condition: widget.condition,
-                                      disableScroll: disableSheet || (widget.disableScroll ?? false),
-                                      headerBuilder: widget.headerBuilder,
-                                      wrapper: widget.wrapper,
-                                      getItemID: widget.getItemID,
-                                      pinnedItems: widget.pinnedItems,
-                                    ) 
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      );
-                    }
-                  ),
-                ],
-              );
-            }
-          ),
-        );
-      },
-      footerBuilder: (context, state){
-        return widget.footer != null ? BlocBuilder<ConcreteCubit<dynamic>, dynamic>(
-          bloc: pageObject,
-          builder: (context, obj) {
-            return widget.footer!(context, obj);
-          }
-        ) : SizedBox.shrink();
-      },
     );
   }
 }
 
-///Controller for the simple multi feed. 
-///Holds a nested Page, Tab and Scroll controllers
-class SlidingSheetFeedController extends ChangeNotifier {
-  late _SlidingSheetFeedState? _state;
+class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDelegate{
 
-  /// Bounded to the sliding sheet
-  final SheetController sheetController;
+  
+  final double? footerHeight;
 
-  /// State of the feed
-  final MultiFeedController multifeedController;
+  final FeedLoader loader;
 
-  ///Private constructor
-  SlidingSheetFeedController._(this.sheetController, this.multifeedController);
+  final FeedController? controller;
 
-  ///Default constuctor
-  ///Creates the nested controllers
-  factory SlidingSheetFeedController({
-    required int pageCount,
-    int initialPage = 0,
-    bool keepPage = true,
-    double viewportFraction = 1.0,
-    TickerProvider? vsync,
-    List<double>? initialOffsets,
-    List<bool>? keepScrollOffsets,
-    List<String>? debugLabels,
-    FeedGridViewDelegate? Function(int index)? gridDelegateGenerator,
-  }){
-    return SlidingSheetFeedController._(
-      SheetController(),
-      MultiFeedController(
-        pageCount: pageCount,
-        initialPage: initialPage,
-        keepPage: keepPage,
-        viewportFraction: viewportFraction,
-        vsync: vsync,
-        initialOffsets: initialOffsets,
-        keepScrollOffsets: keepScrollOffsets,
-        debugLabels: debugLabels,
-        indexedGridDelegates: Map<int, FeedGridViewDelegate?>.fromIterable(
-          List.generate(pageCount, (i) => i),
-          key: (e) => e,
-          value: (e) => gridDelegateGenerator?.call(e)
-        )
-      )
+  final int? lengthFactor;
+
+  final int? initialLength;
+
+  final FeedBuilder? childBuilder;
+
+  ///Determines if the the feed should initially load, defaulted to true
+  final bool initiallyLoad;
+
+  ///Disables the scroll controller when set to true
+  final bool? disableScroll;
+
+  /// Loading state placeholders
+  final Widget Function(BuildContext context, double extent)? placeholder;
+
+  /// Loading widget
+  final Widget? loading;
+
+  ///Retrieves the item id, used to ensure the prevention of duplicate additions
+  final String Function(dynamic item)? getItemID;
+
+  ///The optional function used to wrap the list view
+  final WidgetWrapper? wrapper;
+
+  /// Items that will be pinned to the top of the list on init
+  final List<dynamic>? pinnedItems;
+
+  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? header;
+
+  PerceiveSlidableSingleFeedDelegate({
+    required this.loader,
+    required this.controller,
+    required this.footerHeight,
+    required this.lengthFactor,
+    required this.initialLength,
+    required this.childBuilder,
+    required this.initiallyLoad,
+    required this.disableScroll,
+    required this.placeholder,
+    required this.loading,
+    required this.getItemID,
+    required this.wrapper,
+    required this.pinnedItems,
+    required this.header
+  }) : super(pageCount: 1);
+
+  @override
+  Widget headerBuilder(BuildContext context, pageObj, Widget spacer) {
+    return header?.call(context, pageObj, spacer) ?? Container();
+  }
+
+  @override
+  Widget scrollingBodyBuilder(BuildContext context, SheetState? state, ScrollController scrollController, int pageIndex, bool scrollLock, double footerHeight) {
+    return Feed(
+      compact: false,
+      footerHeight: (this.footerHeight ?? 0) + footerHeight,
+      scrollController: scrollController,
+      loader: loader,
+      controller: controller,
+      lengthFactor: lengthFactor,
+      initialLength: initialLength,
+      childBuilder: childBuilder,
+      initiallyLoad: initiallyLoad,
+      disableScroll: (disableScroll ?? false) || scrollLock,
+      placeholder: state == null ? null : placeholder?.call(context, state.extent),
+      loading: loading,
+      getItemID: getItemID,
+      wrapper: wrapper,
+      pinnedItems: pinnedItems,
     );
   }
 
-
-
-  Future<dynamic> push(Widget page, [dynamic pageObj]) => _state!.pushPage(page, pageObj);
-
-  void pop() => _state!.popPage();
-
-  ///Binds the feed state
-  void _bind(_SlidingSheetFeedState bind) => _state = bind;
-
-  //Called to notify all listners
-  void _update() => notifyListeners();
-
-  void refreshHeight() => _state != null ? _state!.refreshHeight() : null;
-
-  Widget? delegateInderations(Widget child) => _state != null ? _state!.slidingSheetStateController.delegateInteractions(child) : null;
-
-  double get extent => _state != null ? _state!.mainExtent : 0.0;
-
-  //Disposes of the controller and all nested controllers
-  @override
-  void dispose() {
-
-    //Disconnect state
-    _state = null;
-    
-    //Dispose all nested controllers
-    multifeedController.dispose();
-
-    super.dispose();
-  }
 }

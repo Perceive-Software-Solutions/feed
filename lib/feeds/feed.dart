@@ -22,39 +22,31 @@ import 'package:tuple/tuple.dart';
 /// 
 /// `Supports: Posts, Polls, All Objects if childBuilder is present`
 class Feed extends StatefulWidget {
-
-  ///Determines if the the feed should initially load, defaulted to true
-  final bool initiallyLoad;
-
-  ///Ensures the feed is manualy loaded and does not have its own scroll controller
-  final bool compact;
+  
+  /// Overrides the scroll controller provided in the feed controller
+  final ScrollController? scrollController;
 
   final FeedLoader loader;
 
   final FeedController? controller;
 
-  final SheetController? sheetController;
-
-  final List<Widget>? headerSliver;
-
-  final List<Widget>? footerSliver;
-
   final int? lengthFactor;
 
-  final int? innitalLength;
-
-  final Future Function()? onRefresh;
+  final int? initialLength;
 
   final FeedBuilder? childBuilder;
 
   ///defines the height to offset the body
   final double? footerHeight;
 
+  ///Determines if the the feed should initially load, defaulted to true
+  final bool initiallyLoad;
+
+  ///Ensures the feed is manually loaded and does not have its own scroll controller
+  final bool compact;
+
   ///Disables the scroll controller when set to true
   final bool? disableScroll;
-
-  /// Condition to hidefeed
-  final bool? condition;
 
   /// Loading state placeholders
   final Widget? placeholder;
@@ -62,10 +54,7 @@ class Feed extends StatefulWidget {
   /// Loading widget
   final Widget? loading;
 
-  ///The header builder that prints over each feed
-  final Widget Function(BuildContext context)? headerBuilder;
-
-  ///Retreives the item id, used to ensure the prevention of duplcicate additions
+  ///Retrieves the item id, used to ensure the prevention of duplicate additions
   final String Function(dynamic item)? getItemID;
 
   ///The optional function used to wrap the list view
@@ -74,33 +63,22 @@ class Feed extends StatefulWidget {
   /// Items that will be pinned to the top of the list on init
   final List<dynamic>? pinnedItems;
 
-  final double extent;
-
-  final double minExtent;
-
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const Feed(
       {Key? key,
       required this.loader,
       this.controller,
-      this.sheetController,
-      this.headerSliver,
       this.lengthFactor,
-      this.innitalLength,
-      this.onRefresh,
-      this.footerSliver,
+      this.initialLength,
       this.childBuilder,
       this.footerHeight,
       this.placeholder,
       this.loading,
-      this.condition = false, 
-      this.extent = 0.7,
-      this.minExtent = 0.0,
       this.disableScroll, 
-      this.headerBuilder,
       this.getItemID,
       this.wrapper,
+      this.scrollController,
       this.compact = false,
       this.initiallyLoad = true,
       this.pinnedItems})
@@ -156,7 +134,7 @@ class _FeedState extends State<Feed> {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Getter ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ///Retreives the load size
-  int get loadSize => widget.innitalLength ?? widget.lengthFactor ?? LENGTH_INCREASE_FACTOR;
+  int get loadSize => widget.initialLength ?? widget.lengthFactor ?? LENGTH_INCREASE_FACTOR;
 
   ///Retreives loading widget
   Widget get load => widget.loading == null ? Container() : widget.loading!;
@@ -183,7 +161,7 @@ class _FeedState extends State<Feed> {
     //Loads the innitial set of items
     
     if(widget.initiallyLoad)
-      _refresh(false);
+      _refresh();
 
     if(widget.pinnedItems != null){
       pinItems();
@@ -206,7 +184,7 @@ class _FeedState extends State<Feed> {
 
     //Refresh feed on key change
     if (widget.key.toString() != old.key.toString() && !widget.compact) {
-      _refresh(false);
+      _refresh();
     }
   }
 
@@ -287,17 +265,13 @@ class _FeedState extends State<Feed> {
 
   ///The function that is run to refresh the page
   ///[full] - defines if the parent widget should be refreshed aswell
-  Future<void> _refresh([bool full = true]) async {
+  Future<void> _refresh() async {
 
     
     itemsCubit.emit([]);
     if(loading){
       return;
     }
-
-    //Calls the refresh function from the parent widget
-    Future<void>? refresh =
-        widget.onRefresh != null && full ? widget.onRefresh!() : null;
 
     //Set the loading to true
     loading = true;
@@ -313,9 +287,6 @@ class _FeedState extends State<Feed> {
     if(widget.getItemID != null){
       loadedItems = loadedItems.where((item) => addedItems[widget.getItemID!(item)] != true).toList();
     }
-
-    //Awaits the parent refresh function
-    if (refresh != null) await refresh;
 
     if (mounted) {
       
@@ -470,10 +441,7 @@ class _FeedState extends State<Feed> {
       //Feed view
       view = KeepAliveWidget(
         child: FeedListView(
-          extent: widget.extent,
-          minExtent: widget.minExtent,
-          sheetController: widget.sheetController,
-          controller: widget.controller!.scrollController(),
+          controller: widget.scrollController ?? widget.controller!.scrollController(),
           itemsCubit: itemsCubit,
           compact: widget.compact,
           gridDelegate: widget.controller?.getGridDelegate(),
@@ -509,7 +477,6 @@ class _FeedState extends State<Feed> {
             }
             return widget.childBuilder!(items[i], items.length - 1 == i);
           },
-          headerBuilder: widget.headerBuilder,              
         )
       );
     }
@@ -589,7 +556,7 @@ class FeedController extends ChangeNotifier {
   Future<void> loadMore() => _state!._loadMore();
 
   ///Removes an item from all the feeds
-  void removeItem(dynamic item, {dynamic Function(dynamic item)? retreivalFunction}) => _state!.removeItem(item, retreivalFunction);
+  void removeItem(dynamic item, {dynamic Function(dynamic item)? retrievalFunction}) => _state!.removeItem(item, retrievalFunction);
 
   ///Clears the feed
   void clear() => _state!.clearFeed();
@@ -607,7 +574,7 @@ class FeedController extends ChangeNotifier {
   bool isGridIndex() => getGridDelegate() != null;
 
   ///Reloads the feed state based on the original size parameter
-  ScrollController? scrollController() => _scrollController;
+  ScrollController scrollController() => _scrollController;
 
   //Disposes of the controller and all nested controllers
   @override

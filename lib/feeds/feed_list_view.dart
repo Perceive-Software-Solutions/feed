@@ -34,9 +34,6 @@ class FeedListView extends StatefulWidget {
 
   final bool compact;
 
-  //State of the sheet
-  final SheetController? sheetController;
-
   //Weither to disable scrolling
   final bool? disableScroll;
 
@@ -50,7 +47,7 @@ class FeedListView extends StatefulWidget {
   final Widget Function(BuildContext context, int i, List items) builder;
 
   //The scroll controller
-  final ScrollController? controller;
+  final ScrollController controller;
 
   //The height of the footer
   final double? footerHeight;
@@ -60,30 +57,19 @@ class FeedListView extends StatefulWidget {
 
   ///The optional function used to wrap the list view
   final WidgetWrapper? wrapper;
-  
-  ///The header builder
-  final Widget Function(BuildContext context)? headerBuilder;
 
   ///If defined builds this feed in grid mode
   final FeedGridViewDelegate? gridDelegate;
 
-  final double extent;
-
-  final double minExtent;
-
   const FeedListView({ 
     Key? key, 
-    required this.sheetController,
     this.disableScroll = false, 
     this.compact = false, 
     this.onLoad, 
     required this.builder, 
     required this.itemsCubit,
-    this.minExtent = 0.0,
-    this.extent = 0.7,
-    this.controller, 
+    required this.controller, 
     this.footerHeight, 
-    this.headerBuilder, 
     this.wrapper, 
     this.loading, 
     this.gridDelegate,
@@ -102,12 +88,11 @@ class _FeedListViewState extends State<FeedListView> {
   //If currently snapping
   bool snapping = false;
 
-  late ScrollController controller;
-
-  ScrollController get scrollController => widget.controller ?? scrollController;
+  ScrollController get scrollController => widget.controller;
 
   bool keyBoardOpen = false;
 
+  Widget get loading => widget.loading == null ? Container() : widget.loading!;
 
   @override
   void initState() {
@@ -115,47 +100,7 @@ class _FeedListViewState extends State<FeedListView> {
 
     //Sync the providers
     _syncProviders(widget.itemsCubit.state);
-
-    widget.sheetController != null ? scrollController.addListener(() {
-      if(keyBoardOpen){
-        return;
-      }
-      else{
-        if(scrollController.offset <= -80 && !snapping){
-          if(widget.sheetController!.state!.extent == 1.0){
-            snapping = true;
-            Future.delayed(Duration.zero, () {
-              widget.sheetController!.snapToExtent(widget.extent, duration: Duration(milliseconds: 300));
-              Future.delayed(Duration(milliseconds: 300)).then((value) => {
-                snapping = false
-              });
-            });
-          }
-          else if(widget.sheetController!.state!.extent == widget.extent){
-            snapping = true;
-            Future.delayed(Duration.zero, () {
-              widget.sheetController!.snapToExtent(widget.minExtent, duration: Duration(milliseconds: 300));
-            });
-            Future.delayed(Duration(milliseconds: 300)).then((value) => {
-              snapping = false
-            });
-          }
-
-        }
-      }
-    }) : null;
   }
-
-  @override
-  void dispose(){
-    super.dispose();
-    scrollController.removeListener(() { 
-      scrollController.dispose();
-    });
-  }
-
-  Widget get loading => widget.loading == null ? Container() : widget.loading!;
-
 
   ///Adds new items to the list of loading cubits and sets the first one to display if not set
   void _syncProviders(List items){
@@ -196,18 +141,14 @@ class _FeedListViewState extends State<FeedListView> {
   Widget listBuilder(BuildContext context, List items){
 
     ///Simple List
-    Widget list = Column(
-      children: [
-        for (var i = 0; i < items.length; i++)
-          _buildChild(items, i),
-      ],
-    );
+    late Widget list;
 
     if(widget.gridDelegate != null){
       //Grid list
       list = StaggeredGridView.countBuilder(
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
+        addRepaintBoundaries: true,
         crossAxisCount: widget.gridDelegate!.crossAxisCount,
         mainAxisSpacing: widget.gridDelegate!.mainAxisSpacing,
         crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
@@ -216,21 +157,30 @@ class _FeedListViewState extends State<FeedListView> {
         itemBuilder: (context, index) => _buildChild(items, index),
         staggeredTileBuilder: (index) => StaggeredTile.fit(1),
       );
-      // list = MasonryGridView.count(
-      //   physics: NeverScrollableScrollPhysics(),
-      //   shrinkWrap: true,
-      //   crossAxisCount: widget.gridDelegate!.crossAxisCount,
-      //   mainAxisSpacing: widget.gridDelegate!.mainAxisSpacing,
-      //   crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
-      //   padding: widget.gridDelegate!.padding,
-      //   itemCount: items.length,
-      //   itemBuilder: (context, index) => _buildChild(items, index),
-      // );
+    }
+    else{
+      list = ListView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        addRepaintBoundaries: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: items.length,
+        itemBuilder: (context, i) => _buildChild(items, i),
+      );
     }
 
-    return wrapperBuilder(
-      context: context,
-      child: list
+
+    return Column(
+      children: [
+        wrapperBuilder(
+          context: context,
+          child: list
+        ),
+
+        Container(
+          height: widget.footerHeight ?? 0,
+        )
+      ],
     );
   }
 
@@ -255,25 +205,16 @@ class _FeedListViewState extends State<FeedListView> {
           late Widget list = listBuilder(context, items);
 
           if(!widget.compact){
-            list = Expanded(
-              child: SingleChildScrollView(
-                physics: widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                controller: scrollController,
-                child: list,
-              ),
+            list = SingleChildScrollView(
+              physics: widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              controller: scrollController,
+              child: list,
             );
           }
 
           return Container(
             height: widget.compact ? null : MediaQuery.of(context).size.height,
-            child: Column(
-              children: [
-                if(widget.headerBuilder != null)
-                  widget.headerBuilder!(context),
-
-                list,
-              ],
-            ),
+            child: list,
           );
         }
       ),
