@@ -96,11 +96,8 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 },
                 noItemsPlaceHolder: GestureDetector(
                   child: Container(
-                    decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black, width: 3),
-                    ),
+                    color: Colors.transparent,
+                    child: const Center(child: Text("NO NEW ITEMS", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
                   ),
                   onTap: (){
                     feedController.refresh();
@@ -108,12 +105,8 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 ),
                 noConnectivityPlaceHolder: GestureDetector(
                   child: Container(
-                    height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top -  MediaQuery.of(context).padding.bottom - 62 - 125,
-                    decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black, width: 3),
-                    ),
+                    color: Colors.transparent,
+                    child: const Center(child: Text("NO NEW ITEMS", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
                   ),
                   onTap: (){
                     feedController.refresh();
@@ -129,6 +122,13 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     child: child,
                   );
                 },
+                mask: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black, width: 3),
+                  ),
+                ),
                 childBuilder: (dynamic value, bool isExpanded, void Function() close ) {
                   return Opacity(
                     opacity: 0.5,

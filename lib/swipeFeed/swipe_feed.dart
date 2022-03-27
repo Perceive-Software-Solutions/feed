@@ -142,12 +142,14 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   }
 
   /// Reset the Swipe Feed back to its initial state
-  Future<bool> reset(){
+  Future<bool> reset() async {
+    _setCardState(SwipeCardHideState());
+    await Future.delayed(Duration(milliseconds: 500));
     final completer = Completer<bool>();
-
-    tower.dispatch(refresh<T>((){
+    Function complete = (){
       completer.complete(true);
-    }));
+    };
+    tower.dispatch(refresh<T>(onComplete: complete));
 
     return completer.future;
   }
@@ -190,7 +192,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   /// Sets the card to the passed in state
   void _setCardState(FeedCardState state){
     if(tower.state.items.isNotEmpty && tower.state.items[0].item1 != null){
-      tower.state.items[0].item2.dispatch(state);
+      tower.state.items[0].item2.dispatch(SetSwipeFeedCardState(state));
     }
   }
 
@@ -213,6 +215,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       background: (widget as SwipeFeed<T>).background,
       canExpand: (widget as SwipeFeed<T>).canExpand,
       mask: widget.mask,
+      isLast: tower.state.items.length == 1,
       onPanUpdate: (dx, dy){
         if((widget as SwipeFeed<T>).onPanUpdate != null){
           (widget as SwipeFeed<T>).onPanUpdate!(dy, dy);

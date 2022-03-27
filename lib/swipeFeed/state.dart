@@ -1,4 +1,3 @@
-import 'package:connectivity/connectivity.dart';
 import 'package:feed/feed.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/global/functions.dart';
@@ -74,9 +73,9 @@ class ResetEvent extends SwipeFeedEvent{
 }
 
 /// Private
-class _SetItemsEvent<T> extends SwipeFeedEvent{
+class SetItemsEvent<T> extends SwipeFeedEvent{
   List<Tuple2<T?, Store<SwipeFeedCardState>>> items;
-  _SetItemsEvent(this.items);
+  SetItemsEvent(this.items);
 }
 
 class _SetPageTokenEvent extends SwipeFeedEvent{
@@ -166,7 +165,7 @@ bool setLoadingReducer(SwipeFeedState state, dynamic event){
 }
 
 List<Tuple2<T?, Store<SwipeFeedCardState>>> setItemsReducer<T>(SwipeFeedState<T> state, dynamic event){
-  if(event is _SetItemsEvent<T>){
+  if(event is SetItemsEvent<T>){
     return event.items;
   }
   return state.items;
@@ -199,7 +198,7 @@ List<T>? setPreviousPollsReducer<T>(SwipeFeedState<T> state, dynamic event){
 */
 
 /// Refreshes the feed, ensure null value at the end of the list
-ThunkAction<SwipeFeedState<T>> refresh<T>([Function? onComplete]) {
+ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
   return (Store<SwipeFeedState<T>> store) async {
     bool loading = store.state.loading;
     if(!loading){
@@ -209,7 +208,7 @@ ThunkAction<SwipeFeedState<T>> refresh<T>([Function? onComplete]) {
       // Ensure one element is present inside of the list
       final showItem = SwipeFeedCardState.tower();
       final placeholder = Tuple2(null, showItem);
-      store.dispatch(_SetItemsEvent([placeholder]));
+      store.dispatch(SetItemsEvent([placeholder]));
 
       // Wait time for loading card to go from hiding state to show state
       await Future.delayed(Duration(milliseconds: 500)).then((value){
@@ -252,14 +251,16 @@ ThunkAction<SwipeFeedState<T>> refresh<T>([Function? onComplete]) {
 
       // Show first card
       if(newState.isNotEmpty && newState[0].item1 != null){
+        newState.firstWhere((element) => element.item1 == null).item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
         newState[0] = Tuple2(newState[0].item1, SwipeFeedCardState.tower(SwipeCardShowState()));
       }
 
-      store.dispatch(_SetItemsEvent(newState));
+      store.dispatch(SetItemsEvent(newState));
+      store.dispatch(_SetLoadingEvent(false));
+    }
 
-      if(onComplete != null){
-        onComplete();
-      }
+    if(onComplete != null){
+      onComplete();
     }
   };
 }
@@ -277,7 +278,7 @@ ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state
       store.dispatch(refresh);
     }
     else{
-      store.dispatch(_SetItemsEvent(items));
+      store.dispatch(SetItemsEvent(items));
       store.dispatch(_SetPageTokenEvent(state.pageToken));
       store.dispatch(_SetHasMoreEvent(state.hasMore));
     }
@@ -287,7 +288,13 @@ ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state
 /// Removes a card only after being swiped
 ThunkAction<SwipeFeedState<T>> removeCard<T>(){
   return (Store<SwipeFeedState<T>> store) async {
+    print("REMOVING CARD");
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
+    
+    for(Tuple2<T?, Store<SwipeFeedCardState>> item in items){
+      print(item.item1);
+      print(item.item2.state.state);
+    }
     if(items.length >= 2) {
       if(items[1].item1 == null){
         items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
@@ -296,11 +303,18 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
         items[1].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
       }
     }
+
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+    for(Tuple2<T?, Store<SwipeFeedCardState>> item in items){
+      print(item.item1);
+      print(item.item2.state.state);
+    }
     // Duration it takes for card to make it off the screen
     // This is after the card has been swipped away
     await Future.delayed(Duration(milliseconds: 400)).then((value){
       items.removeAt(0);
-      store.dispatch(_SetItemsEvent(items));
+      store.dispatch(SetItemsEvent(items));
       if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
         store.dispatch(loadMore);
       }
@@ -327,7 +341,7 @@ ThunkAction<SwipeFeedState<T>> removeItem<T>([AdjustList<T>? then]){
       }
 
       // Set new items
-      store.dispatch(_SetItemsEvent(items));
+      store.dispatch(SetItemsEvent(items));
     }
 
     //Maximizes the card
@@ -356,7 +370,7 @@ ThunkAction<SwipeFeedState<T>> removeItemById<T>(String id, String Function(T) o
       if(items.isNotEmpty){
         items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
       }
-      store.dispatch(_SetItemsEvent(items));
+      store.dispatch(SetItemsEvent(items));
     }
   };
 }
@@ -377,7 +391,7 @@ void loadMore<T>(Store<SwipeFeedState<T>> store) async {
     if(wasEmpty || store.state.items.last.item1 != null){
       showItem = SwipeFeedCardState.tower();
       placeholder = Tuple2<T?, Store<SwipeFeedCardState>>(null, showItem);
-      store.dispatch(_SetItemsEvent<T>([...store.state.items, placeholder]));
+      store.dispatch(SetItemsEvent<T>([...store.state.items, placeholder]));
     }
 
     // Load More Items
@@ -398,7 +412,7 @@ void loadMore<T>(Store<SwipeFeedState<T>> store) async {
       showItem.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
     }
 
-    store.dispatch(_SetItemsEvent(shiftAdd(oldItems, items)));
+    store.dispatch(SetItemsEvent(shiftAdd(oldItems, items)));
     store.dispatch(_SetLoadingEvent(false));
   }
 }
@@ -415,7 +429,7 @@ ThunkAction<SwipeFeedState<T>> addItem<T>(T item, [Function? onComplete]) {
     }
     List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = 
     [Tuple2(item, SwipeFeedCardState.tower()), ...store.state.items];
-    store.dispatch(_SetItemsEvent(addNewItem));
+    store.dispatch(SetItemsEvent(addNewItem));
     /// Duration For showing the Card
     /// This is the functional duration not the actual animation
     /// Insert Here
@@ -435,7 +449,7 @@ ThunkAction<SwipeFeedState<T>> updateItem<T>(T item, String id, String Function(
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
     if(items.isNotEmpty && items[0].item1 != null && id == objectKey(items[0].item1!)){
       items.remove(items[0]);
-      store.dispatch(_SetItemsEvent(items));
+      store.dispatch(SetItemsEvent(items));
       store.dispatch(addItem(item));
     }
   };
