@@ -26,7 +26,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// Child of the card
   final SwipeFeedBuilder<T>? childBuilder;
 
-  /// Shape of the card
+  /// Widget representing the last card in the list "Background Card"
   final Widget Function(BuildContext context, Widget? child)? background;
 
   /// Loading widget of the card, is called when the feed is in a loading state
@@ -41,11 +41,15 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// If the card can take up the screen and go passed its bounds
   final bool Function(T)? canExpand;
 
+  /// The color of the mask of the next poll in the list
+  final Widget? mask;
+
   const SwipeFeedCard({ 
     Key? key,
     required this.objectKey,
     required this.controller,
     required this.item,
+    this.mask,
     this.loadingPlaceHolder,
     this.padding,
     this.canExpand,
@@ -73,7 +77,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
     swipeCardController = SwipeCardController();
   }
 
-  EdgeInsets get padding => widget.padding ?? EdgeInsets.zero;
+  /// Padding associated with the card
+  /// Has to be passed in so the card can control the padding in order to expand
+  EdgeInsets get padding => (widget as SwipeFeedCard<T>).padding ?? EdgeInsets.zero;
 
   /// Called when the card registers a swipe
   /// Checks to see if the onSwipe method passed in and forwards the animation accordingly
@@ -81,8 +87,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// False - Do nothing
   dynamic _onSwipe(double dx, double dy, DismissDirection direction) async {
     bool swipeAlert = true;
-    if(widget.onSwipe != null){
-      swipeAlert = await widget.onSwipe!(dx, dy, reverseAnimation, direction);
+    if((widget as SwipeFeedCard<T>).onSwipe != null){
+      swipeAlert = await (widget as SwipeFeedCard<T>).onSwipe!(dx, dy, reverseAnimation, direction);
     }
     if(swipeAlert){
       forwardAnimation();
@@ -97,8 +103,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 
   /// Forwards the swipe card and signals the swipe feed to continue
   Future<void> forwardAnimation() async {
-    if(widget.onContinue != null){
-      widget.onContinue!();
+    if((widget as SwipeFeedCard<T>).onContinue != null){
+      (widget as SwipeFeedCard<T>).onContinue!();
     }
   }
 
@@ -112,26 +118,37 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// If the swipe card is behind another swipe card will mask the swipe card 
   /// with background
   Widget _loadCard(BuildContext context, FeedCardState state, Widget? child){
-    bool isExpanded = state == SwipeCardExpandState();
+    bool isExpanded = state is SwipeCardExpandState;
     bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
-
-    if(!show && widget.background != null){
+    if(!show && child != null && widget.background != null){
       return Container(
         key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
-        child: widget.background!(context, SizedBox.expand(child: child))
+        child: (widget as SwipeFeedCard<T>).background!(context, SizedBox.expand(child: child))
       );
     }
-    if(widget.item.item1 == null){
+    else if((widget as SwipeFeedCard<T>).item.item1 == null){
       return Container(
-        key: ValueKey('SwipeFeed Placeholder Card ' + (widget as SwipeFeedCard<T>).objectKey(widget.item.item1)),
-        child: widget.loadingPlaceHolder ?? SizedBox.shrink()
+        key: ValueKey('SwipeFeed Placeholder Card ' + UniqueKey().toString()),
+        child: (widget as SwipeFeedCard<T>).loadingPlaceHolder ?? SizedBox.shrink()
       );
     }
-    if(widget.childBuilder != null && widget.item.item1 != null){
+    else if((widget as SwipeFeedCard<T>).childBuilder != null && (widget as SwipeFeedCard<T>).item.item1 != null){
       //Builds custom child if childBuilder is defined
-      return Container(
-        key: widget.item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + (widget as SwipeFeedCard<T>).objectKey(widget.item.item1)),
-        child: widget.childBuilder!(widget.item.item1, isExpanded, (){widget.item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));})
+      return Stack(
+        children: [
+          Container(
+            key: (widget as SwipeFeedCard<T>).item.item1 == null ? UniqueKey() : ValueKey('SwipeFeed Child Card ' + (widget as SwipeFeedCard<T>).objectKey((widget as SwipeFeedCard<T>).item.item1)),
+            child: (widget as SwipeFeedCard<T>).childBuilder!((widget as SwipeFeedCard<T>).item.item1, isExpanded, (){(widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));})
+          ),
+          IgnorePointer(
+            ignoring: true,
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 200),
+              child: !show && widget.mask != null ? widget.mask! : 
+              Container(color: Colors.transparent)
+            ),
+          )
+        ],
       );
     }
 
@@ -146,36 +163,41 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       converter: (store) => store.state.state,
       builder: (context, state) {
         Widget? hiddenChild = state is SwipeCardHideState ? state.overlay : null;
+        bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard) {
             return AnimatedPadding(
               duration: Duration(milliseconds: 200),
               padding: state is SwipeCardExpandState ? EdgeInsets.zero : (keyboard ? padding.copyWith(bottom: 0) : padding),
               child: GestureDetector(
-                onTap: widget.item.item1 != null && widget.canExpand != null && 
-                widget.canExpand!(widget.item.item1) && state is SwipeCardShowState && !keyboard ? (){
-                  widget.item.item2.dispatch(SetSwipeFeedCardState(SwipeCardExpandState()));
+                onTap: (widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).canExpand != null && 
+                (widget as SwipeFeedCard<T>).canExpand!((widget as SwipeFeedCard<T>).item.item1) && state is SwipeCardShowState && !keyboard ? (){
+                  (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardExpandState()));
                 } : null,
                 child: Opacity(
                   opacity: keyboard && state is SwipeCardHideState ? 0.0 : 1.0,
                   child: IgnorePointer(
                     ignoring: state is SwipeCardHideState && state.overlay == null,
-                    child: SwipeCard(
-                      controller: swipeCardController,  
-                      swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
-                      opacityChange: true,
-                      onPanUpdate: (dx, dy){
-                        if(widget.item.item1 != null && widget.item.item2.state.state is SwipeCardExpandState){
-                          widget.item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-                        }
-                        if(widget.onPanUpdate != null){
-                          widget.onPanUpdate!(dx, dy);
-                        }
-                      },
-                      onSwipe: _onSwipe,
-                      child: AnimatedSwitcher(
-                        duration: Duration(milliseconds: 200),
-                        child: _loadCard(context, state, hiddenChild)
+                    child: AnimatedPadding(
+                      duration: Duration(milliseconds: 200),
+                      padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
+                      child: SwipeCard(
+                        controller: swipeCardController,  
+                        swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
+                        opacityChange: true,
+                        onPanUpdate: (dx, dy){
+                          if((widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).item.item2.state.state is SwipeCardExpandState){
+                            (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+                          }
+                          if((widget as SwipeFeedCard<T>).onPanUpdate != null){
+                            (widget as SwipeFeedCard<T>).onPanUpdate!(dx, dy);
+                          }
+                        },
+                        onSwipe: _onSwipe,
+                        child: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 200),
+                          child: _loadCard(context, state, hiddenChild)
+                        ),
                       ),
                     ),
                   ),
@@ -192,17 +214,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   @override
   Widget build(BuildContext context) {
     return StoreProvider(
-      store: widget.item.item2,
-      child: AnimatedSwitcher(
-        duration: Duration(milliseconds: 300),
-        transitionBuilder: (child, animation) {
-          return ScaleTransition(
-            scale: animation,
-            child: child,
-          );
-        },
-        child: buildSwipeCard(context),
-      ),
+      store: (widget as SwipeFeedCard<T>).item.item2,
+      child: buildSwipeCard(context),
     );
   }
 }

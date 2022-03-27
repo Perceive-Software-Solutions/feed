@@ -48,6 +48,13 @@ class SwipeFeed<T> extends StatefulWidget {
 
   /// Function tells the feed if the card can expand
   final bool Function(dynamic)? canExpand;
+
+  /// Padding applied to the Swipe Feed
+  /// Has the option to animate
+  final EdgeInsets? padding;
+
+  /// Widget builds on top of the card behind the current card
+  final Widget? mask;
   
   const SwipeFeed({ 
     Key? key,
@@ -60,6 +67,8 @@ class SwipeFeed<T> extends StatefulWidget {
     this.onSwipe,
     this.onPanUpdate,
     this.canExpand,
+    this.padding,
+    this.mask,
     required this.loader,
     required this.objectKey,
     required this.controller
@@ -197,11 +206,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       key:  Key('swipefeed - card - ${item.item1 == null ? UniqueKey().toString() : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
       objectKey: (widget as SwipeFeed<T>).objectKey,
       controller: swipeFeedCardControllers[index],
+      padding: widget.padding,
       item: item,
       childBuilder: (widget as SwipeFeed<T>).childBuilder,
       loadingPlaceHolder: (widget as SwipeFeed<T>).loadingPlaceHolder,
       background: (widget as SwipeFeed<T>).background,
       canExpand: (widget as SwipeFeed<T>).canExpand,
+      mask: widget.mask,
       onPanUpdate: (dx, dy){
         if((widget as SwipeFeed<T>).onPanUpdate != null){
           (widget as SwipeFeed<T>).onPanUpdate!(dy, dy);

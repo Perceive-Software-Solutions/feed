@@ -211,6 +211,11 @@ ThunkAction<SwipeFeedState<T>> refresh<T>([Function? onComplete]) {
       final placeholder = Tuple2(null, showItem);
       store.dispatch(_SetItemsEvent([placeholder]));
 
+      // Wait time for loading card to go from hiding state to show state
+      await Future.delayed(Duration(milliseconds: 500)).then((value){
+        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      });
+
       // Show loading state
       showItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
 

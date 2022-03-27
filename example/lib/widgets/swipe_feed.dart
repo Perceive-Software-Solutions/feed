@@ -84,97 +84,95 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
               ),
             ),
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 83, bottom: 96, left: 8, right: 8),
-                child: SwipeFeed<String>(
-                  controller: feedController,
-                  loader: loadItems,
-                  objectKey: (item){
-                    return item.hashCode.toString();
+              child: SwipeFeed<String>(
+                padding: const EdgeInsets.only(left: 8, right: 8, top: 60, bottom: 40),
+                controller: feedController,
+                loader: loadItems,
+                objectKey: (item){
+                  return item.hashCode.toString();
+                },
+                canExpand: (item){
+                  return true;
+                },
+                noItemsPlaceHolder: GestureDetector(
+                  child: Container(
+                    decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black, width: 3),
+                    ),
+                  ),
+                  onTap: (){
+                    feedController.refresh();
                   },
-                  canExpand: (item){
-                    return true;
+                ),
+                noConnectivityPlaceHolder: GestureDetector(
+                  child: Container(
+                    height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top -  MediaQuery.of(context).padding.bottom - 62 - 125,
+                    decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black, width: 3),
+                    ),
+                  ),
+                  onTap: (){
+                    feedController.refresh();
                   },
-                  noItemsPlaceHolder: GestureDetector(
-                    child: Container(
-                      decoration: BoxDecoration(
-                      color: Colors.blue,
+                ),
+                background: (context, child){
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.black, width: 3),
-                      ),
                     ),
-                    onTap: (){
-                      feedController.refresh();
-                    },
-                  ),
-                  noConnectivityPlaceHolder: GestureDetector(
+                    child: child,
+                  );
+                },
+                childBuilder: (dynamic value, bool isExpanded, void Function() close ) {
+                  return Opacity(
+                    opacity: 0.5,
                     child: Container(
-                      height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top -  MediaQuery.of(context).padding.bottom - 62 - 125,
                       decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 3),
-                      ),
-                    ),
-                    onTap: (){
-                      feedController.refresh();
-                    },
-                  ),
-                  background: (context, child){
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.transparent,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.black, width: 3),
                       ),
-                      child: child,
-                    );
-                  },
-                  childBuilder: (dynamic value, bool isExpanded, void Function() close ) {
-                    return Opacity(
-                      opacity: 0.5,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.black, width: 3),
-                        ),
-                        child: Center(
-                          child: Container(
-                            color: isExpanded ? Colors.amber : null,
-                            child: GestureDetector(
-                              onTap: isExpanded ? close : null,
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'value ${isExpanded ? '\n\n Tap to UnExpand' : ''}', 
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)
-                                  ),
-                                  const TextField(),
-                                  const Spacer(),
-                                  Text(value),
-                                  const Spacer(),
-                                ],
-                              ),
+                      child: Center(
+                        child: Container(
+                          color: isExpanded ? Colors.amber : null,
+                          child: GestureDetector(
+                            onTap: isExpanded ? close : null,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'value ${isExpanded ? '\n\n Tap to UnExpand' : ''}', 
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 24)
+                                ),
+                                const TextField(),
+                                const Spacer(),
+                                Text(value),
+                                const Spacer(),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                    );
-                  },
-                  onSwipe: (dx, dy, direction, reverseAnimation, item) async {
-                    return true;
-                  },
-                  // placeholder: Center(
-                  //   child: Container(
-                  //     decoration: BoxDecoration(
-                  //       color: Colors.green,
-                  //       borderRadius: BorderRadius.circular(16),
-                  //       border: Border.all(color: Colors.amber, width: 3)
-                  //     ),
-                  //   )
-                  // ),
-                ),
+                    ),
+                  );
+                },
+                onSwipe: (dx, dy, direction, reverseAnimation, item) async {
+                  return true;
+                },
+                // placeholder: Center(
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //       color: Colors.green,
+                //       borderRadius: BorderRadius.circular(16),
+                //       border: Border.all(color: Colors.amber, width: 3)
+                //     ),
+                //   )
+                // ),
               ),
             ),
           ],
