@@ -3,58 +3,48 @@ import 'dart:math';
 import 'package:feed/feeds/feed_list_view.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/render/keep_alive.dart';
-import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:feed/util/state/feed_state.dart';
+import 'package:feed/util/state/feed_store.dart';
 import 'package:flutter/material.dart';
-import 'package:perceive_slidable/sliding_sheet.dart';
+import 'package:fort/fort.dart';
 import 'package:tuple/tuple.dart';
 
-/// Splits the feed widget into n parts allows for simultanious list of independant feeds.
-/// Allows the exsiatnce of multiple feeds with a preset header.
-/// All feeds maintain the same type.
+/// Splits the feed widget into n parts allows for simultaneous list of independent feeds.
 /// 
 /// [Feed] functions exactly like a feed, without using [EasyRefresh]. 
 /// The independent feeds will load more content however will not be able to call refresh. 
 /// 
-/// [childBuilders] - a list of builder, populate the specific index to build a custom child on that index
+/// [childBuilder] - a list of builder, populate the specific index to build a custom child on that index
 /// 
-/// [childBuilder] - a builder that will populate the children in all feeds, is overriden by [childBuilders]
+/// [childBuilder] - a builder that will populate the children in all feeds, is overrides by [childBuilder]
 /// 
 /// `Supports: Posts, Polls, All Objects if childBuilder is present`
 class Feed extends StatefulWidget {
-
-  ///Determines if the the feed should initially load, defaulted to true
-  final bool initiallyLoad;
-
-  ///Ensures the feed is manualy loaded and does not have its own scroll controller
-  final bool compact;
+  
+  /// Overrides the scroll controller provided in the feed controller
+  final ScrollController? scrollController;
 
   final FeedLoader loader;
 
   final FeedController? controller;
 
-  final SheetController? sheetController;
-
-  final List<Widget>? headerSliver;
-
-  final List<Widget>? footerSliver;
-
   final int? lengthFactor;
 
-  final int? innitalLength;
-
-  final Future Function()? onRefresh;
+  final int? initialLength;
 
   final FeedBuilder? childBuilder;
 
   ///defines the height to offset the body
   final double? footerHeight;
 
+  ///Determines if the the feed should initially load, defaulted to true
+  final bool initiallyLoad;
+
+  ///Ensures the feed is manually loaded and does not have its own scroll controller
+  final bool compact;
+
   ///Disables the scroll controller when set to true
   final bool? disableScroll;
-
-  /// Condition to hidefeed
-  final bool? condition;
 
   /// Loading state placeholders
   final Widget? placeholder;
@@ -62,11 +52,8 @@ class Feed extends StatefulWidget {
   /// Loading widget
   final Widget? loading;
 
-  ///The header builder that prints over each feed
-  final Widget Function(BuildContext context)? headerBuilder;
-
-  ///Retreives the item id, used to ensure the prevention of duplcicate additions
-  final String Function(dynamic item)? getItemID;
+  ///Retrieves the item id, used to ensure the prevention of duplicate additions
+  final RetrievalFunction? getItemID;
 
   ///The optional function used to wrap the list view
   final WidgetWrapper? wrapper;
@@ -74,33 +61,22 @@ class Feed extends StatefulWidget {
   /// Items that will be pinned to the top of the list on init
   final List<dynamic>? pinnedItems;
 
-  final double extent;
-
-  final double minExtent;
-
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const Feed(
       {Key? key,
       required this.loader,
       this.controller,
-      this.sheetController,
-      this.headerSliver,
       this.lengthFactor,
-      this.innitalLength,
-      this.onRefresh,
-      this.footerSliver,
+      this.initialLength,
       this.childBuilder,
       this.footerHeight,
       this.placeholder,
       this.loading,
-      this.condition = false, 
-      this.extent = 0.7,
-      this.minExtent = 0.0,
       this.disableScroll, 
-      this.headerBuilder,
       this.getItemID,
       this.wrapper,
+      this.scrollController,
       this.compact = false,
       this.initiallyLoad = true,
       this.pinnedItems})
@@ -115,7 +91,7 @@ class _FeedState extends State<Feed> {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ///The default length increase and innitial length factor
+  ///The default length increase and initial length factor
   static const int LENGTH_INCREASE_FACTOR = 30;
 
   ///The fraction of items that are rendered from the list displayed.
@@ -124,41 +100,40 @@ class _FeedState extends State<Feed> {
   ///The delay between adding an item
   static const int ITEM_ADD_DELAY = 0;
 
-  ///Constant that holds the number of feeds to be generated
-  ///The feed count represents the length of the loader list
-  late int _feedCount;
-
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  late final Tower<FeedState> tower = FeedState.tower;
+
   ///Determines when each index in the list is loading
-  late bool loading;
+  bool get loading => tower.state.loading;
 
   ///Determines the length of each of the lists
-  late int sizes = 0;
+  int get size => tower.state.size;
 
-  //Items loaded in but not rendered
-  late List<dynamic> pending;
+  ///Determines the length of each of the lists
+  String? get token => tower.state.token;
 
-  ///List of tokens for each index of the feed
-  late String? tokens;
+  /// Determines if there are no items 
+  bool get emptyFeed => tower.state.items.isEmpty;
 
-  ///If there is any more items to be loaded
-  late bool loadMore; 
+  /// If there is any more items to be loaded
+  bool get hasMore => tower.state.hasMore;
+
+  /// Determines if a feed index is in refresh state or not
+  bool get isNotRefreshed => emptyFeed && hasMore;
   
-  ///The items added the various indicies of the Feed
-  late Map<String, bool> addedItems;
+  ///The items added the various indices of the Feed
+  Map<String, bool> get addedItems => tower.state.addedItems;
 
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Render State ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  ///The list of loaded items to be displayed on the feed
-  late ConcreteCubit<List> itemsCubit;
+  /// The pending items within the state
+  List<dynamic> get pending => tower.state.pendingItems;
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Getter ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ///Retreives the load size
-  int get loadSize => widget.innitalLength ?? widget.lengthFactor ?? LENGTH_INCREASE_FACTOR;
+  ///Retrieves the load size
+  int get loadSize => widget.initialLength ?? widget.lengthFactor ?? LENGTH_INCREASE_FACTOR;
 
-  ///Retreives loading widget
+  ///Retrieves loading widget
   Widget get load => widget.loading == null ? Container() : widget.loading!;
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Lifecycle ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -168,22 +143,9 @@ class _FeedState extends State<Feed> {
     super.initState();
 
     widget.controller?._bind(this);
-
-    //Sets the state variables for each feed index
-    pending = [];
-    sizes = 0;
-    tokens = null;
-    loading = false;
-    loadMore = true;
-    addedItems = {};
-
-    //Creates concrete cubit
-    itemsCubit = ConcreteCubit<List>([]);
-
-    //Loads the innitial set of items
     
     if(widget.initiallyLoad)
-      _refresh(false);
+      _refresh();
 
     if(widget.pinnedItems != null){
       pinItems();
@@ -206,230 +168,158 @@ class _FeedState extends State<Feed> {
 
     //Refresh feed on key change
     if (widget.key.toString() != old.key.toString() && !widget.compact) {
-      _refresh(false);
+      _refresh();
     }
   }
 
-  void removeItem(dynamic item, [dynamic Function(dynamic item)? retreivalFunction]){
-
-    List items = [...itemsCubit.state];
-    items.removeWhere((element) => (retreivalFunction != null ? retreivalFunction(element) : element) == item);
-    itemsCubit.emit(items);
+  void removeItem(String item, [RetrievalFunction? retrievalFunction]){
+    tower.dispatch(removeFeedItemAction(item, retrievalFunction: retrievalFunction ?? widget.getItemID));
   }
   
   ///Clears the state on a feed index
   void clearFeed(){
-    setState(() {
-      pending = [];
-      sizes = 0;
-      tokens = null;
-      loading = false;
-      loadMore = true;
-      addedItems = {};
-    });
-    itemsCubit.emit([]);
+    tower.dispatch(ClearFeedStateEvent());
   }
   
-  ///Clears the state on a feed index
+  ///Clears the state and updates it
   void setFeedState(InitialFeedState state) async {
-    // itemsCubit[index].emit([]); //clear previous state
-
-    late final list;
-    pending = [];
-    sizes = 0;
-    tokens = state.pageToken;
-    loading = false;
-    loadMore = state.hasMore;
-    addedItems = {};
-
-    //Retreive list
-    list = _allocateToPending(state.items);
-
-    // print('ok');
     
+    tower.dispatch(ClearFeedStateEvent(InitialFeedState(
+      hasMore: state.hasMore,
+      items: [],
+      pageToken: state.pageToken
+    )));
 
     //Add items
-    await _incrementallyAddItems(list, true);
-    setState(() {});
+    await _offLoadItemsToFeed(state.items, state.pageToken);
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  /// Removes the added items from the feed
+  List _purgeAddedItems(List items){
+    if(widget.getItemID != null){
+      return items.where((item) => addedItems[widget.getItemID!(item)] != true).toList();
+    }
+    return items;
+  }
 
   List _allocateToPending(List items){
 
     //Determine split index as a fraction fo the items loaded
     int splitIndex = min(RENDER_COUNT, items.length);
 
-    //Alocated the remaining items to pending
-    pending = items.sublist(splitIndex);
+    // Allocate the remaining items to pending
+    tower.dispatch(SetPendingFeedItemsEvent(items.sublist(splitIndex)));
 
     //Return the portion of the items
     return items.sublist(0, splitIndex);
 
   }
 
-  //TODO: chnage
   Future<void> _incrementallyAddItems(List newItems, [bool clear = false]) async {
 
     for (var i = 0; i < newItems.length; i++) {
       
       await Future.delayed(Duration(milliseconds: ITEM_ADD_DELAY)).then((_){
-        List addNewItem = [...(clear && i == 0 ? [] : itemsCubit.state), newItems[i]];
-
-        itemsCubit.emit( addNewItem );
-        
-        //Updates the size variable //TODO clean up
-        sizes = addNewItem.length;
+        tower.dispatch(AddFeedItemEvent(
+          newItems[i],
+          clear: clear && i == 0
+        ));
       });
 
     }
   }
 
-  ///The function that is run to refresh the page
-  ///[full] - defines if the parent widget should be refreshed aswell
-  Future<void> _refresh([bool full = true]) async {
 
-    
-    itemsCubit.emit([]);
+  /// Uses a list of items and a token to update the feed state
+  Future<void> _offLoadItemsToFeed(List items, String? pageToken) async {
+
+    List newItems = _allocateToPending(items);
+
+    await _incrementallyAddItems(newItems);
+
+    if(pageToken == null && newItems.length == items.length){
+      tower.dispatch(SetFeedHasMoreState(false));
+    }
+  }
+
+  /// Uses the items within the pending state to populate the feed
+  Future<void> _loadFromPending() {
+    return _offLoadItemsToFeed([...pending], token);
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Loaders ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ///The function that is run to refresh the page
+  ///[full] - defines if the parent widget should be refreshed as well
+  Future<void> _refresh() async {
+
     if(loading){
       return;
     }
 
-    //Calls the refresh function from the parent widget
-    Future<void>? refresh =
-        widget.onRefresh != null && full ? widget.onRefresh!() : null;
+    //Set the loading to true and clears the feed
+    clearFeed();
+    tower.dispatch(SetFeedLoadingState(true));
 
-    //Set the loading to true
-    loading = true;
-    setState(() {});
-
-    //Retreives items
+    //Retrieves items
     Tuple2<List, String?> loaded = await widget.loader(loadSize);
 
-    //The loaded items
-    List loadedItems = loaded.item1;
+    // The loaded items, with the added items purged,
+    // Along with the current page token
+    List loadedItems = _purgeAddedItems(loaded.item1);
+    final pageToken = loaded.item2;
 
-    //Remove the items already within addItems
-    if(widget.getItemID != null){
-      loadedItems = loadedItems.where((item) => addedItems[widget.getItemID!(item)] != true).toList();
-    }
+    // Set the token and offload the feed of items
+    tower.dispatch(SetFeedTokenState(pageToken));
+    await _offLoadItemsToFeed(loadedItems, pageToken);
 
-    //Awaits the parent refresh function
-    if (refresh != null) await refresh;
-
-    if (mounted) {
+    //Set the loading to false
+    tower.dispatch(SetFeedLoadingState(false));
       
-      List newItems = _allocateToPending(loadedItems);
-      tokens = loaded.item2;
+    //Notifies all the controller listeners
+    widget.controller?._update();
 
-
-      if(loaded.item2 == null){
-        loadMore = false;
-      }
-
-      await _incrementallyAddItems(newItems);
-
-      //Set the loading to false
-      loading = false;
-      setState(() {});
-        
-      //Notifies all the controller lisneteners
-      widget.controller?._update();
-    }
-  }
-
-  Future<void> _loadFromPending() async {
-
-    Tuple2<List, String?> loaded;
-
-    //use pending
-    if(pending.isNotEmpty){
-      loaded = Tuple2([...pending], tokens);
-
-      if(mounted){
-
-        List newItems = _allocateToPending(loaded.item1);
-        tokens = loaded.item2;
-
-        await _incrementallyAddItems(newItems);
-
-        //Set the loading to false
-        loading = false;
-        setState(() {});
-
-        //Notifies all the controller lisneteners
-        widget.controller?._update();
-      }
-    }
   }
 
   ///The function run to load more items onto the page
   Future<void> _loadMore() async {
 
-    if(loading){
+    // Does not attempt to load more if the end of the state is reached or it is loading
+    if(loading || hasMore == false){
       return;
     }
 
     //Set the loading to true
-    loading = true;
-    setState(() {});
+    tower.dispatch(SetFeedLoadingState(true));
+
     int newSize = LENGTH_INCREASE_FACTOR;
-    Tuple2<List, String?> loaded;
 
-    //use pending
+    // use pending if there are items within it
     if(pending.isNotEmpty){
-      loaded = Tuple2([...pending], tokens);
-
-      if(mounted){
-
-        List newItems = _allocateToPending(loaded.item1);
-        tokens = loaded.item2;
-
-        await _incrementallyAddItems(newItems);
-
-        //Set the loading to false
-        loading = false;
-        if(tokens == null && newItems.length == loaded.item1.length){
-          loadMore = false;
-        }
-        setState(() {});
-
-        //Notifies all the controller lisneteners
-        widget.controller?._update();
-      }
+      await _loadFromPending();
     }
     //Load more
     else{
-      loaded = await widget.loader(newSize, tokens);
+      final loaded = await widget.loader(newSize, token);
 
-      //The loaded items
-      List loadedItems = loaded.item1;
+      // The loaded items, with the added items purged,
+      // Along with the current page token
+      List loadedItems = _purgeAddedItems(loaded.item1);
+      final pageToken = loaded.item2;
 
-      //Remove the items already within addItems
-      if(widget.getItemID != null){
-        loadedItems = loadedItems.where((item) => addedItems[widget.getItemID!(item)] != true).toList();
-      }
+      // Set the token and offload the feed of items
+      tower.dispatch(SetFeedTokenState(pageToken));
+      await _offLoadItemsToFeed(loadedItems, pageToken);
 
-      if (mounted) {
-
-        List newItems = _allocateToPending(loaded.item1);
-
-        tokens = loaded.item2;
-
-        if(loaded.item2 == null && newItems.length == loaded.item1.length){
-          loadMore = false;
-        }
-
-        await _incrementallyAddItems(newItems);
-
-        //Set the loading to false
-        loading = false;
-        setState(() {});
-
-        //Notifies all the controller lisneteners
-        widget.controller?._update();
-      }
     }
+
+    //Set the loading to false
+    tower.dispatch(SetFeedLoadingState(false));
+
+    //Notifies all the controller listeners
+    widget.controller?._update();
   }
 
   Widget wrapperBuilder({required BuildContext context, required Widget child}){
@@ -439,28 +329,27 @@ class _FeedState extends State<Feed> {
     return child;
   }
 
-  ///Determines if a feed index is in refresh state or not
-  bool isNotRefreshed(){
-    return itemsCubit.state.isEmpty && loadMore;
-  }
-
-  ///Keps track of the added items are removes them from future loads
+  ///Keeps track of the added items are removes them from future loads
   void addItem(dynamic item){
-    List addNewItem = [item, ...itemsCubit.state];
-    itemsCubit.emit(addNewItem);
-    sizes = sizes + 1;
 
     //track added items only oif the [getItemID] function is defined
     if(widget.getItemID != null){
-      addedItems[widget.getItemID!(item)] = true;
+      String itemKey = widget.getItemID!(item);
+      removeItem(itemKey, widget.getItemID);
+      tower.dispatch(UpdateAddedItemsEvent(itemKey));
     }
+
+    tower.dispatch(AddFeedItemEvent(
+      item,
+      inFront: true
+    ));
   }
 
   ///Builds the tabs used in the custom scroll view
-  Widget _buildFeed() {
+  Widget _buildFeed(bool loadMore) {
     Widget view = SizedBox();
 
-    if (sizes == 0 && !loadMore) {
+    if (size == 0 && !loadMore) {
       if(widget.placeholder != null){
         //No items placeholder
         view = widget.placeholder!;
@@ -470,24 +359,13 @@ class _FeedState extends State<Feed> {
       //Feed view
       view = KeepAliveWidget(
         child: FeedListView(
-          extent: widget.extent,
-          minExtent: widget.minExtent,
-          sheetController: widget.sheetController,
-          controller: widget.controller!.scrollController(),
-          itemsCubit: itemsCubit,
+          controller: widget.scrollController ?? widget.controller!.scrollController(),
           compact: widget.compact,
           gridDelegate: widget.controller?.getGridDelegate(),
           disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
           footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
           wrapper: widget.wrapper,
-          onLoad: (){
-            if(loading == false && loadMore == true) {
-              _loadMore();
-            }
-            else{
-              _loadFromPending();
-            }
-          },
+          onLoad: _loadMore,
           builder: (context, i, items){
             if (i == items.length) {
               return Column(
@@ -509,7 +387,6 @@ class _FeedState extends State<Feed> {
             }
             return widget.childBuilder!(items[i], items.length - 1 == i);
           },
-          headerBuilder: widget.headerBuilder,              
         )
       );
     }
@@ -520,7 +397,16 @@ class _FeedState extends State<Feed> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildFeed();
+    return StoreProvider(
+      store: tower,
+      child: StoreConnector<FeedState, bool>(
+        distinct: true,
+        converter: (store) => store.state.hasMore,
+        builder: (context, loadMore) {
+          return _buildFeed(loadMore);
+        }
+      )
+    );
   }
 }
 
@@ -539,7 +425,7 @@ class FeedController extends ChangeNotifier {
   ///Private constructor
   FeedController._(this._scrollController, this._gridDelegate);
 
-  ///Default constuctor
+  ///Default constructor
   ///Creates the nested controllers
   factory FeedController({
     double? initialOffset,
@@ -561,26 +447,26 @@ class FeedController extends ChangeNotifier {
   ///Binds the feed state
   void _bind(_FeedState bind) => _state = bind;
 
-  //Called to notify all listners
+  //Called to notify all listeners
   void _update() => notifyListeners();
 
   ///Determines if the feed is loading
   bool loading() => _state!.loading;
 
-  ///Retreives the length of the list of items from the feed
-  int size() => _state!.sizes;
+  ///Retrieves the length of the list of items from the feed
+  int size() => _state!.tower.state.size;
 
-  ///Retreives the list of items from the feed
-  List list() => _state!.itemsCubit.state;
+  ///Retrieves the list of items from the feed
+  List list() => _state!.tower.state.items;
 
-  ///Retreives the list of items from the feed
-  bool hasMore() => _state!.loadMore;
+  ///Retrieves the list of items from the feed
+  bool hasMore() => _state!.hasMore;
 
-  ///Retreives the list of feed token
-  String? pageToken() => _state!.tokens;
+  ///Retrieves the list of feed token
+  String? pageToken() => _state!.token;
 
   ///Determines if an index has been refreshed
-  bool isNotRefreshed() => _state!.isNotRefreshed();
+  bool isNotRefreshed() => _state!.isNotRefreshed;
 
   ///Reloads the feed state based on the original size parameter
   Future<void> reload() => _state!._refresh();
@@ -589,7 +475,7 @@ class FeedController extends ChangeNotifier {
   Future<void> loadMore() => _state!._loadMore();
 
   ///Removes an item from all the feeds
-  void removeItem(dynamic item, {dynamic Function(dynamic item)? retreivalFunction}) => _state!.removeItem(item, retreivalFunction);
+  void removeItem(String item, {RetrievalFunction? retrievalFunction}) => _state!.removeItem(item, retrievalFunction);
 
   ///Clears the feed
   void clear() => _state!.clearFeed();
@@ -600,14 +486,14 @@ class FeedController extends ChangeNotifier {
   ///Adds an item to the beginning of the stated multi feed
   void addItem(dynamic item) => _state!.addItem(item);
 
-  ///Retreives the grid delegate at the index
+  ///Retrieves the grid delegate at the index
   FeedGridViewDelegate? getGridDelegate() => _gridDelegate;
 
   ///Determines if the current index is a grid view
   bool isGridIndex() => getGridDelegate() != null;
 
   ///Reloads the feed state based on the original size parameter
-  ScrollController? scrollController() => _scrollController;
+  ScrollController scrollController() => _scrollController;
 
   //Disposes of the controller and all nested controllers
   @override
