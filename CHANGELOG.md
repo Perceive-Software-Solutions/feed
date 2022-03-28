@@ -1,3 +1,11 @@
+## [0.4.0] v0.4.0
+
+* Removed MultiFeed
+* Implemented Sliding sheets with delegates
+* Created Single sliding sheet feed
+* Created multi sliding sheet feed
+* Integrated fort state management
+
 ## [0.3.31] v0.3.31
 
 * Fixed load more bugs in feed

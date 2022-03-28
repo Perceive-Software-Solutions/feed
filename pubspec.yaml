@@ -1,6 +1,6 @@
 name: feed
-description: A new Flutter package project.
-version: 0.3.31
+description: A package for managing load more lists and sliding sheets.
+version: 0.4.0
 homepage: https://github.com/Perceive-Software-Solutions/feed
 
 environment:
