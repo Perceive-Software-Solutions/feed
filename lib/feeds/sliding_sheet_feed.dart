@@ -34,7 +34,7 @@ class SlidingSheetFeed extends StatelessWidget {
   final Widget? loading;
 
   ///Retrieves the item id, used to ensure the prevention of duplicate additions
-  final String Function(dynamic item)? getItemID;
+  final RetrievalFunction? getItemID;
 
   ///The optional function used to wrap the list view
   final WidgetWrapper? wrapper;
@@ -171,7 +171,7 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
   final Widget? loading;
 
   ///Retrieves the item id, used to ensure the prevention of duplicate additions
-  final String Function(dynamic item)? getItemID;
+  final RetrievalFunction? getItemID;
 
   ///The optional function used to wrap the list view
   final WidgetWrapper? wrapper;

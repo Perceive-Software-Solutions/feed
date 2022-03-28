@@ -1,8 +1,10 @@
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
+import 'package:feed/util/state/feed_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:fort/fort.dart';
 import 'package:perceive_slidable/sliding_sheet.dart';
 
 ///Defines the laoding state
@@ -34,14 +36,11 @@ class FeedListView extends StatefulWidget {
 
   final bool compact;
 
-  //Weither to disable scrolling
+  //Whether to disable scrolling
   final bool? disableScroll;
 
   //The onload function when more items need to be loaded
   final Function()? onLoad;
-
-  ///Cubit holding the items
-  final ConcreteCubit<List> itemsCubit;
 
   ///Builder function for each item
   final Widget Function(BuildContext context, int i, List items) builder;
@@ -67,7 +66,6 @@ class FeedListView extends StatefulWidget {
     this.compact = false, 
     this.onLoad, 
     required this.builder, 
-    required this.itemsCubit,
     required this.controller, 
     this.footerHeight, 
     this.wrapper, 
@@ -81,55 +79,9 @@ class FeedListView extends StatefulWidget {
 
 class _FeedListViewState extends State<FeedListView> {
 
-
-  //Cubit for each list item
-  List<ConcreteCubit<FeedLoadingState>> itemLoadState = [];
-
-  //If currently snapping
-  bool snapping = false;
-
   ScrollController get scrollController => widget.controller;
 
-  bool keyBoardOpen = false;
-
   Widget get loading => widget.loading == null ? Container() : widget.loading!;
-
-  @override
-  void initState() {
-    super.initState();
-
-    //Sync the providers
-    _syncProviders(widget.itemsCubit.state);
-  }
-
-  ///Adds new items to the list of loading cubits and sets the first one to display if not set
-  void _syncProviders(List items){
-
-    //Difference in the items and providers lengths
-    int newCubitLength = items.length - itemLoadState.length;
-
-    if(newCubitLength < 0){
-      itemLoadState = [];
-      return;
-    }
-
-    //Creates new cubits for non included items
-    List<ConcreteCubit<FeedLoadingState>> newCubits = List.generate(newCubitLength, (i){
-      return ConcreteCubit(FeedLoadingState.BLOCK);
-    });
-
-    //Add all the new cubits to the list
-    itemLoadState.addAll(newCubits);
-
-    for (var i = 0; i < itemLoadState.length; i++) {
-      bool startProcess = itemLoadState[i].state != FeedLoadingState.DISPLAY;
-
-      //If the first cubit is not set to display set it
-      if(startProcess){
-        return itemLoadState[i].emit(FeedLoadingState.FIRST);
-      }
-    }
-  }
 
   Widget wrapperBuilder({required BuildContext context, required Widget child}){
     if(widget.wrapper != null){
@@ -154,7 +106,7 @@ class _FeedListViewState extends State<FeedListView> {
         crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
         padding: widget.gridDelegate!.padding,
         itemCount: items.length + (widget.compact ? 1 : 0),
-        itemBuilder: (context, index) => _buildChild(items, index),
+        itemBuilder: (context, i) => widget.builder(context, i, items),
         staggeredTileBuilder: (index) => StaggeredTile.fit(1),
       );
     }
@@ -165,7 +117,7 @@ class _FeedListViewState extends State<FeedListView> {
         addRepaintBoundaries: true,
         physics: NeverScrollableScrollPhysics(),
         itemCount: items.length,
-        itemBuilder: (context, i) => _buildChild(items, i),
+        itemBuilder: (context, i) => widget.builder(context, i, items),
       );
     }
 
@@ -194,12 +146,9 @@ class _FeedListViewState extends State<FeedListView> {
         }
         return false;
       },
-      child: BlocConsumer<Cubit<List>, List>(
-        bloc: widget.itemsCubit,
-        listener: (context, items) {
-          //Adds cubits to the list if they are not defined
-          _syncProviders(items);
-        },
+      child: StoreConnector<FeedState, List>(
+        distinct: true,
+        converter: (store) => store.state.items,
         builder: (context, items) {
           
           late Widget list = listBuilder(context, items);
@@ -221,25 +170,4 @@ class _FeedListViewState extends State<FeedListView> {
     );
   }
 
-  Widget _buildChild(List items, int i){
-    //The feed load state bloc
-    ConcreteCubit<FeedLoadingState> bloc = itemLoadState.length > i ? itemLoadState[i] : ConcreteCubit(FeedLoadingState.BLOCK);
-
-    return BlocListener(
-      key: ValueKey('key - ${i}'),
-      bloc: bloc,
-      listener: (context, state) {
-        try{
-          if(state == FeedLoadingState.DISPLAY){
-            itemLoadState[i + 1].emit(FeedLoadingState.FIRST);
-          }
-        // ignore: empty_catches
-        }catch(e){}
-      },
-      child: BlocProvider<ConcreteCubit<FeedLoadingState>>(
-        create: (context) => bloc,
-        child: widget.builder(context, i, items)
-      ),
-    );
-  }
 }

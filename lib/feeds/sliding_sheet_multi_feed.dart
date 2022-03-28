@@ -72,7 +72,7 @@ class SlidingSheetMultiFeed extends StatelessWidget {
     bool? disableScroll,
     Widget Function(double extent, int index)? placeholders,
     Widget? loading,
-    String Function(dynamic item)? getItemID,
+    RetrievalFunction? getItemID,
     IndexWidgetWrapper? wrapper,
     List<Tuple2<dynamic, int>>? pinnedItems,
     Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? headerBuilder,
@@ -197,7 +197,7 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
   final Widget? loading;
 
   ///Retrieves the item id, used to ensure the prevention of duplicate additions
-  final String Function(dynamic item)? getItemID;
+  final RetrievalFunction? getItemID;
 
   ///The optional function used to wrap the list view
   final IndexWidgetWrapper? wrapper;
@@ -275,7 +275,7 @@ class MultiFeedController {
     gridDelegate: gridDelegatesAtIndex?.call(index) ?? null
   ));
 
-  void removeItem(dynamic item, {dynamic Function(dynamic item)? retrievalFunction}) {
+  void removeItem(String item, {RetrievalFunction? retrievalFunction}) {
     for (var i = 0; i < pageCount; i++) {
       try{
         controllerAt(i).removeItem(item, retrievalFunction: retrievalFunction);

@@ -351,7 +351,6 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
 
   Future<void> scrollControllerUp(ScrollController controller) async {
     if(controller.hasClients){
-      print('BRUHHHH');
       await controller.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOutCirc);
     }
   }

@@ -91,3 +91,5 @@ typedef IndexWidgetWrapper = Widget Function(BuildContext context, Widget child,
 typedef SlidingSheetWidgetWrapper = Widget Function(BuildContext context, double extent, Widget child, int index);
 
 typedef WidgetWrapper = Widget Function(BuildContext context, Widget child);
+
+typedef RetrievalFunction = String Function(dynamic item);
