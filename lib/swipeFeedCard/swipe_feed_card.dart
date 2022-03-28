@@ -126,10 +126,18 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
     bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
 
     if(!show && (widget as SwipeFeedCard<T>).background != null){
-      return Container(
-        key: ValueKey('SwipeFeed Background Card ${child == null ? 'Without Child' : 'With Child'}'),
-        child: (widget as SwipeFeedCard<T>).background!(context, SizedBox.expand(child: child))
-      );
+      if(child == null){
+        return Container(
+          key: ValueKey('SwipeFeed Background Card Without Child}'),
+          child: (widget as SwipeFeedCard<T>).background!(context, null)
+        );
+      }
+      else{
+        return Container(
+          key: ValueKey('SwipeFeed Background Card With Child}'),
+          child: (widget as SwipeFeedCard<T>).background!(context, SizedBox.expand(child: child))
+        );
+      }
     }
     if((widget as SwipeFeedCard<T>).item.item1 == null){
       return Container(
@@ -156,6 +164,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       builder: (context, state) {
         Widget? hiddenChild = state is SwipeCardHideState ? state.overlay : null;
         bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
+        print(show);
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard) {
             return AnimatedPadding(

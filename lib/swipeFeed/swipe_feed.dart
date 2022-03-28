@@ -205,7 +205,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     Tuple2<T?, Store<SwipeFeedCardState>> item = tower.state.items[index];
 
     return SwipeFeedCard<T>(
-      key:  Key('swipefeed - card - ${item.item1 == null ? UniqueKey().toString() : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
+      key:  Key('swipefeed - card - ${item.item1 == null ? 'last - card - key' : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
       objectKey: (widget as SwipeFeed<T>).objectKey,
       controller: swipeFeedCardControllers[index],
       padding: widget.padding,
