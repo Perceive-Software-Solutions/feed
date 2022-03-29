@@ -164,7 +164,6 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       builder: (context, state) {
         Widget? hiddenChild = state is SwipeCardHideState ? state.overlay : null;
         bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
-        print(show);
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard) {
             return AnimatedPadding(

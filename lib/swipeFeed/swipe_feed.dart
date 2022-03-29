@@ -143,8 +143,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Reset the Swipe Feed back to its initial state
   Future<bool> reset() async {
-    _setCardState(SwipeCardHideState());
-    await Future.delayed(Duration(milliseconds: 500));
+    if(tower.state.items.isNotEmpty && !(tower.state.items[0].item2.state.state is SwipeCardHideState)){
+      print(tower.state.items[0].item2.state);
+      _setCardState(SwipeCardHideState());
+      await Future.delayed(Duration(milliseconds: 500)); 
+    }
     final completer = Completer<bool>();
     Function complete = (){
       completer.complete(true);

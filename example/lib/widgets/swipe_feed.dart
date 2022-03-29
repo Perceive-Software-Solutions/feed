@@ -24,7 +24,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
 
   Future<Tuple2<List<String>, String?>> loadItems(int size, [String? token]) async {
     await Future.delayed(const Duration(seconds: 1));
-    return const Tuple2([], null);
+    return const Tuple2(['Testing 1', 'Testing 2', 'Testing 3', 'Testing 4', 'Testing 5', 'Testing 6', 'Testing 7', 'Testing 8', 'Testing 9', 'Testing 10'], 'Pagetoken');
   }
 
   @override
@@ -46,8 +46,9 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
               borderRadius: BorderRadius.circular(40)
             ),
           ),
-          onTap: (){
-            feedController.addCard('It Worked !!!!!!');
+          onTap: () async {
+            await feedController.reset();
+            // feedController.addCard('It Worked !!!!!!');
             // feedController.swipeRight();
           }
         ),
@@ -114,7 +115,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 noConnectivityPlaceHolder: GestureDetector(
                   child: Container(
                     color: Colors.transparent,
-                    child: const Center(child: Text("NO NEW ITEMS", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
+                    child: const Center(child: Text("CONNECTIVITY ERROR", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
                   ),
                   onTap: (){
                     feedController.refresh();

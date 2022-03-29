@@ -24,7 +24,14 @@ class SwipeFeedState<T> extends FortState<T>{
   Widget connectivityError;
 
   /// Getters
+  //How many items are loaded in at a time
+  //Passed back within the loaded function
+  //If items retrieved is less then 10 then has more is set to false
   static const int LENGTH_INCREASE_FACTOR = 10;
+
+  //When the feed should load more
+  //When the items contained in the state is less then 10
+  //If has more is set to false blocks it from loading more
   static const int LOAD_MORE_LIMIT = 3;
 
   SwipeFeedState({
@@ -209,10 +216,14 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
       // Ensure one element is present inside of the list
       final showItem = SwipeFeedCardState.tower();
       final placeholder = Tuple2(null, showItem);
-      store.dispatch(SetItemsEvent([placeholder]));
+      store.dispatch(SetItemsEvent<T>([placeholder]));
       Store<SwipeFeedCardState> lastItem = store.state.items[0].item2;
+      
 
       // Wait time for loading card to go from hiding state to show state
+      // May need to be minipulated depending on the state
+      // If the card is initially loading then wait 500 miliseconds
+      // If the card is going from no items state to loading state after reset is called should it wait 500 ms
       await Future.delayed(Duration(milliseconds: 500)).then((value){
         lastItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
       });
@@ -234,6 +245,7 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
       String? pageToken = loaded.item2;
 
       //If there is no next page, then has more is false
+      //Has to be greater then 10 to have has more not get set to false
       if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
         store.dispatch(_SetHasMoreEvent(false));
       }
@@ -311,7 +323,7 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
       items.removeAt(0);
       store.dispatch(SetItemsEvent(items));
       if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
-        store.dispatch(loadMore);
+        store.dispatch(loadMore<T>());
       }
     });
   };
@@ -372,44 +384,58 @@ ThunkAction<SwipeFeedState<T>> removeItemById<T>(String id, String Function(T) o
 
 // Ensures there is always a placeholder card at the end of the list
 // Loads More items
-void loadMore<T>(Store<SwipeFeedState<T>> store) async {
-  // Ensure not loading
-  if(!store.state.loading || store.state.hasMore){
+ThunkAction<SwipeFeedState<T>> loadMore<T>() {
+  return (Store<SwipeFeedState<T>> store) async {
+    // Ensure not loading
+    if(!store.state.loading && store.state.hasMore){
 
-    // Loading
-    store.dispatch(_SetLoadingEvent(true));
+      // Loading
+      store.dispatch(_SetLoadingEvent(true));
 
-    // Add PlaceHolder Card at the end of the list
-    bool wasEmpty = store.state.items.isEmpty;
-    Tower<SwipeFeedCardState>? showItem;
-    var placeholder;
-    if(wasEmpty || store.state.items.last.item1 != null){
-      showItem = SwipeFeedCardState.tower();
-      placeholder = Tuple2<T?, Store<SwipeFeedCardState>>(null, showItem);
-      store.dispatch(SetItemsEvent<T>([...store.state.items, placeholder]));
+      // Add PlaceHolder Card at the end of the list
+      bool wasEmpty = store.state.items.isEmpty;
+      Tower<SwipeFeedCardState>? showItem;
+      var placeholder;
+
+      // Add last card if it does not already exsist
+      // This should never be ran but is an ensurance
+      if(wasEmpty || store.state.items.last.item1 != null){
+        showItem = SwipeFeedCardState.tower();
+        placeholder = Tuple2<T?, Store<SwipeFeedCardState>>(null, showItem);
+        store.dispatch(SetItemsEvent<T>([...store.state.items, placeholder]));
+      }
+
+      // Load More Items
+      Tuple2<List<T>, String?> loaded = await store.state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, store.state.pageToken);
+
+      // New items
+      List<T> newItems = loaded.item1;
+
+      // Old items will not be empty here and could have more then just the null value
+      // This differs from the refresh function
+      List<Tuple2<T?, Store<SwipeFeedCardState>>> oldItems = store.state.items;
+      
+      // Page token
+      String? pageToken = loaded.item2;
+
+      //If there is no next page, then has more is false
+      //Has to be greater then 10 to have has more not get set to false
+      if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
+        store.dispatch(_SetHasMoreEvent(false));
+      }
+
+      store.dispatch(_SetPageTokenEvent(loaded.item2));
+
+      /// Generate new items
+      List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
+        List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
+        newItems.length, (i) => Tuple2(newItems[i], SwipeFeedCardState.tower()));
+      
+      /// Shift add the new items to the list to ensure the null value is still present
+      store.dispatch(SetItemsEvent(shiftAdd(oldItems, items)));
+      store.dispatch(_SetLoadingEvent(false));
     }
-
-    // Load More Items
-    Tuple2<List<T>, String?> loaded = await store.state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, store.state.pageToken);
-
-    List<T> newItems = loaded.item1;
-    List<Tuple2<T?, Store<SwipeFeedCardState>>> oldItems = store.state.items;
-
-    store.dispatch(_SetPageTokenEvent(loaded.item2));
-
-    /// Generate new items
-    List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
-      List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
-      newItems.length, (i) => Tuple2(newItems[i], SwipeFeedCardState.tower()));
-
-    if(store.state.items.isEmpty && wasEmpty && showItem != null){
-      /// Dispatch hidden state
-      showItem.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
-    }
-
-    store.dispatch(SetItemsEvent(shiftAdd(oldItems, items)));
-    store.dispatch(_SetLoadingEvent(false));
-  }
+  };
 }
 
 /// Adds a new item to the top of the list
