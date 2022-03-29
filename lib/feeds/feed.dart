@@ -368,22 +368,7 @@ class _FeedState extends State<Feed> {
           onLoad: _loadMore,
           builder: (context, i, items){
             if (i == items.length) {
-              return Column(
-                children: [
-
-                  Container(
-                    height: 100,
-                    width: double.infinity,
-                    child: Center(
-                      child: loadMore ? load : SizedBox.shrink(),
-                    ),
-                  ),
-                  Container(
-                    height: widget.footerHeight,
-                    width: double.infinity,
-                  ),
-                ],
-              );
+              return loadMore ? load : SizedBox.shrink();
             }
             return widget.childBuilder!(items[i], items.length - 1 == i);
           },

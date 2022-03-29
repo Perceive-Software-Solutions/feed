@@ -238,6 +238,10 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
     return childBuilder?.call(item, pageIndex, isLast) ?? Container();
   }
 
+  Widget? loadingBuilder(BuildContext context, int pageIndex){
+    return loading;
+  }
+
   @override
   Widget headerBuilder(BuildContext context, pageObj, Widget spacer) {
     return header?.call(context, pageObj, spacer) ?? Container();
@@ -257,7 +261,7 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
       initiallyLoad: initiallyLoad,
       disableScroll: (disableScroll ?? false) || scrollLock,
       placeholder: state == null ? null : placeholderBuilder(context, state.extent, pageIndex),
-      loading: loading,
+      loading: loadingBuilder.call(context, pageIndex),
       getItemID: getItemID,
       wrapper: (context, child) => feedWrapperBuilder(context, child, pageIndex),
       pinnedItems: pinnedItems?.where((e) => e.item2 == pageIndex).toList(),

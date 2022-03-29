@@ -105,7 +105,7 @@ class _FeedListViewState extends State<FeedListView> {
         mainAxisSpacing: widget.gridDelegate!.mainAxisSpacing,
         crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
         padding: widget.gridDelegate!.padding,
-        itemCount: items.length + (widget.compact ? 1 : 0),
+        itemCount: items.length + 1,
         itemBuilder: (context, i) => widget.builder(context, i, items),
         staggeredTileBuilder: (index) => StaggeredTile.fit(1),
       );
@@ -116,7 +116,7 @@ class _FeedListViewState extends State<FeedListView> {
         shrinkWrap: true,
         addRepaintBoundaries: true,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: items.length,
+        itemCount: items.length + 1,
         itemBuilder: (context, i) => widget.builder(context, i, items),
       );
     }

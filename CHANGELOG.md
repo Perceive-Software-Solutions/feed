@@ -1,3 +1,7 @@
+## [0.4.1] v0.4.1
+
+* Added proper support for loading widget
+
 ## [0.4.0] v0.4.0
 
 * Removed MultiFeed
