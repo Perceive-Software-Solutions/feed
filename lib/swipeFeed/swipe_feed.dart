@@ -158,7 +158,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   }
 
   /// Remove a card from the feed
-  void _removeCard([AdjustList<T>? then]){
+  void _removeCard<T>([AdjustList<T>? then]){
     tower.dispatch(removeItem<T>(then));
   }
 
@@ -180,7 +180,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Add a card to the feed
   void _addCard(T item, [Function? onComplete]) {
-    tower.dispatch(addItem<T>(item, onComplete));
+    tower.dispatch(addItem<T>(item, onComplete: onComplete));
   }
 
   void _updateCard(T item, String id){
@@ -283,7 +283,7 @@ class SwipeFeedController<T> extends ChangeNotifier{
   void addCard(T item, [Function? onComplete]) => _state != null ? _state!._addCard(item, onComplete) : null;
 
   ///Removes an item from the feed, animates the item out of the feed by default
-  void removeCard([AdjustList<T>? then]) => _state != null ? _state!._removeCard(then) : null;
+  void removeCard<T>([AdjustList<T>? then]) => _state != null ? _state!._removeCard<T>(then) : null;
 
   ///Removes item by Id from the feed, no animation
   void removeItemById(String id) => _state != null ? _state!._removeItemById(id) : null;

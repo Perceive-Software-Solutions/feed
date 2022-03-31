@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:feed/swipeFeed/swipe_feed.dart';
+import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
@@ -24,8 +25,10 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
 
   Future<Tuple2<List<String>, String?>> loadItems(int size, [String? token]) async {
     await Future.delayed(const Duration(seconds: 1));
-    return const Tuple2(['Testing 1', 'Testing 2', 'Testing 3', 'Testing 4', 'Testing 5', 'Testing 6', 'Testing 7', 'Testing 8', 'Testing 9', 'Testing 10'], 'Pagetoken');
+    return const Tuple2(['Testing 1', 'Testing 2', 'Testing 3'], 'Pagetoken');
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +50,8 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
             ),
           ),
           onTap: () async {
-            await feedController.reset();
-            // feedController.addCard('It Worked !!!!!!');
-            // feedController.swipeRight();
+            String item = "Testing 1";
+            feedController.updateCard("WORKED!!!!", item.hashCode.toString());
           }
         ),
         body: Stack(

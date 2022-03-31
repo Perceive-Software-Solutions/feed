@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
 
-// enum FeedCardState{
-//   SwipeCardHideState,
-//   SwipeCardShowState,
-//   SwipeCardExpandState,
-// }
-
 class FeedCardState {}
 
 class SwipeCardHideState extends FeedCardState{

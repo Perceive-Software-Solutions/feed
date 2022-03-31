@@ -332,40 +332,52 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
 /// Removes a card from the list, do not use when the card is being swiped
 ThunkAction<SwipeFeedState<T>> removeItem<T>([AdjustList<T>? then]){
   return (Store<SwipeFeedState<T>> store) async {
+    
+    // State
     var items = [...store.state.items];
+    
+    if(items.isNotEmpty && items.length > 1){
+      // The item that is about to be removed
+      // Set it to hide state
+      items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
+      
+      // How long it takes for the current card being remove to enter hide state
+      // Do we need this when you remove the last item??
+      await Future.delayed(Duration(milliseconds: 400));
 
-    if(!items.isEmpty || items[0].item1 != null){
-      items = [
-        items[0],
-        ...((then?.call(items.sublist(1))) ?? items.sublist(1))
-      ];
+      if(!items.isEmpty || items[0].item1 != null){
+        items = [
+          items[0],
+          // Sublist that is added into the state after the current item is removed
+          ...((then?.call(items.sublist(1))) ?? items.sublist(1)),
+          Tuple2(null, SwipeFeedCardState.tower())
+        ];
 
-      assert(items.isNotEmpty);
+        assert(items.isNotEmpty);
 
-      if(items.length > 1){
-        items[0] = Tuple2(items[1].item1, items[0].item2);
-        items.removeAt(1);
+        if(items.length > 1){
+          items[0] = Tuple2(items[1].item1, items[0].item2);
+          items.removeAt(1);
+        }
+
+        // Set new items
+        store.dispatch(SetItemsEvent(items));
       }
 
-      // Set new items
-      store.dispatch(SetItemsEvent(items));
+      //Maximizes the card
+      //Duration before the next card is shown
+      //This works in correlation with "one animation to rule them all"
+      await Future.delayed(Duration(milliseconds: 400)).then((value){
+        if(store.state.items[0].item1 == null){
+          store.state.items[0].item2.dispatch(
+            SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems))
+          );
+        }
+        else{
+          store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+        }
+      });
     }
-
-    //Maximizes the card
-    //Duration before the next card is shown
-    //This works in correlation with "one animation to rule them all"
-    await Future.delayed(Duration(milliseconds: 400)).then((value){
-      if(store.state.items[0].item1 == null){
-        store.state.items[0].item2.dispatch(
-          SetSwipeFeedCardState(
-            SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)
-          )
-        );
-      }
-      else{
-        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-      }
-    });
   };
 }
 
@@ -394,15 +406,19 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
 
       // Add PlaceHolder Card at the end of the list
       bool wasEmpty = store.state.items.isEmpty;
+      bool wasLast = store.state.items.isNotEmpty && store.state.items[0].item1 == null;
       Tower<SwipeFeedCardState>? showItem;
       var placeholder;
-
       // Add last card if it does not already exsist
       // This should never be ran but is an ensurance
       if(wasEmpty || store.state.items.last.item1 != null){
         showItem = SwipeFeedCardState.tower();
         placeholder = Tuple2<T?, Store<SwipeFeedCardState>>(null, showItem);
         store.dispatch(SetItemsEvent<T>([...store.state.items, placeholder]));
+      }
+      else if(wasLast){
+        // If load more is called on the last item in the list then dispatch loading state
+        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
       }
 
       // Load More Items
@@ -433,24 +449,34 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
       
       /// Shift add the new items to the list to ensure the null value is still present
       store.dispatch(SetItemsEvent(shiftAdd(oldItems, items)));
+
+      if(wasLast){
+        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      }
+
       store.dispatch(_SetLoadingEvent(false));
     }
   };
 }
 
 /// Adds a new item to the top of the list
-ThunkAction<SwipeFeedState<T>> addItem<T>(T item, [Function? onComplete]) {
+ThunkAction<SwipeFeedState<T>> addItem<T>(T item, {Function? onComplete, bool wait = true}) {
   return (Store<SwipeFeedState<T>> store) async {
     if(store.state.items.isNotEmpty){
       store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
       /// Duration After Hiding
       /// This is the functional duration not the actual animation
       /// Insert HERE
-      await Future.delayed(Duration(milliseconds: 400));
+      
+      /// Do we still need to wait this 400 ms when on the no items card and you are adding an item
+      if(store.state.items[0].item1 != null && wait){
+        await Future.delayed(Duration(milliseconds: 400));
+      }
     }
     List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = 
     [Tuple2(item, SwipeFeedCardState.tower()), ...store.state.items];
     store.dispatch(SetItemsEvent(addNewItem));
+
     /// Duration For showing the Card
     /// This is the functional duration not the actual animation
     /// Insert Here
@@ -469,9 +495,13 @@ ThunkAction<SwipeFeedState<T>> updateItem<T>(T item, String id, String Function(
   return (Store<SwipeFeedState<T>> store) async {
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
     if(items.isNotEmpty && items[0].item1 != null && id == objectKey(items[0].item1!)){
+      items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
+      // Waiting time to animate to the hide state when updating an item
+      await Future.delayed(Duration(milliseconds: 400));
       items.remove(items[0]);
       store.dispatch(SetItemsEvent(items));
-      store.dispatch(addItem(item));
+      // Add new item, takes care of rest of animation
+      store.dispatch(addItem(item, wait: false));
     }
   };
 }
