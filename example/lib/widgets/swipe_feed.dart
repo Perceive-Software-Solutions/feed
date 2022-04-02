@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:feed/feed.dart';
 import 'package:feed/swipeFeed/swipe_feed.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/icon_position.dart';
@@ -17,10 +18,16 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
 
   late SwipeFeedController feedController;
 
+  late InitialFeedState<String> initialFeedState;
+
   @override
   void initState() {
     super.initState();
     feedController = SwipeFeedController();
+    initialFeedState = InitialFeedState(
+      items: [],
+    );
+
   }
 
   Future<Tuple2<List<String>, String?>> loadItems(int size, [String? token]) async {
@@ -50,8 +57,8 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
             ),
           ),
           onTap: () async {
-            String item = "Testing 1";
-            feedController.updateCard("WORKED!!!!", item.hashCode.toString());
+            // String item = "Testing 1";
+            // feedController.updateCard("WORKED!!!!", item.hashCode.toString());
           }
         ),
         body: Stack(
@@ -97,6 +104,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 canExpand: (item){
                   return true;
                 },
+                initialState: initialFeedState,
                 loadingPlaceHolder: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,

@@ -286,20 +286,61 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
 
 /// Hydrates the initial state from a pre-exsisting state
 ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state){
-  return (Store<SwipeFeedState<T>> store){
+  return (Store<SwipeFeedState<T>> store) async {
 
-    /// Generate new items
-    List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
-      List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
-      state.items.length, (i) => Tuple2(state.items[i], SwipeFeedCardState.tower()));
+    bool loading = store.state.loading;
 
-    if(items.isEmpty){
-      store.dispatch(refresh);
-    }
-    else{
-      store.dispatch(SetItemsEvent(items));
-      store.dispatch(_SetPageTokenEvent(state.pageToken));
-      store.dispatch(_SetHasMoreEvent(state.hasMore));
+    if(!loading){
+
+      store.dispatch(_SetLoadingEvent(true));
+
+      // Ensure one element is present inside of the list
+      final showItem = SwipeFeedCardState.tower();
+      final placeholder = Tuple2(null, showItem);
+      store.dispatch(SetItemsEvent<T>([placeholder]));
+      Store<SwipeFeedCardState> lastItem = store.state.items[0].item2;
+        
+
+      // Wait time for loading card to go from hiding state to show state
+      // May need to be minipulated depending on the state
+      // If the card is initially loading then wait 500 miliseconds
+      // If the card is going from no items state to loading state after reset is called should it wait 500 ms
+      await Future.delayed(Duration(milliseconds: 500)).then((value){
+        lastItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      });
+
+      // Old items will be empty but just a procaution
+      // This will just be the null placeholder
+      // The set items event seen above ensures this
+      List<Tuple2<T?, Store<SwipeFeedCardState>>> oldItems = store.state.items;
+
+      /// Generate new items
+      List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
+        List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
+        state.items.length, (i) => Tuple2(state.items[i], SwipeFeedCardState.tower()));
+
+      // Shift add new items into state
+      final newState = shiftAdd(oldItems, items);
+
+      // Show first card
+      if(newState[0].item1 != null && items.isNotEmpty){
+        newState.firstWhere((element) => element.item1 == null).item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
+        store.dispatch(SetItemsEvent(newState));
+        await Future.delayed(Duration(milliseconds: 200));
+        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+      }
+      else {
+        /// Animate from loading card back to hide state
+        lastItem.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
+
+        /// Duration between animating back to hide state and displaying no items or connectivity
+        await Future.delayed(Duration(milliseconds: 200));
+
+        /// Set card back to hide state because no items loaded in
+        lastItem.dispatch(SetSwipeFeedCardState(SwipeCardHideState(!store.state.connectivity ? store.state.connectivityError : store.state.noMoreItems)));
+      }
+
+      store.dispatch(_SetLoadingEvent(false));
     }
   };
 }
