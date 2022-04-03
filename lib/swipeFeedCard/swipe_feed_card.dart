@@ -81,6 +81,14 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
     swipeCardController = SwipeCardController();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    //Bind the controller
+    widget.controller._bind(this);
+  }
+
   /// Padding associated with the card
   /// Has to be passed in so the card can control the padding in order to expand
   EdgeInsets get padding => (widget as SwipeFeedCard<T>).padding ?? EdgeInsets.zero;
@@ -100,8 +108,10 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   }
 
   /// Reverses the swipe card back to its initial location
-  Future<void> reverseAnimation() async {
+  Future<void> reverseAnimation() async{
     swipeCardController.reverse();
+    await Future.delayed(Duration(milliseconds: 50));
+    swipeCardController.setSwipeable(true);
     return;
   }
 
@@ -224,8 +234,6 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 class SwipeFeedCardController extends ChangeNotifier {
 
   late _SwipeFeedCardState? _state;
-
-  SwipeFeedCardController();
 
   void _bind(_SwipeFeedCardState bind) => _state = bind;
 

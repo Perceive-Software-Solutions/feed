@@ -32,7 +32,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
 
   Future<Tuple2<List<String>, String?>> loadItems(int size, [String? token]) async {
     await Future.delayed(const Duration(seconds: 1));
-    return const Tuple2(['Testing 1', 'Testing 2', 'Testing 3'], 'Pagetoken');
+    return const Tuple2(['Testing 1', 'Testing 2', 'Testing 3', 'Testing 1', 'Testing 2', 'Testing 3', 'Testing 1', 'Testing 2', 'Testing 3', 'Testing 1', 'Testing 2', 'Testing 3', 'Testing 1', 'Testing 2', 'Testing 3'], 'Pagetoken');
   }
 
 
@@ -59,6 +59,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
           onTap: () async {
             // String item = "Testing 1";
             // feedController.updateCard("WORKED!!!!", item.hashCode.toString());
+            feedController.swipe(DismissDirection.startToEnd);
           }
         ),
         body: Stack(
@@ -104,7 +105,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 canExpand: (item){
                   return true;
                 },
-                initialState: initialFeedState,
+                // initialState: initialFeedState,
                 loadingPlaceHolder: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -182,6 +183,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                 },
                 onSwipe: (dx, dy, direction, reverseAnimation, item) async {
                   return true;
+                  // return true;
                 },
                 // placeholder: Center(
                 //   child: Container(

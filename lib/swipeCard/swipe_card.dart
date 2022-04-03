@@ -373,8 +373,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   void reverse(){
 
     setState(() {
-      rotation = SwipeCardAngle.None;
-
       //Unlock haptic
       for(var direction in hapticLock.keys){
         hapticLock[direction] = false;
@@ -400,6 +398,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     rightSwiper.reverse();
     downSwiper.reverse();
     upSwiper.reverse();
+
+    setSwipeable(true);
   }
 
   void _haptic(DismissDirection direction, double value, double delta){
@@ -628,10 +628,32 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   /// Swiped card in a specified direction
   void swipe(DismissDirection direction){
+    // Rotate the card
+    rotation = SwipeCardAngle.Bottom;
     AnimationController controller = swiper(direction);
     controller.duration = FLING_DURATION;
     controller.forward(from: xDrag / cardSwipeLimitX); //animate
-    widget.onSwipe!(100, 0, DismissDirection.startToEnd);
+    switch (direction) {
+      case DismissDirection.startToEnd:
+        // Make the card animate upwards well going a certain direction
+        upSwiper.animateTo(0.3, duration: FLING_DURATION);
+        widget.onSwipe!(100, 0, direction);
+        break;
+      case DismissDirection.endToStart:
+        // Make the card animate upwards well going a certain direction
+        upSwiper.animateTo(0.3, duration: FLING_DURATION);
+        widget.onSwipe!(-100, 0, direction);
+        break;
+      case DismissDirection.up:
+        widget.onSwipe!(0, -100, direction);
+        break;
+      case DismissDirection.down:
+        widget.onSwipe!(0, 100, direction);
+        break;
+      default:
+    }
+
+    // Card is no longer swipeable
     swipable = false;
   }
 
@@ -641,20 +663,27 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     double flingY = velocity.dy;
     double vectorX = flingX/sqrt(pow(flingX, 2) + pow(flingY, 2));
     double vectorY = flingY/sqrt(pow(flingX, 2) + pow(flingY, 2));
+    double maxVelocity = 9000;
+    double ratioY = flingY.abs()/maxVelocity;
+    double rationX = flingX.abs()/maxVelocity;
+    double velocityDurationX = 125 / rationX;
+    double velocityDurationY = 125 / ratioY;
+    Duration durationX = Duration(milliseconds: velocityDurationX.toInt());
+    Duration durationY = Duration(milliseconds: velocityDurationY.toInt());
     if(flingX.abs() > flingY.abs() && xDrag.abs() > MIN_FLING_DISTANCE || xDrag.abs() > yDrag.abs()){
       
       if(flingX > 0){
-        rightSwiper.duration = FLING_DURATION;
+        rightSwiper.duration = durationX;
         // rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
         rightSwiper.forward(from: xDrag / cardSwipeLimitX).then((value) {
           rightSwiper.forward();
         });
         if(vectorY.abs() >= 0.45){
           if(flingY > 0){
-            downSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+            downSwiper.animateTo(vectorY.abs(), duration: durationX);
           }
           else{
-            upSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+            upSwiper.animateTo(vectorY.abs(), duration: durationX);
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
@@ -663,16 +692,16 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         return DismissDirection.startToEnd; //set signal
       }
       else{
-        leftSwiper.duration = FLING_DURATION;
+        leftSwiper.duration = durationX;
         leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX).then((value) {
           leftSwiper.forward();
         }); //animate
         if(vectorY.abs() > 0.45){
           if(flingY > 0){
-            downSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+            downSwiper.animateTo(vectorY.abs(), duration: durationX);
           }
           else{
-            upSwiper.animateTo(vectorY.abs(), duration: FLING_DURATION);
+            upSwiper.animateTo(vectorY.abs(), duration: durationX);
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
@@ -684,16 +713,16 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     else if(yDrag.abs() > MIN_FLING_DISTANCE){
       // print('AHH ${xDrag.abs() > yDrag.abs()}');
       if(flingY > 0){
-        downSwiper.duration = FLING_DURATION;
+        downSwiper.duration = durationY;
         downSwiper.forward(from: yDrag / cardSwipeLimitY).then((value) {
           downSwiper.forward();
         }); //animate
         if(vectorX > 0.45){
           if(flingX > 0){
-            rightSwiper.animateTo(vectorX.abs(), duration: FLING_DURATION);
+            rightSwiper.animateTo(vectorX.abs(), duration: durationY);
             }
             else{
-              leftSwiper.animateTo(vectorX.abs(), duration: FLING_DURATION);
+              leftSwiper.animateTo(vectorX.abs(), duration: durationY);
             }
         }
         // _haptic(startSwipeSignal, 1000, 1);
@@ -702,16 +731,16 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         return DismissDirection.down; //set signal
       }
       else{
-        upSwiper.duration = FLING_DURATION;
+        upSwiper.duration = durationY;
         upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY).then((value) {
           upSwiper.forward();
         }); //animate
         if(vectorX > 0.45){
           if(flingX > 0){
-            rightSwiper.animateTo(vectorX, duration: FLING_DURATION);
+            rightSwiper.animateTo(vectorX, duration: durationY);
           }
           else{
-            leftSwiper.animateTo(vectorX, duration: FLING_DURATION);
+            leftSwiper.animateTo(vectorX, duration: durationY);
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
@@ -906,6 +935,10 @@ class SwipeCardController extends ChangeNotifier {
 
   ///Get values of the card from a designated direction
   double value(DismissDirection direction) => _state != null ? _state!.value(direction) : 0;
+
+  ///Set if the card is swipeable or not
+  ///Called on reverse animation to unlock the card again
+  void setSwipeable(bool swipe) => _state != null ? _state!.setSwipeable(swipe) : null;
 
   //Disposes of the controller
   @override
