@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/one_sequence_gesture_recognizer.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -130,6 +131,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   static const double SWIPE_LIMIT_Y = 756/812; 
 
   ///The minimum velocity to be considered a fling
+  ///This is the fling theshold
   static const double MIN_FLING_VELOCITY = 3500;
 
   ///The minimum distance to be considered a fling
@@ -568,6 +570,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Called when the pan gesture starts
   void _onPanStart(DragStartDetails d){
 
+    print("STARTING");
+
     if (swipable != true) return;
 
     //The point on the screen that determines the different angles
@@ -591,6 +595,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Called whenever the user finger is panning accross the screen
   void _onPanUpdate(DragUpdateDetails d) {
 
+  
+
     if (swipable != true) return;
     
     //Updtes the card position
@@ -603,6 +609,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   ///Called when the user finger is lifted after a pan
   void _onPanEnd(DragEndDetails d) async {
+
+    print("ENDING");
 
     if (swipable != true) return;
     
@@ -881,37 +889,16 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return RawGestureDetector(
-      behavior: HitTestBehavior.translucent,
-      gestures: <Type, GestureRecognizerFactory>{
-        PanGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
-          () => PanGestureRecognizer(),
-          (PanGestureRecognizer instance) {
-            instance.minFlingVelocity = 20;
-            instance
-              ..onUpdate = _onPanUpdate
-              ..onEnd = _onPanEnd
-              ..onStart = _onPanStart;
-              
-          },
-        ),
-      },
-      child: Opacity(
-        // opacity: widget.opacityChange ? _cardFadoOutOpacity() : 1,
-        opacity: 1,
-        child: Transform.rotate(
-          // alignment: rotation == SwipeCardAngle.Top ? Alignment.topCenter : Alignment.bottomCenter,
-          /*
-          (!xDrag.isNegative
-              ? min(xDrag / 2 / 360, (10 * pi) / 180)
-              : max(xDrag / 2 / 360, -(10 * pi) / 180)),
-              */
-          angle: rotation == SwipeCardAngle.None ? 0
-            : (rotation == SwipeCardAngle.Top ? 1 : -1) * angle,
-          child: Transform.translate(
-              offset: Offset(xDrag, yDrag), child: widget.child ?? Container()),
-        ),
+    return GestureDetector(
+      behavior: HitTestBehavior.deferToChild,
+      onPanUpdate: _onPanUpdate,
+      onPanEnd: _onPanEnd,
+      onPanStart: _onPanStart,
+      child: Transform.rotate(
+        angle: rotation == SwipeCardAngle.None ? 0
+          : (rotation == SwipeCardAngle.Top ? 1 : -1) * angle,
+        child: Transform.translate(
+            offset: Offset(xDrag, yDrag), child: widget.child ?? Container()),
       ),
     );
   }
