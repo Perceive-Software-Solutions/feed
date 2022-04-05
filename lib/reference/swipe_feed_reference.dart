@@ -1,8 +1,7 @@
 import 'dart:math';
 import 'package:connectivity/connectivity.dart';
 import 'package:feed/animated/neumorpic_percent_bar.dart';
-import 'package:feed/reference/swipe_feed_card_reference.txt';
-import 'package:feed/swipeFeed/swipe_feed.dart';
+import 'package:feed/animated/swipe_feed_card.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
@@ -18,9 +17,9 @@ import 'package:tuple/tuple.dart';
 
 ///Primary poll page for the application. 
 ///Holds a feed of popular polls and in swipe cards
-class SwipeFeedReference<T> extends StatefulWidget {
+class SwipeFeed<T> extends StatefulWidget {
 
-  const SwipeFeedReference({ 
+  const SwipeFeed({ 
     Key? key, 
     this.childBuilder,
     required this.loader,
@@ -54,7 +53,7 @@ class SwipeFeedReference<T> extends StatefulWidget {
   }): super(key: key);
 
   @override
-  _SwipeFeedReferenceState<T> createState() => _SwipeFeedReferenceState<T>();
+  _SwipeFeedState<T> createState() => _SwipeFeedState<T>();
 
   final AlignmentGeometry? topAlignment;
 
@@ -128,7 +127,7 @@ class SwipeFeedReference<T> extends StatefulWidget {
   final TextStyle? style;
 }
 
-class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin{
+class _SwipeFeedState<T> extends State<SwipeFeed<T>> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin{
 
   static const int LENGTH_INCREASE_FACTOR = 10;
 
@@ -148,7 +147,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
 
   bool lock = false;
 
-  ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>> cubit = ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>>([]);
+  ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>> cubit = ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>>([]);
 
   ///Percent Bar controller
   late PercentBarController fillController;
@@ -213,25 +212,29 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
   void populateInitialState(InitialFeedState<T> state){
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
 
-      List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> cubitItems = 
-        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>.generate(
-          state.items.length, (i) => Tuple2(state.items[i], ConcreteCubit<SwipeFeedCardStateReference>(i == 0 ? ShowSwipeFeedCardState() : HideSwipeFeedCardState())));
+      List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
+          state.items.length, (i) => Tuple2(state.items[i], ConcreteCubit<SwipeFeedCardState>(i == 0 ? ShowSwipeFeedCardState() : HideSwipeFeedCardState())));
 
       if(cubitItems.isEmpty){
         _refresh();
       }
       else{
+
         cubit.emit(cubitItems);
+
         collectiveState = state;
+
         setState(() {
           pageToken = state.pageToken;
           hasMore = state.hasMore;
         });
       }
+
     });
   }
 
-  bool setCardState(SwipeFeedCardStateReference state,){
+  bool setCardState(SwipeFeedCardState state,){
     if(cubit.state.isNotEmpty){
       if(state is HideSwipeFeedCardState) clearBar(state.text);
       cubit.state[0].item2.emit(state);
@@ -247,14 +250,14 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
 
     if(items.isEmpty){
       //Adds a mimnimized card if list is empty
-      showCubit = ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState());
-      final placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>(item, showCubit);
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      final placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(item, showCubit);
       items.add(placeholder);
     }
     else if(items[0].item1 == null){
       //Determine if the first card is a null card
       //Replaces card
-      items[0] = Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>(item, items[0].item2);
+      items[0] = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(item, items[0].item2);
     }
     else{
       //Minimizes current card and replaces it
@@ -265,7 +268,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
       await Future.delayed(Duration(seconds: 1));
 
       //Add a new item to the start with a new state
-      showCubit = ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState());
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
       items.insert(0, Tuple2(item, showCubit));
     }
 
@@ -283,7 +286,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
   }
 
   ///Removes the top most item from the multi feed, runs a predefined function before continuing
-  Future<void> animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>)? then]) async {
+  Future<void> animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>)? then]) async {
     var items = [...cubit.state];
 
     if(items.isEmpty || items[0].item1 == null){
@@ -436,7 +439,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
     );
 
     // Emit Loading State
-    final showCubit = ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState());
+    final showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
     final placeholder = Tuple2(null, showCubit);
     cubit.emit([
       placeholder
@@ -455,7 +458,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
     List<T> newItems = loaded.item1;
 
     // Old items will be empty but just a procaution
-    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> oldItems = cubit.state;
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
 
     if(mounted) {
       setState(() {
@@ -469,15 +472,15 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
 
 
         //Cubit items
-        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> cubitItems = 
-        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>.generate(
-          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState())));
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
+          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
         
         if(cubitItems.isNotEmpty && oldItems[0].item1 == null){
           oldItems[0] = Tuple2(cubitItems[0].item1, oldItems[0].item2);
           cubitItems.removeAt(0);
           if(hasMore == false){
-            cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState())));
+            cubitItems.add(Tuple2(null, ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
           }
         }
         else if(oldItems[0].item1 == null){
@@ -514,8 +517,8 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
     bool wasEmpty = cubit.state.isEmpty;
     var showCubit;
     if(wasEmpty || cubit.state.last.item1 != null){
-      showCubit = ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState());
-      var placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>(null, showCubit);
+      showCubit = ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState());
+      var placeholder = Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>(null, showCubit);
       cubit.emit([
         ...cubit.state,
         placeholder,
@@ -529,7 +532,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
     loading = false;
 
     List<T> newItems = loaded.item1;
-    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> oldItems = cubit.state;
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> oldItems = cubit.state;
 
     if(mounted) {
       setState(() {
@@ -543,15 +546,15 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
 
         //TODO emit
         //Cubit items
-        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> cubitItems = 
-        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>.generate(
-          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardStateReference>(HideSwipeFeedCardState())));
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> cubitItems = 
+        List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>.generate(
+          newItems.length, (i) => Tuple2(newItems[i], ConcreteCubit<SwipeFeedCardState>(HideSwipeFeedCardState())));
 
-        if(oldItems.isEmpty && cubitItems.isNotEmpty){
-          Future.delayed(Duration(milliseconds: 300)).then((value){
-            cubitItems[0].item2.emit(ShowSwipeFeedCardState());
-          });
-        }
+        // if(oldItems.isEmpty && cubitItems.isNotEmpty){
+        //   Future.delayed(Duration(milliseconds: 300)).then((value){
+        //     cubitItems[0].item2.emit(ShowSwipeFeedCardState());
+        //   });
+        // }
 
         if(cubitItems.isEmpty && wasEmpty && showCubit != null){
           Future.delayed(Duration(milliseconds: 500)).then((value){
@@ -581,14 +584,14 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
     if(cubit.state.isNotEmpty){
       cubit.state[0].item2.emit(HideSwipeFeedCardState());
     }
-    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> addNewItem = 
-    [Tuple2(item, ConcreteCubit<SwipeFeedCardStateReference>(ShowSwipeFeedCardState())), ...cubit.state];
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> addNewItem = 
+    [Tuple2(item, ConcreteCubit<SwipeFeedCardState>(ShowSwipeFeedCardState())), ...cubit.state];
     cubit.emit(addNewItem);
   }
 
   /// Update item inside the swipe feed
   void updateItem(T item, String id){
-    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> state = cubit.state;
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> state = cubit.state;
     if(state.isNotEmpty){
       if(id == widget.objectKey(state[0].item1!)){
         state.remove(state[0]);
@@ -600,7 +603,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
 
   /// Remove an item inside the swipe feed specified by the ID
   void removeItem(String id){
-    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> state = cubit.state;
+    List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> state = cubit.state;
     if(state.isNotEmpty){
       if(id == widget.objectKey(state[0].item1!)){
         state.remove(state[0]);
@@ -647,8 +650,8 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
 
     var mediaQuery = MediaQuery.of(context);
 
-    Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>> itemCubit = cubit.state[index];
-    return BlocBuilder<ConcreteCubit<SwipeFeedCardStateReference>, SwipeFeedCardStateReference>(
+    Tuple2<T?, ConcreteCubit<SwipeFeedCardState>> itemCubit = cubit.state[index];
+    return BlocBuilder<ConcreteCubit<SwipeFeedCardState>, SwipeFeedCardState>(
       key: Key('swipefeed - card - ${itemCubit.item1 == null ? UniqueKey().toString() : widget.objectKey(itemCubit.item1!)}'),
       bloc: itemCubit.item2,
       builder: (context, show) {
@@ -671,7 +674,6 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
                 child: Opacity(
                   opacity: keyboard && show is HideSwipeFeedCardState ? 0.0 : 1.0,
                   child: SwipeFeedCard(
-                    
                     blur: show is HideSwipeFeedCardState && show.overlay == null,
                     startTopAlignment: widget.startTopAlignment,
                     startBottomAlignment: widget.startBottomAlignment,
@@ -753,7 +755,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
         //Percent bar displaying current vote
         Padding(
           padding: widget.percentBarPadding ?? EdgeInsets.only(left: 8 + padding.left, right: 8 + padding.right, top: padding.top + 6, bottom: padding.top),
-          child: KeepAliveWidget( 
+          child: KeepAliveWidget(
             key: Key('PollPage - Bar - KeepAlive'),
             child: NeumorpicPercentBar(
               key: Key('PollPage - Bar'),
@@ -764,7 +766,7 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
         ),
 
 
-        BlocBuilder<ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>>, List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>>(
+        BlocBuilder<ConcreteCubit<List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>>, List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>>(
           bloc: cubit,
           builder: (context, state) {
             
@@ -786,57 +788,59 @@ class _SwipeFeedReferenceState<T> extends State<SwipeFeedReference<T>> with Auto
 
 }
 
-// ///Controller for the feed
-// class SwipeFeedController<T> extends ChangeNotifier {
-//   late _SwipeFeedState<T>? _state;
+///Controller for the feed
+class SwipeFeedController<T> extends ChangeNotifier {
+  late _SwipeFeedState<T>? _state;
 
-//   ///Binds the feed state
-//   void _bind(_SwipeFeedState<T> bind) => _state = bind;
+  ///Binds the feed state
+  void _bind(_SwipeFeedState<T> bind) => _state = bind;
 
-//   //Called to notify all listners
-//   void _update() => notifyListeners();
+  //Called to notify all listners
+  void _update() => notifyListeners();
 
-//   ///Retreives the list of items from the feed
-//   List<T> get list => _state!.cubit.state.where((e) => e.item1 != null).map((e) => e.item1!).toList();
+  ///Retreives the list of items from the feed
+  List<T> get list => _state!.cubit.state.where((e) => e.item1 != null).map((e) => e.item1!).toList();
 
-//   ///The state of the feed since the last refresh
-//   InitialFeedState<T> get collectiveState => _state!.collectiveState;
+  ///The state of the feed since the last refresh
+  InitialFeedState<T> get collectiveState => _state!.collectiveState;
 
-//   ///Reloads the feed state based on the original size parameter
-//   void loadMore() => _state!._loadMore();
+  ///Reloads the feed state based on the original size parameter
+  void loadMore() => _state!._loadMore();
 
-//   ///Refreshes the feed replacing the page token
-//   void refresh() => _state!._refresh();
+  ///Refreshes the feed replacing the page token
+  void refresh() => _state!._refresh();
 
-//   ///Reloads the feed state based on the original size parameter
-//   Future<void> reset() => _state!._reset();
+  ///Reloads the feed state based on the original size parameter
+  Future<void> reset() => _state!._reset();
 
-  // Future<void> completeFillBar(double? value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
+  Future<void> completeFillBar(double? value, Duration duration, [IconPosition? direction, CardPosition? cardPosition]) async => _state == null ? _state!.items : await _state!.completeFillBar(value, duration, direction, cardPosition);
+
+  Future<void> fillBar(double value, IconPosition iconDirection, CardPosition cardPosition, [bool overrideLock = false]) async => _state == null ? _state!.items : await _state!.fillBar(value, iconDirection, cardPosition, overrideLock);
   
-//   void clearBar([String title = '']) => _state == null ? null : _state!.clearBar(title);
+  void clearBar([String title = '']) => _state == null ? null : _state!.clearBar(title);
 
-//   void addItem(T item) => _state != null ? _state!.addItem(item) : null;
+  void addItem(T item) => _state != null ? _state!.addItem(item) : null;
 
-//   Future<void> animateItem(T item) async => _state != null ? await _state!.animateItem(item) : null;
+  Future<void> animateItem(T item) async => _state != null ? await _state!.animateItem(item) : null;
 
-//   void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
+  void updateItem(T item, String id) => _state != null ? _state!.updateItem(item, id) : null;
 
-//   void removeItem(String id) => _state != null ? _state!.removeItem(id) : null;
+  void removeItem(String id) => _state != null ? _state!.removeItem(id) : null;
 
-//   void animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardStateReference>>>)? then]) => _state != null ? _state!.animatedRemove(then) : null;
+  void animatedRemove([List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>> Function(List<Tuple2<T?, ConcreteCubit<SwipeFeedCardState>>>)? then]) => _state != null ? _state!.animatedRemove(then) : null;
 
-//   void swipeRight() => _state != null ? _state!.swipeRight() : null;
+  void swipeRight() => _state != null ? _state!.swipeRight() : null;
 
-//   void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
+  void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
 
-//   void setLock(bool lock) => _state != null ? _state!.setLock(lock) : null;
+  void setLock(bool lock) => _state != null ? _state!.setLock(lock) : null;
 
-//   bool setCardState(SwipeFeedCardStateReference cardState) => _state != null ? _state!.setCardState(cardState) : false;
+  bool setCardState(SwipeFeedCardState cardState) => _state != null ? _state!.setCardState(cardState) : false;
 
-//   //Disposes of the controller
-//   @override
-//   void dispose() {
-//     _state = null;
-//     super.dispose();
-//   }
-// }
+  //Disposes of the controller
+  @override
+  void dispose() {
+    _state = null;
+    super.dispose();
+  }
+}

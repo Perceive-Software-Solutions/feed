@@ -4,12 +4,12 @@ import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:feed/util/render/keep_alive.dart';
-import 'package:feed/swipeCard/swipe_card.dart';
+import 'package:feed/animated/swipe_card.dart';
 import 'package:flutter/material.dart';
 
-abstract class SwipeFeedCardStateReference{}
+abstract class SwipeFeedCardState{}
 
-class HideSwipeFeedCardState extends SwipeFeedCardStateReference{
+class HideSwipeFeedCardState extends SwipeFeedCardState{
 
   final Widget? overlay;
 
@@ -18,8 +18,8 @@ class HideSwipeFeedCardState extends SwipeFeedCardStateReference{
   HideSwipeFeedCardState([this.overlay, this.text = '']);
 
 }
-class ShowSwipeFeedCardState extends SwipeFeedCardStateReference{}
-class ExpandSwipeFeedCardState extends SwipeFeedCardStateReference{}
+class ShowSwipeFeedCardState extends SwipeFeedCardState{}
+class ExpandSwipeFeedCardState extends SwipeFeedCardState{}
 
 ///The poll page card is a feed swipe card within a swippable card. 
 ///These are displayed on the poll page feed as swipable cards. 
@@ -27,11 +27,11 @@ class ExpandSwipeFeedCardState extends SwipeFeedCardStateReference{}
 ///When the [show] variable is set to false the card is minimized and blurred.
 ///
 ///The swipe card displays icons behind it when swiped, indicating the swipe direction
-class SwipeFeedCardReference extends StatefulWidget {
+class SwipeFeedCard extends StatefulWidget {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Constructor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  const SwipeFeedCardReference({ 
+  const SwipeFeedCard({ 
     Key? key, 
     this.show = true,
     this.swipeOverride,
@@ -63,7 +63,7 @@ class SwipeFeedCardReference extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SwipeFeedCardReferenceState createState() => _SwipeFeedCardReferenceState();
+  _SwipeFeedCardState createState() => _SwipeFeedCardState();
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -140,7 +140,7 @@ class SwipeFeedCardReference extends StatefulWidget {
 
 }
 
-class _SwipeFeedCardReferenceState extends State<SwipeFeedCardReference> {
+class _SwipeFeedCardState extends State<SwipeFeedCard> {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Controllers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -366,6 +366,11 @@ class _SwipeFeedCardReferenceState extends State<SwipeFeedCardReference> {
     }
   }
 
+  ///Called when the pan for the swipe card is completed
+  void _onPanEnd(){
+    widget.onPanEnd!();
+  }
+
   /// Forward animation
   Future<void> forwardAnimation(int index, bool overlay) async{
     if(mounted && !isAnimating){
@@ -474,6 +479,8 @@ class _SwipeFeedCardReferenceState extends State<SwipeFeedCardReference> {
         controller: swipeController,
         swipable: (widget.swipeOverride != null && !widget.swipeOverride!) ? widget.swipeOverride! : (widget.show == true && widget.keyboardOpen == false),
         opacityChange: true,
+        onStartSwipe: _onSwipeStart,
+        onPanEnd: _onPanEnd,
         onPanUpdate: _onPanUpdate,
         child: KeepAliveWidget(
           child: SizedBox.expand(child: child),
@@ -530,20 +537,20 @@ class _SwipeFeedCardReferenceState extends State<SwipeFeedCardReference> {
 }
 
 ///Controller for the feed
-// class SwipeFeedCardController extends ChangeNotifier {
-//   late _SwipeFeedCardReferenceState? _state;
+class SwipeFeedCardController extends ChangeNotifier {
+  late _SwipeFeedCardState? _state;
 
-//   ///Binds the feed state
-//   void _bind(_SwipeFeedCardReferenceState bind) => _state = bind;
+  ///Binds the feed state
+  void _bind(_SwipeFeedCardState bind) => _state = bind;
 
-//   void swipeRight() => _state != null ? _state!.swipeRight() : null;
+  void swipeRight() => _state != null ? _state!.swipeRight() : null;
 
-//   void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
+  void swipeLeft() => _state != null ? _state!.swipeLeft() : null;
 
-//   //Disposes of the controller
-//   @override
-//   void dispose() {
-//     _state = null;
-//     super.dispose();
-//   }
-// }
+  //Disposes of the controller
+  @override
+  void dispose() {
+    _state = null;
+    super.dispose();
+  }
+}

@@ -73,6 +73,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// Controller
   late SwipeCardController swipeCardController;
 
+  /// If the animation system should be updated
+  bool fillLock = false;
+
   @override
   void initState(){
     super.initState();
@@ -99,6 +102,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// False - Do nothing
   dynamic _onSwipe(double dx, double dy, DismissDirection direction) async {
     bool swipeAlert = true;
+    fillLock = true;
     if((widget as SwipeFeedCard<T>).onSwipe != null){
       swipeAlert = await (widget as SwipeFeedCard<T>).onSwipe!(dx, dy, reverseAnimation, direction);
     }
@@ -112,6 +116,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
     swipeCardController.reverse();
     await Future.delayed(Duration(milliseconds: 50));
     swipeCardController.setSwipeable(true);
+    fillLock = false;
     return;
   }
 
@@ -119,6 +124,18 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   Future<void> forwardAnimation() async {
     if((widget as SwipeFeedCard<T>).onContinue != null){
       (widget as SwipeFeedCard<T>).onContinue!();
+    }
+    fillLock = false;
+    return;
+  }
+
+  ///Called while the swipe card is being panned
+  void _onPanUpdate(double dx, double dy){
+    if((widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).item.item2.state.state is SwipeCardExpandState){
+      (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
+    }
+    if((widget as SwipeFeedCard<T>).onPanUpdate != null && !fillLock){
+      (widget as SwipeFeedCard<T>).onPanUpdate!(dx, dy);
     }
   }
 
@@ -195,14 +212,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                         controller: swipeCardController,  
                         swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
                         opacityChange: true,
-                        onPanUpdate: (dx, dy){
-                          if((widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).item.item2.state.state is SwipeCardExpandState){
-                            (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-                          }
-                          if((widget as SwipeFeedCard<T>).onPanUpdate != null){
-                            (widget as SwipeFeedCard<T>).onPanUpdate!(dx, dy);
-                          }
-                        },
+                        onPanUpdate: _onPanUpdate,
                         onSwipe: _onSwipe,
                         child: AnimatedSwitcher(
                           duration: Duration(milliseconds: 200),
@@ -245,6 +255,9 @@ class SwipeFeedCardController extends ChangeNotifier {
 
   /// Swipe the card in a specific direction
   void swipe(DismissDirection direction) => _state != null ? _state!.swipe(direction) : null;
+
+  /// Get the current value of one of the swipers
+  void value(DismissDirection direction) => _state != null ? _state!.swipeCardController.value(direction) : null;
 
   //Disposes of the controller
   @override

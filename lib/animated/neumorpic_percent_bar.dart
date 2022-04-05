@@ -15,7 +15,6 @@ class NeumorpicPercentBar extends StatefulWidget {
 
   final TextStyle? style;
 
-
   const NeumorpicPercentBar({Key? key, required this.controller, this.style}) : 
   super(key: key);
 
