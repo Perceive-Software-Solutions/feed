@@ -1,5 +1,4 @@
 import 'package:feed/animationSystem/state.dart';
-import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
@@ -18,16 +17,21 @@ class AnimationSystemDelegateBuilder extends StatefulWidget {
   State<AnimationSystemDelegateBuilder> createState() => _AnimationSystemDelegateBuilderState();
 }
 
-class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegateBuilder> {
+class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegateBuilder> with TickerProviderStateMixin {
 
   /// Holds the current state of the AnimationSystem
   late Tower<AnimationSystemState> tower;
+
+  /// Animates the
+  late AnimationController animationController;
 
   @override
   void initState(){
     super.initState();
     // Initiate state
     tower = AnimationSystemState.tower();
+
+    animationController = AnimationController(vsync: this);
   }
 
   @override
@@ -78,46 +82,55 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     if(axisLock != Axis.horizontal && !horizontalAxisOverride){
       if(dy > 0){
         if(dx > 0){
-          tower.dispatch(SetAllAnimationValues(value(DismissDirection.startToEnd), IconPosition.BOTTOM, CardPosition.Right));
+          animationController.animateTo(value(DismissDirection.startToEnd));
+          tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Right));
+          widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
           return;
         } 
         else{
-          tower.dispatch(SetAllAnimationValues(value(DismissDirection.endToStart), IconPosition.BOTTOM, CardPosition.Left));
+          animationController.animateTo(value(DismissDirection.endToStart));
+          tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Left));
           return;
         }
       }
       else{
         if(dx > 0){
-          tower.dispatch(SetAllAnimationValues(value(DismissDirection.startToEnd), IconPosition.TOP, CardPosition.Right));
+          animationController.animateTo(value(DismissDirection.startToEnd));
+          tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Right));
           return;
         }
         else{
-          tower.dispatch(SetAllAnimationValues(value(DismissDirection.endToStart), IconPosition.TOP, CardPosition.Left));
+          animationController.animateTo(value(DismissDirection.endToStart));
+          tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Left));
           return;
         }
       }
     }
     else if(axisLock != Axis.vertical){
       if(dx > 0){
-        tower.dispatch(SetAllAnimationValues(value(DismissDirection.startToEnd), IconPosition.RIGHT, CardPosition.Right));
+        animationController.animateTo(value(DismissDirection.startToEnd));
+        tower.dispatch(SetAllAnimationValues(IconPosition.RIGHT, CardPosition.Right));
         return;
       }
       else{
-        tower.dispatch(SetAllAnimationValues(value(DismissDirection.endToStart), IconPosition.LEFT, CardPosition.Left));
+        animationController.animateTo(value(DismissDirection.endToStart));
+        tower.dispatch(SetAllAnimationValues(IconPosition.LEFT, CardPosition.Left));
         return;
       }
     }
   }
 
   /// Values of the animation system get updated externally
-  void _onFill(double fill, [IconPosition? newIconPosition, CardPosition? newCardPosition]){
+  void _onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}){
+    animationController.animateTo(fill ?? 0.5, duration: duration, curve: Curves.easeInOutCubic);
     tower.dispatch(
       SetAllAnimationValues(
-        fill, 
         newIconPosition != null ? newIconPosition : tower.state.iconPosition,
-        newCardPosition != null ? newCardPosition : tower.state.cardPosition
+        newCardPosition != null ? newCardPosition : tower.state.cardPosition,
+        nullFill: fill == null
       )
     );
+    widget.delegate.onFill(fill, tower.state);
   }
 
   @override
@@ -127,7 +140,12 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
       child: StoreConnector<AnimationSystemState, AnimationSystemState>(
         converter: (store) => store.state,
         builder: (context, state) {
-          return widget.delegate.build(context, state.iconPosition, state.cardPosition, state.fill);
+          return AnimatedBuilder(
+            animation: animationController,
+            builder: (context, _) {
+              return widget.delegate.build(context, state, animationController.value);
+            }
+          );
         }
       )
     );
@@ -147,7 +165,7 @@ class AnimationSystemController extends ChangeNotifier{
   void onUpdate(double dx, double dy, Function(DismissDirection) value) => _state != null ? _state!._onUpdate(dx, dy, value) : null;
 
   //Can be called when onSwipe is called to update the animation state
-  void onFill(double fill, [IconPosition? newIconPosition, CardPosition? newCardPosition]) => _state != null ? _state!._onFill(fill, newIconPosition, newCardPosition) : null;
+  void onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}) => _state != null ? _state!._onFill(fill, newIconPosition: newIconPosition, newCardPosition: newCardPosition, duration: duration) : null;
 
   //Disposes of the controller
   @override

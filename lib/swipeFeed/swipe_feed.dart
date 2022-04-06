@@ -56,6 +56,9 @@ class SwipeFeed<T> extends StatefulWidget {
 
   /// Updatable view for animations
   final AnimationSystemDelegate? delegate;
+
+  /// Functions to controll the delegate
+  final AnimationSystemController? animationSystemController;
   
   const SwipeFeed({ 
     Key? key,
@@ -70,6 +73,7 @@ class SwipeFeed<T> extends StatefulWidget {
     this.padding,
     this.mask,
     this.delegate,
+    this.animationSystemController,
     required this.loader,
     required this.objectKey,
     required this.controller
@@ -86,9 +90,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   ///Controls automating swipes
   List<SwipeFeedCardController> swipeFeedCardControllers = [];
-
-  ///Animation System Controller
-  late AnimationSystemController controller;
 
   @override
   void initState(){
@@ -119,7 +120,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     //Initialize Controllers
     swipeFeedCardControllers.add(SwipeFeedCardController());
     swipeFeedCardControllers.add(SwipeFeedCardController());
-    controller = AnimationSystemController();
   }
 
   @override
@@ -225,7 +225,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       mask: widget.mask,
       isLast: tower.state.items.length == 1,
       onPanUpdate: (dx, dy){
-        controller.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+        if(widget.animationSystemController != null){
+          widget.animationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+        }
       },
       onSwipe: (dx, dy, reverseAnimation, dir) async {
         if((widget as SwipeFeed<T>).onSwipe != null && item.item1 != null){
@@ -252,9 +254,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
               _buildCard(1),
 
               // Animation system
-              widget.delegate != null ? 
+              widget.delegate != null && widget.animationSystemController != null ? 
               AnimationSystemDelegateBuilder(
-                controller: controller, 
+                controller: widget.animationSystemController!, 
                 delegate: widget.delegate!
               ) : SizedBox.shrink(),
 
