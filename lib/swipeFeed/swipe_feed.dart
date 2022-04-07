@@ -55,7 +55,9 @@ class SwipeFeed<T> extends StatefulWidget {
   final Widget? mask;
 
   /// Updatable view for animations
-  final AnimationSystemDelegate? delegate;
+  final AnimationSystemDelegate? bottomDelegate;
+
+  final AnimationSystemDelegate? topDelegate;
 
   /// Functions to controll the delegate
   final AnimationSystemController? animationSystemController;
@@ -72,7 +74,8 @@ class SwipeFeed<T> extends StatefulWidget {
     this.canExpand,
     this.padding,
     this.mask,
-    this.delegate,
+    this.bottomDelegate,
+    this.topDelegate,
     this.animationSystemController,
     required this.loader,
     required this.objectKey,
@@ -210,6 +213,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       return SizedBox.shrink();
     }
 
+
     Tuple2<T?, Store<SwipeFeedCardState>> item = tower.state.items[index];
 
     return SwipeFeedCard<T>(
@@ -246,25 +250,38 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   Widget build(BuildContext context) {//markus gay af
     return StoreProvider(
       store: tower,
-      child: StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
-        converter: (store) => store.state.items,
-        builder: (context, items) {
-          return Stack(
-            children: [
-              _buildCard(1),
+      child: Stack(
+        children: [
 
-              // Animation system
-              widget.delegate != null && widget.animationSystemController != null ? 
-              AnimationSystemDelegateBuilder(
-                controller: widget.animationSystemController!, 
-                delegate: widget.delegate!
-              ) : SizedBox.shrink(),
+          // Animation system
+          widget.bottomDelegate != null && widget.animationSystemController != null ? 
+          AnimationSystemDelegateBuilder(
+            controller: widget.animationSystemController!, 
+            delegate: widget.bottomDelegate!
+          ) : SizedBox.shrink(),
 
-              _buildCard(0)
-            ],
-          );
-        }
-      ),
+          StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
+            converter: (store) => store.state.items,
+            builder: (context, items) {
+              return _buildCard(1);
+            }
+          ),
+
+          // Animation system
+          widget.topDelegate != null && widget.animationSystemController != null ? 
+          AnimationSystemDelegateBuilder(
+            controller: widget.animationSystemController!, 
+            delegate: widget.topDelegate!
+          ) : SizedBox.shrink(),
+
+          StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
+            converter: (store) => store.state.items,
+            builder: (context, items) {
+              return _buildCard(0);
+            }
+          )
+        ],
+      )
     );
   }
 }

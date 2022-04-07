@@ -31,7 +31,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     // Initiate state
     tower = AnimationSystemState.tower();
 
-    animationController = AnimationController(vsync: this);
+    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 0));
   }
 
   @override
@@ -121,7 +121,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
   }
 
   /// Values of the animation system get updated externally
-  void _onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}){
+  Future<void> _onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}) async {
     animationController.animateTo(fill ?? 0.5, duration: duration, curve: Curves.easeInOutCubic);
     tower.dispatch(
       SetAllAnimationValues(
@@ -130,7 +130,8 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
         nullFill: fill == null
       )
     );
-    widget.delegate.onFill(fill, tower.state);
+    await widget.delegate.onFill(fill, tower.state);
+    return;
   }
 
   @override
@@ -165,7 +166,7 @@ class AnimationSystemController extends ChangeNotifier{
   void onUpdate(double dx, double dy, Function(DismissDirection) value) => _state != null ? _state!._onUpdate(dx, dy, value) : null;
 
   //Can be called when onSwipe is called to update the animation state
-  void onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}) => _state != null ? _state!._onFill(fill, newIconPosition: newIconPosition, newCardPosition: newCardPosition, duration: duration) : null;
+  Future<void>? onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}) async => _state != null ? await _state!._onFill(fill, newIconPosition: newIconPosition, newCardPosition: newCardPosition, duration: duration) : null;
 
   //Disposes of the controller
   @override

@@ -574,8 +574,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Called when the pan gesture starts
   void _onPanStart(DragStartDetails d){
 
-    print("STARTING");
-
     if (swipable != true) return;
 
     //The point on the screen that determines the different angles
@@ -611,8 +609,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   ///Called when the user finger is lifted after a pan
   void _onPanEnd(DragEndDetails d) async {
-
-    print("ENDING");
 
     if (swipable != true) return;
     
