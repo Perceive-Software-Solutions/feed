@@ -7,10 +7,12 @@ part 'animation_system_delegate.dart';
 class AnimationSystemDelegateBuilder extends StatefulWidget {
   final AnimationSystemDelegate delegate;
   final AnimationSystemController controller;
+  final bool animateAccordingToPosition;
   const AnimationSystemDelegateBuilder({ 
     Key? key,
     required this.delegate,
     required this.controller,
+    this.animateAccordingToPosition = false
   }) : super(key: key);
 
   @override
@@ -31,7 +33,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     // Initiate state
     tower = AnimationSystemState.tower();
 
-    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 0));
+    animationController = AnimationController(vsync: this, duration: widget.delegate.duration);
   }
 
   @override
@@ -50,6 +52,11 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
   void _onUpdate(double dx, double dy, Function(DismissDirection)? value){
 
     if(value == null) return;
+
+    // ReletivePosition Thresholds
+    double horizontalSwipeThresh = 92.0;
+    double bottomSwipeThresh = 157;
+    double topSwipeThresh = 92.0;
 
     //Height of the screen
     final height = MediaQuery.of(context).size.height;
@@ -81,39 +88,72 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
 
     if(axisLock != Axis.horizontal && !horizontalAxisOverride){
       if(dy > 0){
+        double reletivePosition = dy.abs()/bottomSwipeThresh;
         if(dx > 0){
-          animationController.animateTo(value(DismissDirection.startToEnd));
+          if(widget.delegate.animateAccordingToPosition){
+            animationController.animateTo(reletivePosition, duration: Duration(milliseconds: 0));
+          }
+          else{
+            animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
+          }
           tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Right));
           widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
           return;
         } 
         else{
-          animationController.animateTo(value(DismissDirection.endToStart));
+          if(widget.delegate.animateAccordingToPosition){
+            animationController.animateTo(reletivePosition, duration: Duration(milliseconds: 0));
+          }
+          else{
+            animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
+          }
           tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Left));
           return;
         }
       }
       else{
+        double reletivePosition = dy.abs() / topSwipeThresh;
         if(dx > 0){
-          animationController.animateTo(value(DismissDirection.startToEnd));
+          if(widget.delegate.animateAccordingToPosition){
+            animationController.animateTo(reletivePosition, duration: Duration(milliseconds: 0));
+          }
+          else{
+            animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
+          }
           tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Right));
           return;
         }
         else{
-          animationController.animateTo(value(DismissDirection.endToStart));
+          if(widget.delegate.animateAccordingToPosition){
+            animationController.animateTo(reletivePosition, duration: Duration(milliseconds: 0));
+          }
+          else{
+            animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
+          }
           tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Left));
           return;
         }
       }
     }
     else if(axisLock != Axis.vertical){
+      double reletivePosition = dx.abs() / horizontalSwipeThresh;
       if(dx > 0){
-        animationController.animateTo(value(DismissDirection.startToEnd));
+        if(widget.delegate.animateAccordingToPosition){
+          animationController.animateTo(reletivePosition, duration: Duration(milliseconds: 0));
+        }
+        else{
+          animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
+        }
         tower.dispatch(SetAllAnimationValues(IconPosition.RIGHT, CardPosition.Right));
         return;
       }
       else{
-        animationController.animateTo(value(DismissDirection.endToStart));
+        if(widget.delegate.animateAccordingToPosition){
+          animationController.animateTo(reletivePosition, duration: Duration(milliseconds: 0));
+        }
+        else{
+          animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
+        }
         tower.dispatch(SetAllAnimationValues(IconPosition.LEFT, CardPosition.Left));
         return;
       }
@@ -132,6 +172,12 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     );
     await widget.delegate.onFill(fill, tower.state);
     return;
+  }
+
+  void _onComplete() async {
+    animationController.forward(from: animationController.value).then((value) {
+        widget.delegate.onComplete();
+    });
   }
 
   @override
@@ -167,6 +213,9 @@ class AnimationSystemController extends ChangeNotifier{
 
   //Can be called when onSwipe is called to update the animation state
   Future<void>? onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}) async => _state != null ? await _state!._onFill(fill, newIconPosition: newIconPosition, newCardPosition: newCardPosition, duration: duration) : null;
+
+  // Completes the current animation
+  void onComplete() => _state != null ? _state!._onComplete() : null;
 
   //Disposes of the controller
   @override

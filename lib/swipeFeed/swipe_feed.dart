@@ -1,13 +1,11 @@
 import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
-import 'package:feed/animationSystem/animation_system_delegate_builder.dart';
 import 'package:feed/feed.dart';
 import 'package:feed/swipeFeed/state.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/swipeFeedCard/swipe_feed_card.dart';
 import 'package:feed/util/global/functions.dart';
-import 'package:feed/util/state/feed_state.dart';
 import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
 import 'package:tuple/tuple.dart';
@@ -57,10 +55,14 @@ class SwipeFeed<T> extends StatefulWidget {
   /// Updatable view for animations
   final AnimationSystemDelegate? bottomDelegate;
 
+  /// Update view for animations
   final AnimationSystemDelegate? topDelegate;
 
-  /// Functions to controll the delegate
-  final AnimationSystemController? animationSystemController;
+  /// Functions to controlls the top delegate
+  final AnimationSystemController? topAnimationSystemController;
+
+  /// Functions to control the bottom delegate
+  final AnimationSystemController? bottomAnimationSystemController;
   
   const SwipeFeed({ 
     Key? key,
@@ -76,7 +78,8 @@ class SwipeFeed<T> extends StatefulWidget {
     this.mask,
     this.bottomDelegate,
     this.topDelegate,
-    this.animationSystemController,
+    this.topAnimationSystemController,
+    this.bottomAnimationSystemController,
     required this.loader,
     required this.objectKey,
     required this.controller
@@ -229,8 +232,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       mask: widget.mask,
       isLast: tower.state.items.length == 1,
       onPanUpdate: (dx, dy){
-        if(widget.animationSystemController != null){
-          widget.animationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+        if(widget.bottomAnimationSystemController != null){
+          widget.bottomAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+        }
+        if(widget.topAnimationSystemController != null){
+          widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
         }
       },
       onSwipe: (dx, dy, reverseAnimation, dir) async {
@@ -247,17 +253,18 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Build Method!!
   @override
-  Widget build(BuildContext context) {//markus gay af
+  Widget build(BuildContext context) {
     return StoreProvider(
       store: tower,
       child: Stack(
         children: [
 
           // Animation system
-          widget.bottomDelegate != null && widget.animationSystemController != null ? 
+          widget.bottomDelegate != null && widget.bottomAnimationSystemController != null ? 
           AnimationSystemDelegateBuilder(
-            controller: widget.animationSystemController!, 
-            delegate: widget.bottomDelegate!
+            controller: widget.bottomAnimationSystemController!, 
+            delegate: widget.bottomDelegate!,
+            animateAccordingToPosition: widget.bottomDelegate!.animateAccordingToPosition,
           ) : SizedBox.shrink(),
 
           StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
@@ -268,10 +275,11 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
           ),
 
           // Animation system
-          widget.topDelegate != null && widget.animationSystemController != null ? 
+          widget.topDelegate != null && widget.topAnimationSystemController != null ? 
           AnimationSystemDelegateBuilder(
-            controller: widget.animationSystemController!, 
-            delegate: widget.topDelegate!
+            controller: widget.topAnimationSystemController!, 
+            delegate: widget.topDelegate!,
+            animateAccordingToPosition: widget.topDelegate!.animateAccordingToPosition
           ) : SizedBox.shrink(),
 
           StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
