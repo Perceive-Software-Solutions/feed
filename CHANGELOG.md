@@ -1,3 +1,11 @@
+## [0.4.2] v0.4.2
+
+* Added additional functionality to sliding sheet
+  * Persistent header between delegate navigation
+  * Additional Snappings
+  * Route builders within delegate navigation
+  * Bug fixes to static sheet
+
 ## [0.4.1] v0.4.1
 
 * Added proper support for loading widget

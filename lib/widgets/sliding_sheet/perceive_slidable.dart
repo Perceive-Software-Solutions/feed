@@ -37,6 +37,8 @@ class PerceiveSlidable extends StatefulWidget {
   final double mediumExtent;
   /// The lowest possible extent for the sliding sheet
   final double minExtent;
+  /// Any additional snapping
+  final List<double>? additionalSnappings;
 
   // Builders
   /// Optional builder for the initial delegate
@@ -45,6 +47,10 @@ class PerceiveSlidable extends StatefulWidget {
   final Widget Function(BuildContext context, SheetState?, double)? customBodyBuilder;
   /// The persistent footer on the sliding sheet
   final Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder;
+
+  /// A persistent header over the navigator, when defined, disables any delegates from building headers
+  final Widget Function(BuildContext context, Widget spacer)? persistentHeader;
+  
 
   /// Listeners
   final Function(double extent)? extentListener;
@@ -63,7 +69,9 @@ class PerceiveSlidable extends StatefulWidget {
     this.minExtent = 0.0,
     this.mediumExtent = 0.4,
     this.expandedExtent = 1.0,
+    this.additionalSnappings,
     this.header,
+    this.persistentHeader,
     this.customBodyBuilder,
     this.footerBuilder,
     this.extentListener,
@@ -79,6 +87,9 @@ class PerceiveSlidable extends StatefulWidget {
 }
 
 class _PerceiveSlidableState extends State<PerceiveSlidable> {
+
+  bool get disableHeader => widget.persistentHeader != null;
+  double get statusBarHeight => tower.state.statusBarHeight;
 
   ///The controller for the state
   late PerceiveSlidableController stateController;
@@ -115,23 +126,27 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
 
   Future<void> snapTo(double extent, {Duration? duration}) async => await (sheetController.snapToExtent(extent, duration: duration) ?? null);
 
-  Future<dynamic> pushPage(PerceiveSlidableDelegate delegate, {dynamic object}) async {
+  Future<dynamic> pushPage(PerceiveSlidableDelegate delegate, [Route Function(Widget child)? routeBuilder]) async {
     tower.dispatch(_AddDelegateEvent(delegate));
-    final obj = await navkey.currentState?.push(MaterialPageRoute(builder: (context) {
-      return StoreProvider(
-        store: tower,
-        child: _PerceiveSlidableDelegateBuilder(
-          controller: stateController,
-          sheetStateController: slidingSheetStateController,
-          delegate: delegate,
-          expandedExtent: widget.expandedExtent,
-          initialExtent: sheetController.state!.extent,
-          mediumExtent: widget.mediumExtent,
-          minExtent: widget.minExtent,
-          staticSheet: widget.staticSheet
-        ),
-      );
-    }));
+
+    Widget delegateBuilder = _PerceiveSlidableDelegateBuilder(
+      controller: stateController,
+      sheetStateController: slidingSheetStateController,
+      delegate: delegate,
+      expandedExtent: widget.expandedExtent,
+      initialExtent: sheetController.state!.extent,
+      mediumExtent: widget.mediumExtent,
+      minExtent: widget.minExtent,
+      staticSheet: widget.staticSheet,
+      disableHeader: disableHeader,
+    );
+
+    final obj = await navkey.currentState?.push(
+      routeBuilder?.call(delegateBuilder) ??
+      MaterialPageRoute(builder: (context) {
+        return delegateBuilder;
+      })
+    );
     tower.dispatch(_RemoveLastDelegateEvent());
     return obj;
   }
@@ -173,7 +188,7 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
       listener: sheetListener,
       snapSpec: SnapSpec(
         initialSnap: sheetController.state?.extent ?? widget.initialExtent,
-        snappings: [widget.minExtent, widget.mediumExtent, widget.expandedExtent],
+        snappings: [widget.minExtent, widget.mediumExtent, widget.expandedExtent, ...(widget.additionalSnappings ?? [])],
       ),
       customBuilder: (context, controller, state) {
 
@@ -188,26 +203,45 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
               minWidth: pageWidth,
               maxWidth: pageWidth,
             ),
-            child: Navigator(
-              key: navkey,
-              onGenerateRoute: (settings) => MaterialPageRoute(
-                settings: settings,
-                builder: (context) {
-                  return StoreProvider(
-                    store: tower,
-                    child: _PerceiveSlidableDelegateBuilder(
-                      controller: stateController,
-                      sheetStateController: slidingSheetStateController,
-                      delegate: delegates[0],
-                      expandedExtent: widget.expandedExtent,
-                      initialExtent: widget.initialExtent,
-                      mediumExtent: widget.mediumExtent,
-                      minExtent: widget.minExtent,
-                      staticSheet: widget.staticSheet
+            child: StoreProvider(
+              store: tower,
+              child: Column(
+                children: [
+                if(disableHeader)
+                  StoreConnector<PerceiveSlidableState, double>(
+                    converter: (store) => store.state.extent,
+                    builder: (context, extent) {
+                      //The animation value for the topExtent animation
+                      double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+                      return widget.persistentHeader!(
+                        context, 
+                        Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
+                      );
+                    }
+                  ),
+                  Expanded(
+                    child: Navigator(
+                      key: navkey,
+                      onGenerateRoute: (settings) => MaterialPageRoute(
+                        settings: settings,
+                        builder: (context) {
+                          return _PerceiveSlidableDelegateBuilder(
+                            controller: stateController,
+                            sheetStateController: slidingSheetStateController,
+                            delegate: delegates[0],
+                            expandedExtent: widget.expandedExtent,
+                            initialExtent: widget.initialExtent,
+                            mediumExtent: widget.mediumExtent,
+                            minExtent: widget.minExtent,
+                            staticSheet: widget.staticSheet,
+                            disableHeader: disableHeader,
+                          );
+                        },
+                      )
                     ),
-                  );
-                },
-              )
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -240,7 +274,7 @@ class PerceiveSlidableController extends ChangeNotifier {
   void _update() => notifyListeners();
 
   ///Pushes a new page on the sheet navigator
-  Future<dynamic> push(PerceiveSlidableDelegate delegate) => _state!.pushPage(delegate);
+  Future<dynamic> push(PerceiveSlidableDelegate delegate, [Route Function(Widget child)? routeBuilder]) => _state!.pushPage(delegate, routeBuilder);
 
   ///Pushes a new page on the sheet navigator
   void pop() => _state!.navkey.currentState?.pop();
@@ -279,6 +313,8 @@ class _PerceiveSlidableDelegateBuilder extends StatefulWidget {
   final double mediumExtent;
   final double minExtent;
 
+  final bool disableHeader;
+
   const _PerceiveSlidableDelegateBuilder({ 
     Key? key,
     required this.delegate,
@@ -289,6 +325,7 @@ class _PerceiveSlidableDelegateBuilder extends StatefulWidget {
     required this.mediumExtent,
     required this.minExtent,
     required this.staticSheet,
+    required this.disableHeader,
   }) : super(key: key);
 
   @override
@@ -398,7 +435,7 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
             Align(
               alignment: Alignment.topCenter,
               child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
+                behavior: HitTestBehavior.translucent,
                 onTap: (){
                   if(widget.delegate.isScrolled){
                     scrollUp();
@@ -424,8 +461,9 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
       converter: (store) => store.state.extent,
       builder: (context, extent) {
 
-
         Widget _buildPage(int index){
+
+          bool scrollLocked = extent + widget.delegate.staticScrollModifier <= widget.mediumExtent && widget.staticSheet;
 
           /// Has a different build mode when the delegate is a [ScrollablePerceiveSlidableDelegate]
           if(widget.delegate is ScrollablePerceiveSlidableDelegate){
@@ -435,13 +473,13 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
                 minWidth: pageWidth,
                 maxWidth: pageWidth,
               ),
-              child: (widget.delegate as ScrollablePerceiveSlidableDelegate).scrollingBodyBuilder(context, widget.controller.sheetState, widget.delegate.scrollControllers[index], index, extent <= widget.mediumExtent && widget.staticSheet, pageHeight * (1.0 - extent)),
+              child: (widget.delegate as ScrollablePerceiveSlidableDelegate).scrollingBodyBuilder(context, widget.controller.sheetState, widget.delegate.scrollControllers[index], index, scrollLocked, pageHeight * (1.0 - extent)),
             );
           }
 
           return SingleChildScrollView(
             controller: widget.delegate.scrollControllers[index],
-            physics: extent <= widget.mediumExtent && widget.staticSheet ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            physics: scrollLocked ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             child: Column(
               children: [
 
@@ -463,6 +501,10 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
           );
         }
 
+        if(widget.delegate.pageCount == 1){
+          return _buildPage(0);
+        }
+
         return TabBarView(
           controller: widget.delegate.tabController,
           children: List.generate(widget.delegate.pageCount, (index) => _buildPage(index)),
@@ -475,7 +517,8 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
   Widget build(BuildContext context) {
     return widget.delegate.wrapperBuilder(context, Column(
       children: [
-        _buildHeader(context),
+        if(!widget.disableHeader)
+          _buildHeader(context),
         Expanded(child: _buildBody(context)),
       ],
     ));
@@ -486,6 +529,7 @@ abstract class PerceiveSlidableDelegate{
 
   final int pageCount;
   final int initialPage;
+  final double staticScrollModifier;
   final List<ScrollController> scrollControllers;
   late TabController tabController;
 
@@ -506,7 +550,7 @@ abstract class PerceiveSlidableDelegate{
   ///The state of the delegate builder
   _PerceiveSlidableDelegateBuilderState? delegateState;
 
-  PerceiveSlidableDelegate({required this.pageCount, this.initialPage = 0, this.delegateObject})
+  PerceiveSlidableDelegate({required this.pageCount, this.initialPage = 0, this.delegateObject, this.staticScrollModifier = 0.0})
     : scrollControllers = List.generate(pageCount, (index) => ScrollController());
   
   void _delegateSheetStateListener(BuildContext context, SheetState state){
@@ -554,7 +598,7 @@ abstract class PerceiveSlidableDelegate{
 /// Provides a builder that provides the current scroll controller
 abstract class ScrollablePerceiveSlidableDelegate extends PerceiveSlidableDelegate{
 
-  ScrollablePerceiveSlidableDelegate({required int pageCount, int initialPage = 0, dynamic delegateObject}) : super(pageCount: pageCount, initialPage: initialPage, delegateObject: delegateObject);
+  ScrollablePerceiveSlidableDelegate({required int pageCount, int initialPage = 0, dynamic delegateObject, double? staticScrollModifier}) : super(pageCount: pageCount, initialPage: initialPage, delegateObject: delegateObject, staticScrollModifier: staticScrollModifier ?? 0.0);
 
   @override
   Widget customBodyBuilder(BuildContext context, SheetState? state, double extent, int pageIndex){
