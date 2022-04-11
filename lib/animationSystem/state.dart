@@ -6,11 +6,15 @@ class AnimationSystemState extends FortState{
   final IconPosition? iconPosition;
   final CardPosition? cardPosition;
   final bool nullFill;
+  final double dx;
+  final double dy;
 
   AnimationSystemState({
     this.iconPosition,
     this.cardPosition,
-    this.nullFill = false
+    this.nullFill = false,
+    this.dx = 0,
+    this.dy = 0
   });
 
   factory AnimationSystemState.initial() => AnimationSystemState();
@@ -51,7 +55,9 @@ class SetAllAnimationValues extends AnimationSystemEvent{
   IconPosition? iconPosition;
   CardPosition? cardPosition;
   bool nullFill;
-  SetAllAnimationValues(this.iconPosition, this.cardPosition, {this.nullFill = false});
+  double dx;
+  double dy;
+  SetAllAnimationValues(this.iconPosition, this.cardPosition, this.dx, this.dy, {this.nullFill = false});
 }
 
 AnimationSystemState _animationSystemReducer(AnimationSystemState state, dynamic event){
@@ -60,7 +66,9 @@ AnimationSystemState _animationSystemReducer(AnimationSystemState state, dynamic
       return AnimationSystemState(
         iconPosition: event.iconPosition,
         cardPosition: event.cardPosition,
-        nullFill: event.nullFill
+        nullFill: event.nullFill,
+        dx: event.dx,
+        dy: event.dy
       );
     }
   }
