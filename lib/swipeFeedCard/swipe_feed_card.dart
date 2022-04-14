@@ -113,9 +113,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 
   /// Reverses the swipe card back to its initial location
   Future<void> reverseAnimation() async{
-    swipeCardController.reverse();
-    await Future.delayed(Duration(milliseconds: 50));
-    swipeCardController.setSwipeable(true);
+    await swipeCardController.reverse();
     fillLock = false;
     return;
   }

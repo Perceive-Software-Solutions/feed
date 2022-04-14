@@ -1,5 +1,6 @@
 part of './animation_system_delegate_builder.dart';
 
+/// Animation Design
 abstract class AnimationSystemDelegate {
 
   final bool animateAccordingToPosition;
@@ -10,5 +11,13 @@ abstract class AnimationSystemDelegate {
   Widget build(BuildContext context, AnimationSystemState state, double fill);
   void onUpdate(double dx, double dy, double value);
   Future<void> onFill(double? fill, AnimationSystemState state);
-  void onComplete();
+  Future<bool> onComplete(OverlayDelegate? overlay, {Future<void> Function()? reverse, List<dynamic>? args});
+}
+
+/// Overlay Design
+abstract class OverlayDelegate{
+
+  OverlayDelegate();
+
+  Widget build(Completer<bool> result, Future<void> Function() reverse, {List<dynamic>? args});
 }

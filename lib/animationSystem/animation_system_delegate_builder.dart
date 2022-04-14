@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:feed/animationSystem/state.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
@@ -171,10 +173,14 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     return;
   }
 
-  void _onComplete() async {
-    animationController.forward(from: animationController.value).then((value) {
-        widget.delegate.onComplete();
+  Future<bool> _onComplete(OverlayDelegate? overlay, {Future<void> Function()? reverse, List<dynamic>? args}) async {
+    Completer<bool> completer = Completer();
+    // Research into when this function runs
+    animationController.forward(from: animationController.value).whenComplete(() async {
+        bool result = await widget.delegate.onComplete(overlay, reverse: reverse, args: args);
+        completer.complete(result);
     });
+    return completer.future;
   }
 
   @override
@@ -212,7 +218,7 @@ class AnimationSystemController extends ChangeNotifier{
   Future<void>? onFill(double? fill, {IconPosition? newIconPosition, CardPosition? newCardPosition, Duration? duration}) async => _state != null ? await _state!._onFill(fill, newIconPosition: newIconPosition, newCardPosition: newCardPosition, duration: duration) : null;
 
   // Completes the current animation
-  void onComplete() => _state != null ? _state!._onComplete() : null;
+  Future<bool>? onComplete({OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) => _state != null ? _state!._onComplete(overlay, reverse: reverse, args: args) : null;
 
   //Disposes of the controller
   @override

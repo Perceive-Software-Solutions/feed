@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:feed/util/global/functions.dart';
@@ -388,7 +389,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   }
 
   ///Reverses any completed animation
-  void reverse(){
+  Future<void> reverse() async {
 
     setState(() {
       //Unlock haptic
@@ -404,7 +405,9 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     ///Find out durations
     for(AnimationController animation in animations){
       if(animation.value != 0){
-        animation.duration = Duration(milliseconds: (200 ~/ animation.value));
+        int duration = 200 ~/ animation.value;
+        animation.duration = Duration(milliseconds: duration);
+        print(duration);
       }
       else{
         durations.add(Duration(milliseconds: 0));
@@ -418,6 +421,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     upSwiper.reverse();
 
     setSwipeable(true);
+
+    // Duration of the reverse animation to occur
+    await Future.delayed(Duration(milliseconds: 200));
+
+    return;
   }
 
   void _haptic(DismissDirection direction, double value, double delta){
@@ -913,7 +921,7 @@ class SwipeCardController extends ChangeNotifier {
   void _bind(_SwipeCardState bind) => _state = bind;
 
   ///Reverses any active animations
-  void reverse() => _state!.reverse();
+  Future<void> reverse() => _state!.reverse();
 
   ///Swipe card in a designated direction
   void swipe(DismissDirection direction) => _state != null ? _state!.swipe(direction) : null;
