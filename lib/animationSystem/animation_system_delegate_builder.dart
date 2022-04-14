@@ -50,6 +50,13 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     widget.controller.dispose();
   }
 
+  /// Reset the animation state, should be reset after onSwipe has completed
+  void reset(){
+    tower.dispatch(SetAllAnimationValues(null, null, 0, 0));
+    animationController.animateTo(0, duration: Duration(milliseconds: 0));
+    widget.delegate.onUpdate(0, 0, 0);
+  }
+
   /// When the values of the animation system need to be updated from swipefeed (internal)
   void _onUpdate(double dx, double dy, Function(DismissDirection)? value){
 
@@ -83,6 +90,10 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
       axisLock = Axis.vertical;
     }
 
+    if(dx == 0 && dy == 0){
+      tower.dispatch(SetAllAnimationValues(null, null, dx, dy));
+      return;
+    }
     if(axisLock != Axis.horizontal && !horizontalAxisOverride){
       if(dy > 0){
         // Card Position Right Vertical Axis, Below Y axis
@@ -219,6 +230,8 @@ class AnimationSystemController extends ChangeNotifier{
 
   // Completes the current animation
   Future<bool>? onComplete({OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) => _state != null ? _state!._onComplete(overlay, reverse: reverse, args: args) : null;
+
+  void reset() => _state != null ? _state!.reset() : null;
 
   //Disposes of the controller
   @override

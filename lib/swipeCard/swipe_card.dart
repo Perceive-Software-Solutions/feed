@@ -407,7 +407,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       if(animation.value != 0){
         int duration = 200 ~/ animation.value;
         animation.duration = Duration(milliseconds: duration);
-        print(duration);
       }
       else{
         durations.add(Duration(milliseconds: 0));

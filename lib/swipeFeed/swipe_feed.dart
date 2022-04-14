@@ -175,13 +175,14 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Removes card when card swipes off the screen
   /// Assigns another swipe controller to the new card
-  void _onConinue() async {
+  Future<void> _onConinue() async {
     swipeFeedCardControllers.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
     // Duration after the card is swiped off the screen
     // Before the next card unmasks itself
     await Future.delayed(Duration(milliseconds: 200));
     tower.dispatch(removeCard<T>());
+    return;
   }
 
   /// Remove Item by Id from the feed
@@ -241,12 +242,22 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       },
       onSwipe: (dx, dy, reverseAnimation, dir) async {
         if((widget as SwipeFeed<T>).onSwipe != null && item.item1 != null){
-          return await (widget as SwipeFeed<T>).onSwipe!(dx, dy, dir, reverseAnimation, item.item1!);
+          bool value = await (widget as SwipeFeed<T>).onSwipe!(dx, dy, dir, reverseAnimation, item.item1!);
+          return value;
         }
         return true;
       },
       onContinue: () async {
-        _onConinue();
+        await _onConinue();
+        // Duration it takes for card to make it off the screen
+        // This is after the card has been swipped away
+        await Future.delayed(Duration(milliseconds: 400));
+        if(widget.bottomAnimationSystemController != null){
+          widget.bottomAnimationSystemController!.reset();
+        }
+        if(widget.topAnimationSystemController != null){
+          widget.topAnimationSystemController!.reset();
+        }
       },
     );
   }
