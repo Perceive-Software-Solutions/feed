@@ -375,17 +375,13 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 */
 
   //Controls enabling gestures on the card
-  void setSwipeable(bool swipe){
-    bool newSwipe = swipe; //defaults to true
+  void setSwipeable(bool swipe) async {
+    await Future.delayed(Duration(milliseconds: 250));
+    swipable = swipe;
+  }
 
-    //Prevent set state on no state change
-    if(newSwipe != swipable){
-      swipable = newSwipe;
-      // if(mounted) {
-      //   setState(() {});
-      // }
-    }
-
+  bool getSwipeable(){
+    return swipable;
   }
 
   ///Reverses any completed animation
@@ -927,10 +923,6 @@ class SwipeCardController extends ChangeNotifier {
 
   ///Get values of the card from a designated direction
   double value(DismissDirection direction) => _state != null ? _state!.value(direction) : 0;
-
-  ///Set if the card is swipeable or not
-  ///Called on reverse animation to unlock the card again
-  void setSwipeable(bool swipe) => _state != null ? _state!.setSwipeable(swipe) : null;
 
   //Disposes of the controller
   @override

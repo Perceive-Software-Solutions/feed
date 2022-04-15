@@ -249,9 +249,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       },
       onContinue: () async {
         await _onConinue();
-        // Duration it takes for card to make it off the screen
-        // This is after the card has been swipped away
-        await Future.delayed(Duration(milliseconds: 400));
+        // Duration for the switching of a card to go from hide state to show state
+        await Future.delayed(Duration(milliseconds: 200));
         if(widget.bottomAnimationSystemController != null){
           widget.bottomAnimationSystemController!.reset();
         }
