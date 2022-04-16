@@ -1,3 +1,4 @@
+import 'package:feed/animationSystem/animation_system_delegate_builder.dart';
 import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/global/functions.dart';
@@ -47,6 +48,9 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// If it is the last null card in the list
   final bool isLast;
 
+  /// Background card without a child, delegate
+  final AnimationSystemDelegate? backgroundDelegate;
+
   const SwipeFeedCard({ 
     Key? key,
     required this.objectKey,
@@ -62,6 +66,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
     this.onPanUpdate,
     this.onSwipe,
     this.onContinue,
+    this.backgroundDelegate
   }) : super(key: key);
 
   @override
@@ -72,6 +77,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 
   /// Controller
   late SwipeCardController swipeCardController;
+
+  /// Controls the animation of the background card
+  late AnimationSystemController backgroundCardSystemController;
 
   /// If the animation system should be updated
   bool fillLock = false;
@@ -133,6 +141,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
     }
     if((widget as SwipeFeedCard<T>).onPanUpdate != null && !fillLock){
+      backgroundCardSystemController.onUpdate(dx, dy, widget.controller.value);
       (widget as SwipeFeedCard<T>).onPanUpdate!(dx, dy);
     }
   }
@@ -154,7 +163,10 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       if(child == null){
         return Container(
           key: ValueKey('SwipeFeed Background Card Without Child}'),
-          child: (widget as SwipeFeedCard<T>).background!(context, null)
+          child: (widget as SwipeFeedCard<T>).backgroundDelegate != null ? AnimationSystemDelegateBuilder(
+            controller: backgroundCardSystemController,
+            delegate: (widget as SwipeFeedCard<T>).backgroundDelegate!
+          ) : (widget as SwipeFeedCard<T>).background!(context, null)
         );
       }
       else{
