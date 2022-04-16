@@ -51,6 +51,9 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// Background card without a child, delegate
   final AnimationSystemDelegate? backgroundDelegate;
 
+  /// Controller for the animation background delegate
+  final AnimationSystemController? backgroundController;
+
   const SwipeFeedCard({ 
     Key? key,
     required this.objectKey,
@@ -66,6 +69,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
     this.onPanUpdate,
     this.onSwipe,
     this.onContinue,
+    this.backgroundController,
     this.backgroundDelegate
   }) : super(key: key);
 
@@ -77,9 +81,6 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 
   /// Controller
   late SwipeCardController swipeCardController;
-
-  /// Controls the animation of the background card
-  late AnimationSystemController backgroundCardSystemController;
 
   /// If the animation system should be updated
   bool fillLock = false;
@@ -141,7 +142,6 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
     }
     if((widget as SwipeFeedCard<T>).onPanUpdate != null && !fillLock){
-      backgroundCardSystemController.onUpdate(dx, dy, widget.controller.value);
       (widget as SwipeFeedCard<T>).onPanUpdate!(dx, dy);
     }
   }
@@ -163,8 +163,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       if(child == null){
         return Container(
           key: ValueKey('SwipeFeed Background Card Without Child}'),
-          child: (widget as SwipeFeedCard<T>).backgroundDelegate != null ? AnimationSystemDelegateBuilder(
-            controller: backgroundCardSystemController,
+          child: (widget as SwipeFeedCard<T>).backgroundDelegate != null && (widget as SwipeFeedCard<T>).backgroundController != null ? AnimationSystemDelegateBuilder(
+            controller: (widget as SwipeFeedCard<T>).backgroundController!,
             delegate: (widget as SwipeFeedCard<T>).backgroundDelegate!
           ) : (widget as SwipeFeedCard<T>).background!(context, null)
         );

@@ -101,6 +101,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   ///Controls automating swipes
   List<SwipeFeedCardController> swipeFeedCardControllers = [];
 
+  List<AnimationSystemController> backgroundSystemControllers = [];
+
   @override
   void initState(){
     super.initState();
@@ -130,6 +132,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     //Initialize Controllers
     swipeFeedCardControllers.add(SwipeFeedCardController());
     swipeFeedCardControllers.add(SwipeFeedCardController());
+    backgroundSystemControllers.add(AnimationSystemController());
+    backgroundSystemControllers.add(AnimationSystemController());
   }
 
   @override
@@ -181,7 +185,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   /// Assigns another swipe controller to the new card
   Future<void> _onConinue() async {
     swipeFeedCardControllers.removeAt(0);
+    backgroundSystemControllers.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
+    backgroundSystemControllers.add(AnimationSystemController());
     // Duration after the card is swiped off the screen
     // Before the next card unmasks itself
     await Future.delayed(Duration(milliseconds: 200));
@@ -227,6 +233,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     return SwipeFeedCard<T>(
       key: Key('swipefeed - card - ${item.item1 == null ? 'last - card - key' : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
       objectKey: (widget as SwipeFeed<T>).objectKey,
+      backgroundDelegate: widget.backgroundDelegate,
+      backgroundController: backgroundSystemControllers[index],
       controller: swipeFeedCardControllers[index],
       padding: widget.padding,
       item: item,
@@ -242,6 +250,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
         }
         if(widget.topAnimationSystemController != null){
           widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+        }
+        if(backgroundSystemControllers.length >= 2){
+          backgroundSystemControllers[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
         }
       },
       onSwipe: (dx, dy, reverseAnimation, dir) async {
