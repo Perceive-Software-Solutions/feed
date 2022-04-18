@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:feed/swipeFeedCard/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fort/fort.dart';
 import 'package:tuple/tuple.dart';
 
 ///Holds a list of constants used within the application
@@ -74,9 +76,11 @@ class Functions {
 ///Loader for the feed returns a tuple of lst items with a token
 typedef FeedLoader<T> = Future<Tuple2<List<T>, String?>> Function(int size, [String? token]);
 
+typedef AdjustList<T> = List<Tuple2<T?, Store<SwipeFeedCardState>>> Function(List<Tuple2<T?, Store<SwipeFeedCardState>>>);
+
 ///A Builder for the swipe feed
 ///The close function shrinks the card
-typedef SwipeFeedBuilder<T> = Widget Function(T value, bool isLast, bool expanded, void Function() close);
+typedef SwipeFeedBuilder<T> = Widget Function(T value, bool expanded, void Function() close);
 
 ///Builder for the feed items
 typedef FeedBuilder = Widget Function(dynamic item, bool isLast);
