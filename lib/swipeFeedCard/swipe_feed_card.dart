@@ -195,9 +195,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   }
 
   Widget buildSwipeCard(BuildContext context){
-
     return StoreConnector<SwipeFeedCardState, FeedCardState>(
       converter: (store) => store.state.state,
+      distinct: true,
       builder: (context, state) {
         Widget? hiddenChild = state is SwipeCardHideState ? state.overlay : null;
         bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
