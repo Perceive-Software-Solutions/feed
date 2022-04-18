@@ -249,7 +249,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
         if(widget.topAnimationSystemController != null){
           widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
         }
-        if(backgroundSystemControllers.length >= 2){
+        if(backgroundSystemControllers.length >= 2 && widget.backgroundDelegate != null){
           backgroundSystemControllers[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
         }
       },
