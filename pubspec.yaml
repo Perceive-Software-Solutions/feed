@@ -1,6 +1,6 @@
 name: feed
-description: A new Flutter package project.
-version: 0.3.31
+description: A package for managing load more lists and sliding sheets.
+version: 0.4.2
 homepage: https://github.com/Perceive-Software-Solutions/feed
 
 environment:
@@ -13,7 +13,6 @@ dependencies:
   flutter_bloc: ^7.2.0
   flutter_keyboard_visibility: ^5.0.3
   flutter_neumorphic_null_safety: ^3.2.4
-  linked_scroll_controller: ^0.2.0
   flutter_staggered_grid_view: ^0.4.0
   perceive_slidable: ^0.0.2
   connectivity: ^3.0.6

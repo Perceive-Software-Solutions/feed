@@ -1,3 +1,23 @@
+## [0.4.2] v0.4.2
+
+* Added additional functionality to sliding sheet
+  * Persistent header between delegate navigation
+  * Additional Snappings
+  * Route builders within delegate navigation
+  * Bug fixes to static sheet
+
+## [0.4.1] v0.4.1
+
+* Added proper support for loading widget
+
+## [0.4.0] v0.4.0
+
+* Removed MultiFeed
+* Implemented Sliding sheets with delegates
+* Created Single sliding sheet feed
+* Created multi sliding sheet feed
+* Integrated fort state management
+
 ## [0.3.31] v0.3.31
 
 * Fixed load more bugs in feed
