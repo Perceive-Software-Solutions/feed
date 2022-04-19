@@ -536,13 +536,10 @@ ThunkAction<SwipeFeedState<T>> updateItem<T>(T item, String id, String Function(
   return (Store<SwipeFeedState<T>> store) async {
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
     if(items.isNotEmpty && items[0].item1 != null && id == objectKey(items[0].item1!)){
-      items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
-      // Waiting time to animate to the hide state when updating an item
-      await Future.delayed(Duration(milliseconds: 400));
       items.remove(items[0]);
       store.dispatch(SetItemsEvent(items));
-      // Add new item, takes care of rest of animation
-      store.dispatch(addItem(item, wait: false));
+      List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = [Tuple2(item, SwipeFeedCardState.tower(SwipeCardShowState())), ...store.state.items];
+      store.dispatch(SetItemsEvent(addNewItem));
     }
   };
 }

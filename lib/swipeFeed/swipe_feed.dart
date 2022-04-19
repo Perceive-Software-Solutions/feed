@@ -201,6 +201,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Add a card to the feed
   void _addCard(T item, [Function? onComplete]) {
+    backgroundSystemControllers.removeAt(1);
+    backgroundSystemControllers.insert(0, AnimationSystemController());
     tower.dispatch(addItem<T>(item, onComplete: onComplete));
   }
 
@@ -226,8 +228,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       return SizedBox.shrink();
     }
 
-
     Tuple2<T?, Store<SwipeFeedCardState>> item = tower.state.items[index];
+    
     return SwipeFeedCard<T>(
       key: Key('swipefeed - card - ${item.item1 == null ? 'last - card - key' : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
       objectKey: (widget as SwipeFeed<T>).objectKey,
