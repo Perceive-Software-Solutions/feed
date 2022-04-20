@@ -640,17 +640,17 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     // Rotate the card
     rotation = SwipeCardAngle.Bottom;
     AnimationController controller = swiper(direction);
-    controller.duration = FLING_DURATION;
+    controller.duration = Duration(milliseconds: 150);
     controller.forward(from: xDrag / cardSwipeLimitX); //animate
     switch (direction) {
       case DismissDirection.startToEnd:
         // Make the card animate upwards well going a certain direction
-        upSwiper.animateTo(0.3, duration: FLING_DURATION);
+        downSwiper.animateTo(0.2, duration: Duration(milliseconds: 150));
         widget.onSwipe!(100, 0, direction);
         break;
       case DismissDirection.endToStart:
         // Make the card animate upwards well going a certain direction
-        upSwiper.animateTo(0.3, duration: FLING_DURATION);
+        downSwiper.animateTo(0.2, duration: Duration(milliseconds: 150));
         widget.onSwipe!(-100, 0, direction);
         break;
       case DismissDirection.up:

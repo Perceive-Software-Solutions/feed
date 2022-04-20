@@ -11,7 +11,7 @@ abstract class AnimationSystemDelegate {
   Widget build(BuildContext context, AnimationSystemState state, double fill);
   void onUpdate(double dx, double dy, double value);
   Future<void> onFill(double? fill, AnimationSystemState state);
-  Future<bool> onComplete(OverlayDelegate? overlay, {Future<void> Function()? reverse, List<dynamic>? args});
+  Future<bool> onComplete(AnimationSystemState state, {OverlayDelegate? overlay, Future<void> Function()? reverse});
 }
 
 /// Overlay Design

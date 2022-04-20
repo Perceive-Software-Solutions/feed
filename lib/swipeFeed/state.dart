@@ -299,15 +299,6 @@ ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state
       final placeholder = Tuple2(null, showItem);
       store.dispatch(SetItemsEvent<T>([placeholder]));
       Store<SwipeFeedCardState> lastItem = store.state.items[0].item2;
-        
-
-      // Wait time for loading card to go from hiding state to show state
-      // May need to be minipulated depending on the state
-      // If the card is initially loading then wait 500 miliseconds
-      // If the card is going from no items state to loading state after reset is called should it wait 500 ms
-      await Future.delayed(Duration(milliseconds: 500)).then((value){
-        lastItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-      });
 
       // Old items will be empty but just a procaution
       // This will just be the null placeholder
@@ -324,9 +315,7 @@ ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state
 
       // Show first card
       if(newState[0].item1 != null && items.isNotEmpty){
-        newState.firstWhere((element) => element.item1 == null).item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
         store.dispatch(SetItemsEvent(newState));
-        await Future.delayed(Duration(milliseconds: 200));
         store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
       }
       else {

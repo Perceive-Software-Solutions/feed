@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:feed/animationSystem/animation_system_delegate_builder.dart';
 import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeedCard/state.dart';
@@ -212,27 +214,27 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                   (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardExpandState()));
                 } : null,
                 child: Opacity(
-                  opacity: keyboard && state is SwipeCardHideState ? 0.0 : 1.0,
+                  opacity: keyboard && state is SwipeCardHideState ? 0 : 1.0,
                   child: IgnorePointer(
-                    ignoring: state is SwipeCardHideState && state.overlay == null,
-                    child: AnimatedPadding(
-                      duration: Duration(milliseconds: 200),
-                      padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
-                      child: SwipeCard(
-                        controller: swipeCardController,  
-                        swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
-                        opacityChange: true,
-                        onPanUpdate: _onPanUpdate,
-                        onSwipe: _onSwipe,
-                        child: AnimatedSwitcher(
-                          duration: Duration(milliseconds: 200),
-                          child: _loadCard(context, state, hiddenChild)
+                      ignoring: state is SwipeCardHideState && state.overlay == null,
+                      child: AnimatedPadding(
+                        duration: Duration(milliseconds: 200),
+                        padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
+                        child: SwipeCard(
+                          controller: swipeCardController,  
+                          swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
+                          opacityChange: true,
+                          onPanUpdate: _onPanUpdate,
+                          onSwipe: _onSwipe,
+                          child: AnimatedSwitcher(
+                            duration: Duration(milliseconds: 200),
+                            child: _loadCard(context, state, hiddenChild)
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ),
-              ),
+                )
             );
           }
         );
@@ -261,7 +263,7 @@ class SwipeFeedCardController extends ChangeNotifier {
   void forwardAnimation() => _state != null ? _state!.forwardAnimation() : null;
 
   /// Reverse Animation
-  void reverseAnimation() => _state != null ? _state!.reverseAnimation() : null;
+  Future<void> reverseAnimation() async => _state != null ? await _state!.reverseAnimation() : Future.error("State is not initiated");
 
   /// Swipe the card in a specific direction
   void swipe(DismissDirection direction) => _state != null ? _state!.swipe(direction) : null;
@@ -274,6 +276,50 @@ class SwipeFeedCardController extends ChangeNotifier {
   void dispose() {
     _state = null;
     super.dispose();
+  }
+}
+
+class AnimateOver<T extends double> extends Animation<T> with AnimationWithParentMixin<T> {
+
+  ///The minimum value
+  final T last;
+
+  ///The parent
+  @override
+  final Animation<T> parent;
+
+  /// Creates an [AnimationOverLast].
+  ///
+  /// Both arguments must be non-null. Either can be an [AnimationOverLast] itself
+  /// to combine multiple animations.
+  AnimateOver(this.parent, this.last) : assert(last != null && last < 1.0), assert(parent != null);
+
+  @override
+  T get value{
+    Object output = (parent.value - (1.0 - last)) / (last);
+    return max((0.0 as T), output as T);
+  }
+}
+
+class AnimationOverF<T extends double> extends Animation<T> with AnimationWithParentMixin<T> {
+
+  ///The minimum value
+  final T first;
+
+  ///The parent
+  @override
+  final Animation<T> parent;
+
+  /// Creates an [AnimationOverFirst].
+  ///
+  /// Both arguments must be non-null. Either can be an [AnimationOverFirst] itself
+  /// to combine multiple animations.
+  AnimationOverF(this.parent, this.first) : assert(first != null && first < 1.0), assert(parent != null);
+
+  @override
+  T get value{
+    Object output = parent.value / first;
+    return min((1.0 as T), output as T);
   }
 }
 
