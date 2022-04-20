@@ -1,3 +1,7 @@
+## [0.5.1] v0.5.1
+
+* Bug Fixes
+
 ## [0.5.0] v0.5.0
 
 * Implemented a new Swipe Feed
