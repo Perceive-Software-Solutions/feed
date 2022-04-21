@@ -56,6 +56,12 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// Controller for the animation background delegate
   final AnimationSystemController? backgroundController;
 
+  /// Controls the top animation
+  final AnimationSystemController? topAnimationSystemController;
+
+  /// Controls the bottom animation
+  final AnimationSystemController? bottomAnimationSystemController;
+
   const SwipeFeedCard({ 
     Key? key,
     required this.objectKey,
@@ -72,6 +78,8 @@ class SwipeFeedCard<T> extends StatefulWidget {
     this.onSwipe,
     this.onContinue,
     this.backgroundController,
+    this.topAnimationSystemController,
+    this.bottomAnimationSystemController,
     this.backgroundDelegate
   }) : super(key: key);
 
@@ -123,7 +131,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   }
 
   /// Reverses the swipe card back to its initial location
-  Future<void> reverseAnimation() async{
+  Future<void> reverseAnimation() async {
+    if(widget.topAnimationSystemController != null) widget.topAnimationSystemController!.reverse();
+    if(widget.bottomAnimationSystemController != null) widget.bottomAnimationSystemController!.reverse();
     await swipeCardController.reverse();
     fillLock = false;
     return;

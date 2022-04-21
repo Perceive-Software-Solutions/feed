@@ -97,6 +97,12 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     widget.delegate.onUpdate(0, 0, 0);
   }
 
+  Future<void> _reverse() async {
+    _onUpdate(0, 0, (direction) => 0, true);
+    Future.delayed(Duration(milliseconds: 200));
+    return;
+  }
+
   /// When the values of the animation system need to be updated from swipefeed (internal)
   void _onUpdate(double dx, double dy, Function(DismissDirection)? value, [bool reverse = false]) async {
 
@@ -131,8 +137,8 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     }
 
     if(dx == 0 && dy == 0 && reverse){
-      animationController.animateTo(0, duration: Duration(milliseconds: 150));
-      tower.dispatch(SetAllAnimationValues(tower.state.iconPosition, null, dx, dy));
+      animationController.animateTo(0, duration: Duration(milliseconds: 200));
+      tower.dispatch(SetAllAnimationValues(tower.state.iconPosition, tower.state.cardPosition, dx, dy, reversing: true));
       await Future.delayed(Duration(milliseconds: 200));
       return;
     }
@@ -232,7 +238,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     return;
   }
 
-  Future<bool> _onComplete(DismissDirection direction, double dx, {OverlayDelegate? overlay, Future<void> Function()? reverse}) async {
+  Future<bool> _onComplete(DismissDirection direction, double dx, {OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) async {
     Completer<bool> completer = Completer();
 
     tower.dispatch(
@@ -247,7 +253,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
 
     // Research into when this function runs
     animationController.forward(from: animationController.value).whenComplete(() async {
-        bool result = await widget.delegate.onComplete(tower.state, overlay: overlay, reverse: reverse);
+        bool result = await widget.delegate.onComplete(tower.state, overlay: overlay, reverse: reverse, args: args ?? []);
         completer.complete(result);
     });
     return completer.future;
@@ -284,11 +290,13 @@ class AnimationSystemController extends ChangeNotifier{
   //Update on update of dx and dy values inside of the animation state
   void onUpdate(double dx, double dy, Function(DismissDirection) value, [bool reverse = false]) => _state != null ? _state!._onUpdate(dx, dy, value, reverse) : null;
 
+  Future<void> reverse() async => _state != null ? await _state!._reverse() : null;
+
   //Can be called when onSwipe is called to update the animation state
   Future<void>? onFill(DismissDirection direction, double dx, double? fill, {Duration? duration}) async => _state != null ? await _state!._onFill(direction, dx, fill, duration: duration) : null;
 
   // Completes the current animation
-  Future<bool>? onComplete(DismissDirection direction, double dx, {OverlayDelegate? overlay, Future<void> Function()? reverse}) => _state != null ? _state!._onComplete(direction, dx, overlay: overlay, reverse: reverse) : null;
+  Future<bool>? onComplete(DismissDirection direction, double dx, {OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) => _state != null ? _state!._onComplete(direction, dx, overlay: overlay, reverse: reverse, args: args) : null;
 
 
 

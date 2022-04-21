@@ -7,6 +7,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+import 'package:flutter/physics.dart';
+
 /*
 
   _____ _   _ _   _ __  __ 
@@ -312,9 +314,28 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
  
 */
 
+  late AnimationController _controller;
+
+  /// The alignment of the card as it is dragged or being animated.
+  ///
+  /// While the card is being dragged, this value is set to the values computed
+  /// in the GestureDetector onPanUpdate callback. If the animation is running,
+  /// this value is set to the value of the [_animation].
+  Alignment _dragAlignment = Alignment.center;
+
+  late Animation<Alignment> _animation;
+
   @override
   void initState() {
     super.initState();
+
+    _controller = AnimationController(vsync: this);
+
+    _controller.addListener(() {
+      setState(() {
+        _dragAlignment = _animation.value;
+      });
+    });
 
     //Set swipable
     setSwipeable(widget.swipable);
@@ -356,6 +377,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       leftSwiper.dispose();
       upSwiper.dispose();
       downSwiper.dispose();
+      _controller.dispose();
     }catch(e){
       debugPrint('$e');
     }
@@ -373,6 +395,32 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
                |_|                  
  
 */
+
+    /// Calculates and runs a [SpringSimulation].
+  void _runAnimation(Offset pixelsPerSecond, Size size) {
+    _animation = _controller.drive(
+      AlignmentTween(
+        begin: _dragAlignment,
+        end: Alignment.center,
+      ),
+    );
+    // Calculate the velocity relative to the unit interval, [0,1],
+    // used by the animation controller.
+    final unitsPerSecondX = pixelsPerSecond.dx / size.width;
+    final unitsPerSecondY = pixelsPerSecond.dy / size.height;
+    final unitsPerSecond = Offset(unitsPerSecondX, unitsPerSecondY);
+    final unitVelocity = unitsPerSecond.distance;
+
+    const spring = SpringDescription(
+      mass: 1,
+      stiffness: 300,
+      damping: 20,
+    );
+
+    final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
+
+    _controller.animateWith(simulation);
+  }
 
   //Controls enabling gestures on the card
   void setSwipeable(bool swipe) async {
@@ -633,6 +681,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       //Otherwise reset the positions
       reverse();
     }
+
+    _runAnimation(d.velocity.pixelsPerSecond, MediaQuery.of(context).size);
   }
 
   /// Swiped card in a specified direction
@@ -895,11 +945,18 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
       onPanStart: _onPanStart,
-      child: Transform.rotate(
-        angle: rotation == SwipeCardAngle.None ? 0
-          : (rotation == SwipeCardAngle.Top ? 1 : -1) * angle,
-        child: Transform.translate(
-            offset: Offset(xDrag, yDrag), child: widget.child ?? Container()),
+      child: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Align(
+          alignment: Alignment.bottomLeft,
+          child: Transform.rotate(
+            angle: rotation == SwipeCardAngle.None ? 0
+              : (rotation == SwipeCardAngle.Top ? 1 : -1) * angle,
+            child: Transform.translate(
+                offset: Offset(xDrag, yDrag), child: widget.child ?? Container()),
+          ),
+        ),
       ),
     );
   }

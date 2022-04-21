@@ -190,9 +190,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// reverse and clear all animations
   Future<void> resetAnimations() async {
-    if(widget.topAnimationSystemController != null) widget.topAnimationSystemController!.onUpdate(0, 0, (direction) => 0, true);
-    if(widget.bottomAnimationSystemController != null) widget.bottomAnimationSystemController!.onUpdate(0, 0, (direction) => 0, true);
-    if(backgroundSystemControllers.length >= 2) backgroundSystemControllers[1].onUpdate(0, 0, (direction) => 0, true);
+    if(widget.topAnimationSystemController != null) widget.topAnimationSystemController!.reverse();
+    if(widget.bottomAnimationSystemController != null) widget.bottomAnimationSystemController!.reverse();
+    if(backgroundSystemControllers.length >= 2) backgroundSystemControllers[1]..reverse();
     if(swipeFeedCardControllers.length > 0) await swipeFeedCardControllers[0].reverseAnimation();
   }
 
@@ -256,6 +256,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       objectKey: (widget as SwipeFeed<T>).objectKey,
       backgroundDelegate: widget.backgroundDelegate,
       backgroundController: backgroundSystemControllers[index],
+      topAnimationSystemController: widget.topAnimationSystemController,
+      bottomAnimationSystemController: widget.bottomAnimationSystemController,
       controller: swipeFeedCardControllers[index],
       padding: widget.padding,
       item: item,
