@@ -1,3 +1,7 @@
+## [0.5.2] v0.5.2
+
+* Updated animation system
+
 ## [0.5.1] v0.5.1
 
 * Bug Fixes
