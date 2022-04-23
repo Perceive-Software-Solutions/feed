@@ -245,8 +245,8 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
       String? pageToken = loaded.item2;
 
       //If there is no next page, then has more is false
-      //Has to be greater then 10 to have has more not get set to false
-      if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
+      //Has to be greater then 10 to have has more not get set to false ** This has been removed
+      if(pageToken == null){
         store.dispatch(_SetHasMoreEvent(false));
       }
 
@@ -466,7 +466,7 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
 
       //If there is no next page, then has more is false
       //Has to be greater then 10 to have has more not get set to false
-      if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
+      if(pageToken == null){
         store.dispatch(_SetHasMoreEvent(false));
       }
 

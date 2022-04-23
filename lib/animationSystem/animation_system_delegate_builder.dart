@@ -132,13 +132,13 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     if(dx.abs() >= 0 && dy > verticalLength*-1 && dy < verticalLength){
       axisLock = Axis.horizontal;
     }
-    else if(dy.abs() > 0 && dx > horizontalLength*-1 && dx < horizontalLength){
+    else if((dy > 98 || dy < -32) && dx > horizontalLength*-1 && dx < horizontalLength){
       axisLock = Axis.vertical;
     }
 
     if(dx == 0 && dy == 0 && reverse){
-      animationController.animateTo(0, duration: Duration(milliseconds: 200));
       tower.dispatch(SetAllAnimationValues(tower.state.iconPosition, tower.state.cardPosition, dx, dy, reversing: true));
+      animationController.animateTo(0, duration: Duration(milliseconds: 200));
       await Future.delayed(Duration(milliseconds: 200));
       return;
     }
@@ -150,56 +150,56 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
       if(dy > 0){
         // Card Position Right Vertical Axis, Below Y axis
         if(dx > 0){
+          tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Right, dx, dy));
           if(widget.delegate.animateAccordingToPosition){
-            animationController.animateTo(value(DismissDirection.down), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.down));
+            animationController.animateTo(value(DismissDirection.down), duration: Duration(milliseconds: 0));
           }
           else{
-            animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
+            animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
           }
-          tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Right, dx, dy));
           return;
         }
         // Card Position Left Vertical Axis, Below Y axis
         else{
+          tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Left, dx, dy));
           if(widget.delegate.animateAccordingToPosition){
-            animationController.animateTo(value(DismissDirection.down), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.down));
+            animationController.animateTo(value(DismissDirection.down), duration: Duration(milliseconds: 0));
           }
           else{
-            animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
+            animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
           }
-          tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Left, dx, dy));
           return;
         }
       }
       else{
         // Card Position Right Vertical Axis, above Y axis
         if(dx > 0){
+          tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Right, dx, dy));
           if(widget.delegate.animateAccordingToPosition){
-            animationController.animateTo(value(DismissDirection.up), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.up));
+            animationController.animateTo(value(DismissDirection.up), duration: Duration(milliseconds: 0));
           }
           else{
-            animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
+            animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
           }
-          tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Right, dx, dy));
           return;
         }
         // Card Position Left Vertical Axis, above Y axis
         else{
+          tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Left, dx, dy));
           if(widget.delegate.animateAccordingToPosition){
-            animationController.animateTo(value(DismissDirection.up), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.up));
+            animationController.animateTo(value(DismissDirection.up), duration: Duration(milliseconds: 0));
           }
           else{
-            animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
+            animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
           }
-          tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Left, dx, dy));
           return;
         }
       }
@@ -207,16 +207,16 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     else if(axisLock != Axis.vertical){
       // Card Position Horizontal Axis Right
       if(dx > 0){
-        animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
-        widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
         tower.dispatch(SetAllAnimationValues(IconPosition.RIGHT, CardPosition.Right, dx, dy));
+        widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
+        animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
         return;
       }
       // Card Position Horizontal Axis Left
       else{
-        animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
         widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
         tower.dispatch(SetAllAnimationValues(IconPosition.LEFT, CardPosition.Left, dx, dy));
+        animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
         return;
       }
     }
@@ -224,7 +224,6 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
 
   /// Values of the animation system get updated externally
   Future<void> _onFill(DismissDirection direction, double dx, double? fill, {Duration? duration}) async {
-    animationController.animateTo(fill ?? 0.5, duration: duration, curve: Curves.easeInOutCubic);
     tower.dispatch(
       SetAllAnimationValues(
         iconPosition(direction),
@@ -234,11 +233,13 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
         nullFill: fill == null,
       )
     );
+    await Future.delayed(Duration(milliseconds: 20));
+    animationController.animateTo(fill ?? 0.5, duration: duration, curve: Curves.easeInOutCubic);
     await widget.delegate.onFill(fill, tower.state);
     return;
   }
 
-  Future<bool> _onComplete(DismissDirection direction, double dx, {OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) async {
+  Future<bool> _onComplete(DismissDirection direction, double dx, {Duration? duration, OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) async {
     Completer<bool> completer = Completer();
 
     tower.dispatch(
@@ -250,33 +251,26 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
         nullFill: false
       )
     );
+    await Future.delayed(Duration(milliseconds: 20));
 
-    // Research into when this function runs
     animationController.forward(from: animationController.value).whenComplete(() async {
-        bool result = await widget.delegate.onComplete(tower.state, overlay: overlay, reverse: reverse, args: args ?? []);
-        completer.complete(result);
+      bool result = await widget.delegate.onComplete(tower.state, overlay: overlay, reverse: reverse, args: args ?? []);
+      completer.complete(result);
     });
     return completer.future;
   }
 
   @override
   Widget build(BuildContext context) {
-    return StoreProvider(
-      store: tower,
-      child: StoreConnector<AnimationSystemState, AnimationSystemState>(
-        converter: (store) => store.state,
-        builder: (context, state) {
-          return AnimatedBuilder(
-            animation: animationController,
-            builder: (context, _) {
-              return widget.delegate.build(context, state, animationController.value);
-            }
-          );
-        }
-      )
+    return AnimatedBuilder(
+      animation: animationController,
+      builder: (context, _) {
+        return widget.delegate.build(context, tower.state, animationController.value);
+      }
     );
   }
 }
+
 
 class AnimationSystemController extends ChangeNotifier{
   late _AnimationSystemDelegateBuilderState? _state;
@@ -297,8 +291,6 @@ class AnimationSystemController extends ChangeNotifier{
 
   // Completes the current animation
   Future<bool>? onComplete(DismissDirection direction, double dx, {OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) => _state != null ? _state!._onComplete(direction, dx, overlay: overlay, reverse: reverse, args: args) : null;
-
-
 
   void reset() => _state != null ? _state!.reset() : null;
 

@@ -87,7 +87,7 @@ class SwipeCard extends StatefulWidget {
   final bool swipable;
 
   ///Call back function that calls the onSwipe with the DismissDirection
-  final Function(double dx, double dy, DismissDirection)? onSwipe;
+  final Function(double dx, double dy, DismissDirection, Duration duration)? onSwipe;
 
   ///The internal child widget
   final Widget? child;
@@ -690,24 +690,24 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     // Rotate the card
     rotation = SwipeCardAngle.Bottom;
     AnimationController controller = swiper(direction);
-    controller.duration = Duration(milliseconds: 150);
+    controller.duration = Duration(milliseconds: 300);
     controller.forward(from: xDrag / cardSwipeLimitX); //animate
     switch (direction) {
       case DismissDirection.startToEnd:
         // Make the card animate upwards well going a certain direction
-        downSwiper.animateTo(0.2, duration: Duration(milliseconds: 150));
-        widget.onSwipe!(100, 0, direction);
+        downSwiper.animateTo(0.2, duration: Duration(milliseconds: 300));
+        widget.onSwipe!(100, 0, direction, Duration(milliseconds: 300));
         break;
       case DismissDirection.endToStart:
         // Make the card animate upwards well going a certain direction
-        downSwiper.animateTo(0.2, duration: Duration(milliseconds: 150));
-        widget.onSwipe!(-100, 0, direction);
+        downSwiper.animateTo(0.2, duration: Duration(milliseconds: 300));
+        widget.onSwipe!(-100, 0, direction, Duration(milliseconds: 300));
         break;
       case DismissDirection.up:
-        widget.onSwipe!(0, -100, direction);
+        widget.onSwipe!(0, -100, direction, Duration(milliseconds: 300));
         break;
       case DismissDirection.down:
-        widget.onSwipe!(0, 100, direction);
+        widget.onSwipe!(0, 100, direction, Duration(milliseconds: 300));
         break;
       default:
     }
@@ -746,7 +746,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.startToEnd);
+        widget.onSwipe!(flingX, flingY, DismissDirection.startToEnd, durationX);
         swipable = false;
         return DismissDirection.startToEnd; //set signal
       }
@@ -764,7 +764,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.endToStart);
+        widget.onSwipe!(flingX, flingY, DismissDirection.endToStart, durationX);
         swipable = false;
         return DismissDirection.endToStart; //set signal
       }
@@ -785,7 +785,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
             }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.down);
+        widget.onSwipe!(flingX, flingY, DismissDirection.down, durationY);
         swipable = false;
         return DismissDirection.down; //set signal
       }
@@ -803,7 +803,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
           }
         }
         // _haptic(startSwipeSignal, 1000, 1);
-        widget.onSwipe!(flingX, flingY, DismissDirection.up);
+        widget.onSwipe!(flingX, flingY, DismissDirection.up, durationY);
         swipable = false;
         return DismissDirection.up; //set signal
       }
@@ -834,7 +834,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       rightSwiper.duration = SWIPE_DURATION_X;
 
       rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.startToEnd);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.startToEnd, Duration(milliseconds: 600));
       swipable = false;
       return DismissDirection.startToEnd; //set signal
     }
@@ -843,7 +843,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       leftSwiper.duration = SWIPE_DURATION_X;
 
       leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.endToStart);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.endToStart, Duration(milliseconds: 600));
       swipable = false;
       return DismissDirection.endToStart; //set signal
     }
@@ -852,7 +852,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       downSwiper.duration = SWIPE_DURATION_Y;
 
       downSwiper.forward(from: yDrag / cardSwipeLimitY); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.down);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.down, Duration(milliseconds: 600));
       swipable = false;
       return DismissDirection.down; //set signal
     } 
@@ -861,7 +861,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       upSwiper.duration = SWIPE_DURATION_Y;
 
       upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY); //animate
-      widget.onSwipe!(xDrag, yDrag, DismissDirection.up);
+      widget.onSwipe!(xDrag, yDrag, DismissDirection.up, Duration(milliseconds: 600));
       swipable = false;
       return DismissDirection.up; //set signal
     }

@@ -40,7 +40,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final Widget Function(BuildContext context, Widget? child)? background;
 
   ///The on swipe function, run when a card is swiped
-  final Future<bool> Function(double dx, double dy, DismissDirection direction, Future<void> Function(), T item)? onSwipe;
+  final Future<bool> Function(double dx, double dy, DismissDirection direction, Duration duration, Future<void> Function(), T item)? onSwipe;
 
   /// Function tells the feed if the card can expand
   final bool Function(dynamic)? canExpand;
@@ -278,10 +278,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
           backgroundSystemControllers[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
         }
       },
-      onSwipe: (dx, dy, reverseAnimation, dir) async {
+      onSwipe: (dx, dy, reverseAnimation, dir, duration) async {
         if((widget as SwipeFeed<T>).onSwipe != null && item.item1 != null){
           enabled = false;
-          bool value = await (widget as SwipeFeed<T>).onSwipe!(dx, dy, dir, reverseAnimation, item.item1!);
+          bool value = await (widget as SwipeFeed<T>).onSwipe!(dx, dy, dir, duration, reverseAnimation, item.item1!);
           enableAutoSwiping();
           return value;
         }
@@ -357,7 +357,7 @@ class SwipeFeedController<T> extends ChangeNotifier{
   void loadMore() => _state != null ? _state!.tower.dispatch(loadMore) : null;
 
   ///Refreshes the feed replacing the page token
-  void refresh() => _state != null ? _state!.tower.dispatch(refresh) : null;
+  void refreshFeed() => _state != null ? _state!.tower.dispatch(refresh<T>()) : null;
 
   ///Reset the swipe feed back to it's initial state
   ///By default this function calls refresh and will refresh the loader with a null pagetoken

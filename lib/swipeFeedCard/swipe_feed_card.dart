@@ -21,7 +21,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
   final Function(double dx, double dy)? onPanUpdate;
 
   /// Callback for when the card has been dismissed from the screen before forward animation
-  final Future<bool> Function(double dx, double dy, Future<void> Function(), DismissDirection direction)? onSwipe;
+  final Future<bool> Function(double dx, double dy, Future<void> Function(), DismissDirection direction, Duration duration)? onSwipe;
 
   /// After forward animation has been called
   final Future<void> Function()? onContinue;
@@ -119,11 +119,11 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// Checks to see if the onSwipe method passed in and forwards the animation accordingly
   /// True - Forward animation
   /// False - Do nothing
-  dynamic _onSwipe(double dx, double dy, DismissDirection direction) async {
+  dynamic _onSwipe(double dx, double dy, DismissDirection direction, Duration duration) async {
     bool swipeAlert = true;
     fillLock = true;
     if((widget as SwipeFeedCard<T>).onSwipe != null){
-      swipeAlert = await (widget as SwipeFeedCard<T>).onSwipe!(dx, dy, reverseAnimation, direction);
+      swipeAlert = await (widget as SwipeFeedCard<T>).onSwipe!(dx, dy, reverseAnimation, direction, duration);
     }
     if(swipeAlert){
       forwardAnimation();
