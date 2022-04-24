@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:feed/animationSystem/state.dart';
+import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
@@ -10,11 +11,13 @@ class AnimationSystemDelegateBuilder extends StatefulWidget {
   final AnimationSystemDelegate delegate;
   final AnimationSystemController controller;
   final bool animateAccordingToPosition;
+  final bool controlHeptic;
   const AnimationSystemDelegateBuilder({ 
     Key? key,
     required this.delegate,
     required this.controller,
-    this.animateAccordingToPosition = false
+    this.animateAccordingToPosition = false,
+    this.controlHeptic = false
   }) : super(key: key);
 
   @override
@@ -29,12 +32,13 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
   /// Animates the
   late AnimationController animationController;
 
+  int? oldDirection;
+
   @override
   void initState(){
     super.initState();
     // Initiate state
     tower = AnimationSystemState.tower();
-
     animationController = AnimationController(vsync: this, duration: widget.delegate.duration);
   }
 
@@ -90,6 +94,29 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     }
   }
 
+  double get HORIZONTALSWIPETHRESH{
+    return 92.0;
+  }
+
+  double get BOTTOMSWIPETHRESH{
+    return 157;
+  }
+
+  double get TOPSWIPETHRESH{
+    return 92.0;
+  }
+
+/*
+ 
+     _____                 _   _                 
+    |  ___|   _ _ __   ___| |_(_) ___  _ __  ___ 
+    | |_ | | | | '_ \ / __| __| |/ _ \| '_ \/ __|
+    |  _|| |_| | | | | (__| |_| | (_) | | | \__ \
+    |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
+                                                 
+ 
+*/
+
   /// Reset the animation state, should be reset after onSwipe has completed
   void reset(){
     tower.dispatch(SetAllAnimationValues(null, null, 0, 0));
@@ -107,6 +134,9 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
   void _onUpdate(double dx, double dy, Function(DismissDirection)? value, [bool reverse = false]) async {
 
     if(value == null || !mounted) return;
+
+    //Direction to int
+    int i = -1;
 
     //Height of the screen
     final height = MediaQuery.of(context).size.height;
@@ -140,14 +170,14 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
       tower.dispatch(SetAllAnimationValues(tower.state.iconPosition, tower.state.cardPosition, dx, dy, reversing: true));
       animationController.animateTo(0, duration: Duration(milliseconds: 200));
       await Future.delayed(Duration(milliseconds: 200));
-      return;
     }
     else if(dx == 0 && dy == 0){
       tower.dispatch(SetAllAnimationValues(null, null, dx, dy));
-      return;
     }
-    if(axisLock != Axis.horizontal && !horizontalAxisOverride){
+    else if(axisLock != Axis.horizontal && !horizontalAxisOverride){
       if(dy > 0){
+        // show bottom
+        i = 2;
         // Card Position Right Vertical Axis, Below Y axis
         if(dx > 0){
           tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Right, dx, dy));
@@ -159,10 +189,10 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
             animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
           }
-          return;
         }
         // Card Position Left Vertical Axis, Below Y axis
         else{
+          // show top
           tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Left, dx, dy));
           if(widget.delegate.animateAccordingToPosition){
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.down));
@@ -172,10 +202,11 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
             animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
           }
-          return;
         }
       }
       else{
+        // show top
+        i = 3;
         // Card Position Right Vertical Axis, above Y axis
         if(dx > 0){
           tower.dispatch(SetAllAnimationValues(IconPosition.TOP, CardPosition.Right, dx, dy));
@@ -187,7 +218,6 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
             animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
           }
-          return;
         }
         // Card Position Left Vertical Axis, above Y axis
         else{
@@ -200,26 +230,39 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
             animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
           }
-          return;
         }
       }
     }
     else if(axisLock != Axis.vertical){
       // Card Position Horizontal Axis Right
       if(dx > 0){
+        // show right
+        i = 0;
         tower.dispatch(SetAllAnimationValues(IconPosition.RIGHT, CardPosition.Right, dx, dy));
         widget.delegate.onUpdate(dx, dy, value(DismissDirection.startToEnd));
         animationController.animateTo(value(DismissDirection.startToEnd), duration: Duration(milliseconds: 0));
-        return;
       }
       // Card Position Horizontal Axis Left
       else{
+        // show left
+        i = 1;
         widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
         tower.dispatch(SetAllAnimationValues(IconPosition.LEFT, CardPosition.Left, dx, dy));
         animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
-        return;
       }
     }
+    /// Diagonal Heptic
+    if(!reverse && widget.controlHeptic){
+      if(oldDirection != i && ((dx.abs() >= HORIZONTALSWIPETHRESH && 
+      (i == 0 || i == 1)) || (dy.abs() > TOPSWIPETHRESH 
+      && i == 3) || (dy.abs() > BOTTOMSWIPETHRESH && i == 2))){
+        Functions.hapticSwipeVibrate();
+      }
+    }
+
+    oldDirection = i;
+
+    return;
   }
 
   /// Values of the animation system get updated externally

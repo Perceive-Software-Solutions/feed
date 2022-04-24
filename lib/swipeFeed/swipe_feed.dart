@@ -327,6 +327,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
               widget.bottomDelegate != null && widget.bottomAnimationSystemController != null ? 
               AnimationSystemDelegateBuilder(
                 key: Key("Percent - Bar - Animation - System"),
+                controlHeptic: true,
                 controller: widget.bottomAnimationSystemController!, 
                 delegate: widget.bottomDelegate!,
                 animateAccordingToPosition: widget.bottomDelegate!.animateAccordingToPosition,
