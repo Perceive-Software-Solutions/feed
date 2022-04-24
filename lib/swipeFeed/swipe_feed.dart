@@ -41,6 +41,9 @@ class SwipeFeed<T> extends StatefulWidget {
 
   ///The on swipe function, run when a card is swiped
   final Future<bool> Function(double dx, double dy, DismissDirection direction, Duration duration, Future<void> Function(), T item)? onSwipe;
+  
+  ///When the next card is loading
+  final Future<void> Function()? onConinue;
 
   /// Function tells the feed if the card can expand
   final bool Function(dynamic)? canExpand;
@@ -79,6 +82,7 @@ class SwipeFeed<T> extends StatefulWidget {
     this.loadingPlaceHolder,
     this.background,
     this.onSwipe,
+    this.onConinue,
     this.canExpand,
     this.padding,
     this.mask,
@@ -192,7 +196,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   Future<void> resetAnimations() async {
     if(widget.topAnimationSystemController != null) widget.topAnimationSystemController!.reverse();
     if(widget.bottomAnimationSystemController != null) widget.bottomAnimationSystemController!.reverse();
-    if(backgroundSystemControllers.length >= 2) backgroundSystemControllers[1]..reverse();
+    if(backgroundSystemControllers.length >= 2){
+      backgroundSystemControllers[1].reverse();
+      backgroundSystemControllers[0].reverse();
+    }
     if(swipeFeedCardControllers.length > 0) await swipeFeedCardControllers[0].reverseAnimation();
   }
 
@@ -296,6 +303,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
         }
         if(widget.topAnimationSystemController != null){
           widget.topAnimationSystemController!.reset();
+        }
+
+        if((widget as SwipeFeed<T>).onConinue != null){
+          (widget as SwipeFeed<T>).onConinue!();
         }
       },
     );

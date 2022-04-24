@@ -4,6 +4,7 @@ import 'package:feed/animationSystem/animation_system_delegate_builder.dart';
 import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:fort/fort.dart';
@@ -142,8 +143,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// Forwards the swipe card and signals the swipe feed to continue
   Future<void> forwardAnimation() async {
     if((widget as SwipeFeedCard<T>).onContinue != null){
-      (widget as SwipeFeedCard<T>).onContinue!();
+      await (widget as SwipeFeedCard<T>).onContinue!();
     }
+
     fillLock = false;
     return;
   }
@@ -216,8 +218,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard) {
             return AnimatedPadding(
-              duration: Duration(milliseconds: 200),
-              padding: state is SwipeCardExpandState ? EdgeInsets.zero : (keyboard ? padding.copyWith(bottom: 0) : padding),
+              duration: Duration(milliseconds: 0),
+              padding: state is SwipeCardExpandState ? EdgeInsets.zero : (keyboard ? padding : padding),
               child: GestureDetector(
                 onTap: (widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).canExpand != null && 
                 (widget as SwipeFeedCard<T>).canExpand!((widget as SwipeFeedCard<T>).item.item1) && state is SwipeCardShowState && !keyboard ? (){
@@ -232,13 +234,18 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                         padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
                         child: SwipeCard(
                           controller: swipeCardController,  
-                          swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
-                          opacityChange: true,
+                          swipable: (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || state is SwipeCardExpandState && !keyboard,
                           onPanUpdate: _onPanUpdate,
                           onSwipe: _onSwipe,
-                          child: AnimatedSwitcher(
-                            duration: Duration(milliseconds: 200),
-                            child: _loadCard(context, state, hiddenChild)
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: SmoothBorderRadius.all(SmoothRadius(cornerRadius: 32, cornerSmoothing: 0.6)),
+                              color: Color(0xFFF7FAFD)
+                            ),
+                            child: AnimatedSwitcher(
+                              duration: Duration(milliseconds: 200),
+                              child: _loadCard(context, state, hiddenChild)
+                            ),
                           ),
                         ),
                       ),
