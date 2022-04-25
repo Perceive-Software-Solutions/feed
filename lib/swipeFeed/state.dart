@@ -245,8 +245,8 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
       String? pageToken = loaded.item2;
 
       //If there is no next page, then has more is false
-      //Has to be greater then 10 to have has more not get set to false
-      if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
+      //Has to be greater then 10 to have has more not get set to false ** This has been removed
+      if(pageToken == null){
         store.dispatch(_SetHasMoreEvent(false));
       }
 
@@ -299,15 +299,6 @@ ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state
       final placeholder = Tuple2(null, showItem);
       store.dispatch(SetItemsEvent<T>([placeholder]));
       Store<SwipeFeedCardState> lastItem = store.state.items[0].item2;
-        
-
-      // Wait time for loading card to go from hiding state to show state
-      // May need to be minipulated depending on the state
-      // If the card is initially loading then wait 500 miliseconds
-      // If the card is going from no items state to loading state after reset is called should it wait 500 ms
-      await Future.delayed(Duration(milliseconds: 500)).then((value){
-        lastItem.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-      });
 
       // Old items will be empty but just a procaution
       // This will just be the null placeholder
@@ -324,9 +315,7 @@ ThunkAction<SwipeFeedState<T>> populateInitialState<T>(InitialFeedState<T> state
 
       // Show first card
       if(newState[0].item1 != null && items.isNotEmpty){
-        newState.firstWhere((element) => element.item1 == null).item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
         store.dispatch(SetItemsEvent(newState));
-        await Future.delayed(Duration(milliseconds: 200));
         store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
       }
       else {
@@ -477,7 +466,7 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
 
       //If there is no next page, then has more is false
       //Has to be greater then 10 to have has more not get set to false
-      if(pageToken == null || newItems.length < SwipeFeedState.LENGTH_INCREASE_FACTOR){
+      if(pageToken == null){
         store.dispatch(_SetHasMoreEvent(false));
       }
 
@@ -536,13 +525,10 @@ ThunkAction<SwipeFeedState<T>> updateItem<T>(T item, String id, String Function(
   return (Store<SwipeFeedState<T>> store) async {
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
     if(items.isNotEmpty && items[0].item1 != null && id == objectKey(items[0].item1!)){
-      items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
-      // Waiting time to animate to the hide state when updating an item
-      await Future.delayed(Duration(milliseconds: 400));
       items.remove(items[0]);
       store.dispatch(SetItemsEvent(items));
-      // Add new item, takes care of rest of animation
-      store.dispatch(addItem(item, wait: false));
+      List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = [Tuple2(item, SwipeFeedCardState.tower(SwipeCardShowState())), ...store.state.items];
+      store.dispatch(SetItemsEvent(addNewItem));
     }
   };
 }

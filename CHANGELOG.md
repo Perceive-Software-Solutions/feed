@@ -1,3 +1,18 @@
+## [0.5.2] v0.5.2
+
+* Updated animation system
+
+## [0.5.1] v0.5.1
+
+* Bug Fixes
+
+## [0.5.0] v0.5.0
+
+* Implemented a new Swipe Feed
+  * New Animation System
+  * State imnplemented though Fort
+  * Reduced size of unneeded params
+
 ## [0.4.2] v0.4.2
 
 * Added additional functionality to sliding sheet

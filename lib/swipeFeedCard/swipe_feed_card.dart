@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:feed/animationSystem/animation_system_delegate_builder.dart';
 import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:fort/fort.dart';
@@ -19,7 +22,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
   final Function(double dx, double dy)? onPanUpdate;
 
   /// Callback for when the card has been dismissed from the screen before forward animation
-  final Future<bool> Function(double dx, double dy, Future<void> Function(), DismissDirection direction)? onSwipe;
+  final Future<bool> Function(double dx, double dy, Future<void> Function(), DismissDirection direction, Duration duration)? onSwipe;
 
   /// After forward animation has been called
   final Future<void> Function()? onContinue;
@@ -54,6 +57,12 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// Controller for the animation background delegate
   final AnimationSystemController? backgroundController;
 
+  /// Controls the top animation
+  final AnimationSystemController? topAnimationSystemController;
+
+  /// Controls the bottom animation
+  final AnimationSystemController? bottomAnimationSystemController;
+
   const SwipeFeedCard({ 
     Key? key,
     required this.objectKey,
@@ -70,6 +79,8 @@ class SwipeFeedCard<T> extends StatefulWidget {
     this.onSwipe,
     this.onContinue,
     this.backgroundController,
+    this.topAnimationSystemController,
+    this.bottomAnimationSystemController,
     this.backgroundDelegate
   }) : super(key: key);
 
@@ -109,11 +120,11 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// Checks to see if the onSwipe method passed in and forwards the animation accordingly
   /// True - Forward animation
   /// False - Do nothing
-  dynamic _onSwipe(double dx, double dy, DismissDirection direction) async {
+  dynamic _onSwipe(double dx, double dy, DismissDirection direction, Duration duration) async {
     bool swipeAlert = true;
     fillLock = true;
     if((widget as SwipeFeedCard<T>).onSwipe != null){
-      swipeAlert = await (widget as SwipeFeedCard<T>).onSwipe!(dx, dy, reverseAnimation, direction);
+      swipeAlert = await (widget as SwipeFeedCard<T>).onSwipe!(dx, dy, reverseAnimation, direction, duration);
     }
     if(swipeAlert){
       forwardAnimation();
@@ -121,7 +132,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   }
 
   /// Reverses the swipe card back to its initial location
-  Future<void> reverseAnimation() async{
+  Future<void> reverseAnimation() async {
+    if(widget.topAnimationSystemController != null) widget.topAnimationSystemController!.reverse();
+    if(widget.bottomAnimationSystemController != null) widget.bottomAnimationSystemController!.reverse();
     await swipeCardController.reverse();
     fillLock = false;
     return;
@@ -130,8 +143,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// Forwards the swipe card and signals the swipe feed to continue
   Future<void> forwardAnimation() async {
     if((widget as SwipeFeedCard<T>).onContinue != null){
-      (widget as SwipeFeedCard<T>).onContinue!();
+      await (widget as SwipeFeedCard<T>).onContinue!();
     }
+
     fillLock = false;
     return;
   }
@@ -204,35 +218,44 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard) {
             return AnimatedPadding(
+              curve: Curves.easeInOutCubic,
               duration: Duration(milliseconds: 200),
-              padding: state is SwipeCardExpandState ? EdgeInsets.zero : (keyboard ? padding.copyWith(bottom: 0) : padding),
+              padding: state is SwipeCardExpandState ? EdgeInsets.zero : (keyboard ? padding : padding),
               child: GestureDetector(
                 onTap: (widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).canExpand != null && 
                 (widget as SwipeFeedCard<T>).canExpand!((widget as SwipeFeedCard<T>).item.item1) && state is SwipeCardShowState && !keyboard ? (){
                   (widget as SwipeFeedCard<T>).item.item2.dispatch(SetSwipeFeedCardState(SwipeCardExpandState()));
                 } : null,
                 child: Opacity(
-                  opacity: keyboard && state is SwipeCardHideState ? 0.0 : 1.0,
+                  opacity: keyboard && state is SwipeCardHideState ? 0 : 1.0,
                   child: IgnorePointer(
-                    ignoring: state is SwipeCardHideState && state.overlay == null,
-                    child: AnimatedPadding(
-                      duration: Duration(milliseconds: 200),
-                      padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
-                      child: SwipeCard(
-                        controller: swipeCardController,  
-                        swipable: state is SwipeCardShowState || state is SwipeCardExpandState && !keyboard,
-                        opacityChange: true,
-                        onPanUpdate: _onPanUpdate,
-                        onSwipe: _onSwipe,
-                        child: AnimatedSwitcher(
-                          duration: Duration(milliseconds: 200),
-                          child: _loadCard(context, state, hiddenChild)
+                      ignoring: state is SwipeCardHideState && state.overlay == null,
+                      child: AnimatedPadding(
+                        curve: Curves.easeInOutCubic,
+                        duration: Duration(milliseconds: 200),
+                        padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
+                        child: SwipeCard(
+                          controller: swipeCardController,  
+                          swipable: (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
+                          onPanUpdate: _onPanUpdate,
+                          onSwipe: _onSwipe,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: SmoothBorderRadius.all(SmoothRadius(cornerRadius: 32, cornerSmoothing: 0.6)),
+                              color: Color(0xFFF7FAFD)
+                            ),
+                            child: AnimatedSwitcher(
+                              switchInCurve: Curves.easeInOutCubic,
+                              switchOutCurve: Curves.easeInOutCubic,
+                              duration: Duration(milliseconds: 200),
+                              child: _loadCard(context, state, hiddenChild)
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ),
-              ),
+                )
             );
           }
         );
@@ -253,15 +276,18 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 ///Controller for the swipe card
 class SwipeFeedCardController extends ChangeNotifier {
 
-  late _SwipeFeedCardState? _state;
+  _SwipeFeedCardState? _state;
 
   void _bind(_SwipeFeedCardState bind) => _state = bind;
 
   /// Forward Animation
   void forwardAnimation() => _state != null ? _state!.forwardAnimation() : null;
 
+  /// If the state has been initialized
+  bool isBinded() => _state != null;
+
   /// Reverse Animation
-  void reverseAnimation() => _state != null ? _state!.reverseAnimation() : null;
+  Future<void> reverseAnimation() async => _state != null ? await _state!.reverseAnimation() : Future.error("State is not initiated");
 
   /// Swipe the card in a specific direction
   void swipe(DismissDirection direction) => _state != null ? _state!.swipe(direction) : null;
@@ -274,6 +300,50 @@ class SwipeFeedCardController extends ChangeNotifier {
   void dispose() {
     _state = null;
     super.dispose();
+  }
+}
+
+class AnimateOver<T extends double> extends Animation<T> with AnimationWithParentMixin<T> {
+
+  ///The minimum value
+  final T last;
+
+  ///The parent
+  @override
+  final Animation<T> parent;
+
+  /// Creates an [AnimationOverLast].
+  ///
+  /// Both arguments must be non-null. Either can be an [AnimationOverLast] itself
+  /// to combine multiple animations.
+  AnimateOver(this.parent, this.last) : assert(last != null && last < 1.0), assert(parent != null);
+
+  @override
+  T get value{
+    Object output = (parent.value - (1.0 - last)) / (last);
+    return max((0.0 as T), output as T);
+  }
+}
+
+class AnimationOverF<T extends double> extends Animation<T> with AnimationWithParentMixin<T> {
+
+  ///The minimum value
+  final T first;
+
+  ///The parent
+  @override
+  final Animation<T> parent;
+
+  /// Creates an [AnimationOverFirst].
+  ///
+  /// Both arguments must be non-null. Either can be an [AnimationOverFirst] itself
+  /// to combine multiple animations.
+  AnimationOverF(this.parent, this.first) : assert(first != null && first < 1.0), assert(parent != null);
+
+  @override
+  T get value{
+    Object output = parent.value / first;
+    return min((1.0 as T), output as T);
   }
 }
 
