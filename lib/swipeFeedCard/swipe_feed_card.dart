@@ -219,7 +219,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
           builder: (context, keyboard) {
             return AnimatedPadding(
               curve: Curves.easeInOutCubic,
-              duration: Duration(milliseconds: 0),
+              duration: Duration(milliseconds: 200),
               padding: state is SwipeCardExpandState ? EdgeInsets.zero : (keyboard ? padding : padding),
               child: GestureDetector(
                 onTap: (widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).canExpand != null && 
