@@ -218,6 +218,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
         return KeyboardVisibilityBuilder(
           builder: (context, keyboard) {
             return AnimatedPadding(
+              curve: Curves.easeInOutCubic,
               duration: Duration(milliseconds: 0),
               padding: state is SwipeCardExpandState ? EdgeInsets.zero : (keyboard ? padding : padding),
               child: GestureDetector(
@@ -230,11 +231,12 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                   child: IgnorePointer(
                       ignoring: state is SwipeCardHideState && state.overlay == null,
                       child: AnimatedPadding(
+                        curve: Curves.easeInOutCubic,
                         duration: Duration(milliseconds: 200),
                         padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
                         child: SwipeCard(
                           controller: swipeCardController,  
-                          swipable: (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || state is SwipeCardExpandState && !keyboard,
+                          swipable: (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
                           onPanUpdate: _onPanUpdate,
                           onSwipe: _onSwipe,
                           child: Container(
@@ -243,6 +245,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                               color: Color(0xFFF7FAFD)
                             ),
                             child: AnimatedSwitcher(
+                              switchInCurve: Curves.easeInOutCubic,
+                              switchOutCurve: Curves.easeInOutCubic,
                               duration: Duration(milliseconds: 200),
                               child: _loadCard(context, state, hiddenChild)
                             ),
@@ -272,12 +276,15 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 ///Controller for the swipe card
 class SwipeFeedCardController extends ChangeNotifier {
 
-  late _SwipeFeedCardState? _state;
+  _SwipeFeedCardState? _state;
 
   void _bind(_SwipeFeedCardState bind) => _state = bind;
 
   /// Forward Animation
   void forwardAnimation() => _state != null ? _state!.forwardAnimation() : null;
+
+  /// If the state has been initialized
+  bool isBinded() => _state != null;
 
   /// Reverse Animation
   Future<void> reverseAnimation() async => _state != null ? await _state!.reverseAnimation() : Future.error("State is not initiated");

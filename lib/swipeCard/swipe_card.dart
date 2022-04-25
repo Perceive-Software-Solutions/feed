@@ -424,7 +424,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   //Controls enabling gestures on the card
   void setSwipeable(bool swipe) async {
-    await Future.delayed(Duration(milliseconds: 250));
+    await Future.delayed(Duration(milliseconds: 350));
     swipable = swipe;
   }
 

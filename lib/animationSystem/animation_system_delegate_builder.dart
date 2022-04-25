@@ -39,7 +39,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     super.initState();
     // Initiate state
     tower = AnimationSystemState.tower();
-    animationController = AnimationController(vsync: this, duration: widget.delegate.duration);
+    animationController = AnimationController(vsync: this, duration: widget.delegate.duration, lowerBound: 0);
   }
 
   @override
@@ -120,7 +120,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
   /// Reset the animation state, should be reset after onSwipe has completed
   void reset(){
     tower.dispatch(SetAllAnimationValues(null, null, 0, 0));
-    animationController.animateTo(0, duration: Duration(milliseconds: 0));
+    animationController.reset();
     widget.delegate.onUpdate(0, 0, 0);
   }
 
@@ -316,13 +316,15 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
 
 
 class AnimationSystemController extends ChangeNotifier{
-  late _AnimationSystemDelegateBuilderState? _state;
+  _AnimationSystemDelegateBuilderState? _state;
 
   //Bind to state
   void _bind(_AnimationSystemDelegateBuilderState bind) => _state = bind;
 
   //Called to notify all listners
   void _update() => notifyListeners();
+
+  bool isBinded() => _state != null;
 
   //Update on update of dx and dy values inside of the animation state
   void onUpdate(double dx, double dy, Function(DismissDirection) value, [bool reverse = false]) => _state != null ? _state!._onUpdate(dx, dy, value, reverse) : null;

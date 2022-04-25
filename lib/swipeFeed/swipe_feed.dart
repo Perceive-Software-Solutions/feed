@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:feed/feed.dart';
+import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeed/state.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/swipeFeedCard/swipe_feed_card.dart';
@@ -43,7 +44,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final Future<bool> Function(double dx, double dy, DismissDirection direction, Duration duration, Future<void> Function(), T item)? onSwipe;
   
   ///When the next card is loading
-  final Future<void> Function()? onConinue;
+  final Future<void> Function(T? item)? onConinue;
 
   /// Function tells the feed if the card can expand
   final bool Function(dynamic)? canExpand;
@@ -134,7 +135,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     }
     else{
       // Initiate the feed from an initial state
-      tower.dispatch(populateInitialState<T>(((widget as SwipeFeed<T>) as SwipeFeed<T>).initialState!));
+      tower.dispatch(populateInitialState<T>((widget as SwipeFeed<T>).initialState!));
     }
 
     /// Check initial Connectivity
@@ -215,6 +216,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     backgroundSystemControllers.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
     backgroundSystemControllers.add(AnimationSystemController());
+    if((widget as SwipeFeed<T>).onConinue != null){
+      (widget as SwipeFeed<T>).onConinue!(tower.state.items[1].item1);
+    }
     // Duration after the card is swiped off the screen
     // Before the next card unmasks itself
     await Future.delayed(Duration(milliseconds: 200));
@@ -230,6 +234,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   /// Add a card to the feed
   void _addCard(T item, [Function? onComplete]) {
     backgroundSystemControllers.removeAt(1);
+    swipeFeedCardControllers.removeAt(1);
+    swipeFeedCardControllers.insert(0, SwipeFeedCardController());
     backgroundSystemControllers.insert(0, AnimationSystemController());
     tower.dispatch(addItem<T>(item, onComplete: onComplete));
   }
@@ -275,14 +281,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       mask: widget.mask,
       isLast: tower.state.items.length == 1,
       onPanUpdate: (dx, dy){
-        if(widget.bottomAnimationSystemController != null){
-          widget.bottomAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
-        }
-        if(widget.topAnimationSystemController != null){
-          widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
-        }
-        if(backgroundSystemControllers.length >= 2 && widget.backgroundDelegate != null){
-          backgroundSystemControllers[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+        if(swipeFeedCardControllers[index].isBinded()){
+          if(widget.bottomAnimationSystemController != null && widget.bottomAnimationSystemController!.isBinded()){
+            widget.bottomAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+          }
+          if(widget.topAnimationSystemController != null && widget.topAnimationSystemController!.isBinded()){
+            widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+          }
+          if(backgroundSystemControllers.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers[1].isBinded()){
+            backgroundSystemControllers[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+          }
         }
       },
       onSwipe: (dx, dy, reverseAnimation, dir, duration) async {
@@ -303,10 +311,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
         }
         if(widget.topAnimationSystemController != null){
           widget.topAnimationSystemController!.reset();
-        }
-
-        if((widget as SwipeFeed<T>).onConinue != null){
-          (widget as SwipeFeed<T>).onConinue!();
         }
       },
     );
