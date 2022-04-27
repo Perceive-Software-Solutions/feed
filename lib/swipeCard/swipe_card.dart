@@ -655,14 +655,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
  
 */
 
-  void _onPanDown(DragDownDetails d){
-    print("ONPAN DOWN");
-    rightSwiper.stop();
-    leftSwiper.stop();
-    upSwiper.stop();
-    downSwiper.stop();
-  }
-
   ///Called when the pan gesture starts
   void _onPanStart(DragStartDetails d){
 
@@ -986,7 +978,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
       onPanStart: _onPanStart,
-      onPanDown: _onPanDown,
       child: Container(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,

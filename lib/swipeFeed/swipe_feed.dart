@@ -251,6 +251,33 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Swipes the card at the top of the list in a specific direction
   void _swipe(DismissDirection direction){
+    late IconPosition iconPosition;
+    late CardPosition cardPosition;
+    if(direction == DismissDirection.endToStart){
+      iconPosition = IconPosition.RIGHT;
+      cardPosition = CardPosition.Right;
+    }
+    else if(direction == DismissDirection.startToEnd){
+      iconPosition = IconPosition.LEFT;
+      cardPosition = CardPosition.Left;
+    }
+    else if(direction == DismissDirection.up){
+      iconPosition = IconPosition.TOP;
+      cardPosition = CardPosition.Right;
+    }
+    else{
+      iconPosition = IconPosition.BOTTOM;
+      cardPosition = CardPosition.Right;
+    }
+    if(backgroundSystemControllers.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers[1].isBinded()){
+      backgroundSystemControllers[1].swipe(iconPosition, cardPosition);
+    }
+    if(widget.bottomAnimationSystemController != null && widget.bottomAnimationSystemController!.isBinded()){
+      widget.bottomAnimationSystemController!.swipe(iconPosition, cardPosition);
+    }
+    if(widget.topAnimationSystemController != null && widget.topAnimationSystemController!.isBinded()){
+      widget.topAnimationSystemController!.swipe(iconPosition, cardPosition);
+    }
     if(enabled) swipeFeedCardControllers[0].swipe(direction);
   }
 
