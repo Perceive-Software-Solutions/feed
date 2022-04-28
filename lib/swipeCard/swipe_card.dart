@@ -135,10 +135,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   ///The minimum velocity to be considered a fling
   ///This is the fling theshold
-  static const double MIN_FLING_VELOCITY = 3500;
+  static const double MIN_FLING_VELOCITY = 1250;
 
   ///The minimum distance to be considered a fling
-  static const double MIN_FLING_DISTANCE = 92;
+  static const double MIN_FLING_DISTANCE = 0;
 
   ///The minimum distance to be considered a fling
   static const Curve SWIPE_CURVE = Curves.linear;
@@ -313,29 +313,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
                          |___/             
  
 */
-
-  late AnimationController _controller;
-
-  /// The alignment of the card as it is dragged or being animated.
-  ///
-  /// While the card is being dragged, this value is set to the values computed
-  /// in the GestureDetector onPanUpdate callback. If the animation is running,
-  /// this value is set to the value of the [_animation].
-  Alignment _dragAlignment = Alignment.center;
-
   late Animation<Alignment> _animation;
 
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(vsync: this);
-
-    _controller.addListener(() {
-      setState(() {
-        _dragAlignment = _animation.value;
-      });
-    });
 
     //Set swipable
     setSwipeable(widget.swipable);
@@ -347,7 +329,23 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       //Define the animations
       _defineAnimations();
     });
+
     
+    
+  }
+
+  void bindListeners(){
+    // leftSwiper.addListener(() { 
+    //   if(leftSwiper.value == 0){
+    //     const spring = SpringDescription(
+    //       mass: 1,
+    //       stiffness: 300,
+    //       damping: 20,
+    //     );
+
+    //     final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
+    //   }
+    // });
   }
 
   @override
@@ -361,7 +359,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(covariant SwipeCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     //Update swipable
     if(oldWidget.swipable != widget.swipable){
       setSwipeable(widget.swipable);
@@ -377,7 +374,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       leftSwiper.dispose();
       upSwiper.dispose();
       downSwiper.dispose();
-      _controller.dispose();
     }catch(e){
       debugPrint('$e');
     }
@@ -398,28 +394,65 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     /// Calculates and runs a [SpringSimulation].
   void _runAnimation(Offset pixelsPerSecond, Size size) {
-    _animation = _controller.drive(
-      AlignmentTween(
-        begin: _dragAlignment,
-        end: Alignment.center,
-      ),
-    );
-    // Calculate the velocity relative to the unit interval, [0,1],
-    // used by the animation controller.
-    final unitsPerSecondX = pixelsPerSecond.dx / size.width;
-    final unitsPerSecondY = pixelsPerSecond.dy / size.height;
-    final unitsPerSecond = Offset(unitsPerSecondX, unitsPerSecondY);
-    final unitVelocity = unitsPerSecond.distance;
 
-    const spring = SpringDescription(
-      mass: 1,
-      stiffness: 300,
-      damping: 20,
-    );
+    // setState(() {
+    //   //Unlock haptic
+    //   for(var direction in hapticLock.keys){
+    //     hapticLock[direction] = false;
+    //   }
+    // });
 
-    final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
+    // //List of animation controllers for this widget
+    // List<AnimationController> animations = [leftSwiper, rightSwiper, downSwiper, upSwiper];
+    // List<Duration> durations = [];
 
-    _controller.animateWith(simulation);
+    // ///Find out durations
+    // for(AnimationController animation in animations){
+    //   if(animation.value != 0){
+    //     int duration = 200 ~/ animation.value;
+    //     animation.duration = Duration(milliseconds: duration);
+    //   }
+    //   else{
+    //     durations.add(Duration(milliseconds: 0));
+    //   }
+    // }
+
+    // rightAnimation = rightSwiper.drive(
+    //   Tween<double>(begin: xDrag, end: 0)
+    // );
+    // leftAnimation = leftSwiper.drive(
+    //   Tween<double>(begin: xDrag, end: 0)
+    // );
+    // upAnimation = upSwiper.drive(
+    //   Tween<double>(begin: yDrag, end: 0)
+    // );
+    // downAnimation = downSwiper.drive(
+    //   Tween<double>(begin: yDrag, end: 0)
+    // );
+
+    // // Calculate the velocity relative to the unit interval, [0,1],
+    // // used by the animation controller.
+    // final unitsPerSecondX = pixelsPerSecond.dx / size.width;
+    // final unitsPerSecondY = pixelsPerSecond.dy / size.height;
+    // final unitsPerSecond = Offset(unitsPerSecondX, unitsPerSecondY);
+    // final unitVelocity = unitsPerSecond.distance;
+
+    // const spring = SpringDescription(
+    //   mass: 1,
+    //   stiffness: 300,
+    //   damping: 20,
+    // );
+
+    // final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
+
+    // rightSwiper.animateWith(simulation);
+    // leftSwiper.animateWith(simulation);
+    // upSwiper.animateWith(simulation);
+    // downSwiper.animateWith(simulation);
+
+    
+
+    // setSwipeable(widget.swipable);
   }
 
   //Controls enabling gestures on the card
@@ -463,7 +496,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     downSwiper.reverse();
     upSwiper.reverse();
 
-    setSwipeable(true);
+    setSwipeable(widget.swipable);
 
     // Duration of the reverse animation to occur
     await Future.delayed(Duration(milliseconds: 200));
@@ -682,7 +715,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       reverse();
     }
 
-    _runAnimation(d.velocity.pixelsPerSecond, MediaQuery.of(context).size);
+    
   }
 
   /// Swiped card in a specified direction
@@ -727,12 +760,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     double rationX = flingX.abs()/maxVelocity;
     double velocityDurationX = 125 / rationX;
     double velocityDurationY = 125 / ratioY;
-    Duration durationX = Duration(milliseconds: velocityDurationX.toInt());
-    Duration durationY = Duration(milliseconds: velocityDurationY.toInt());
+    Duration durationX = Duration(milliseconds: velocityDurationX.toInt()).inMilliseconds > 300 ? Duration(milliseconds: 300) : Duration(milliseconds: velocityDurationX.toInt());
+    Duration durationY = Duration(milliseconds: velocityDurationY.toInt()).inMilliseconds > 300 ? Duration(milliseconds: 300) : Duration(milliseconds: velocityDurationY.toInt());
     if(flingX.abs() > flingY.abs() && xDrag.abs() > MIN_FLING_DISTANCE || xDrag.abs() > yDrag.abs()){
       
       if(flingX > 0){
-        rightSwiper.duration = durationX;
+        rightSwiper.duration = durationX.inMilliseconds > 300 ? Duration(milliseconds: 300) : durationX;
         // rightSwiper.forward(from: xDrag / cardSwipeLimitX); //animate
         rightSwiper.forward(from: xDrag / cardSwipeLimitX).then((value) {
           rightSwiper.forward();
@@ -751,7 +784,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         return DismissDirection.startToEnd; //set signal
       }
       else{
-        leftSwiper.duration = durationX;
+        leftSwiper.duration = durationX.inMilliseconds > 300 ? Duration(milliseconds: 300) : durationX;
         leftSwiper.forward(from: xDrag.abs() / cardSwipeLimitX).then((value) {
           leftSwiper.forward();
         }); //animate
@@ -772,7 +805,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     else if(yDrag.abs() > MIN_FLING_DISTANCE){
       // print('AHH ${xDrag.abs() > yDrag.abs()}');
       if(flingY > 0){
-        downSwiper.duration = durationY;
+        downSwiper.duration = durationY.inMilliseconds > 300 ? Duration(milliseconds: 300) : durationY;
         downSwiper.forward(from: yDrag / cardSwipeLimitY).then((value) {
           downSwiper.forward();
         }); //animate
@@ -790,7 +823,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         return DismissDirection.down; //set signal
       }
       else{
-        upSwiper.duration = durationY;
+        upSwiper.duration = durationY.inMilliseconds > 300 ? Duration(milliseconds: 300) : durationY;
         upSwiper.forward(from: yDrag.abs() / cardSwipeLimitY).then((value) {
           upSwiper.forward();
         }); //animate

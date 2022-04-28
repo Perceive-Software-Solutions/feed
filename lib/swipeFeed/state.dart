@@ -231,8 +231,6 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
       // Load more items
       Tuple2<List<T>, String?> loaded = await (store as Store<SwipeFeedState<T>>).state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, null);
 
-      
-
       // New Items Loaded
       List<T> newItems = loaded.item1;
 
@@ -349,7 +347,7 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
 
     // Duration it takes for card to make it off the screen
     // This is after the card has been swipped away
-    await Future.delayed(Duration(milliseconds: 400)).then((value){
+    await Future.delayed(Duration(milliseconds: 0)).then((value){
       items.removeAt(0);
       store.dispatch(SetItemsEvent(items));
       if(store.state.items.length <= SwipeFeedState.LOAD_MORE_LIMIT){
@@ -439,17 +437,6 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
       bool wasLast = store.state.items.isNotEmpty && store.state.items[0].item1 == null;
       Tower<SwipeFeedCardState>? showItem;
       var placeholder;
-      // Add last card if it does not already exsist
-      // This should never be ran but is an ensurance
-      if(wasEmpty || store.state.items.last.item1 != null){
-        showItem = SwipeFeedCardState.tower();
-        placeholder = Tuple2<T?, Store<SwipeFeedCardState>>(null, showItem);
-        store.dispatch(SetItemsEvent<T>([...store.state.items, placeholder]));
-      }
-      else if(wasLast){
-        // If load more is called on the last item in the list then dispatch loading state
-        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-      }
 
       // Load More Items
       Tuple2<List<T>, String?> loaded = await store.state.loader(SwipeFeedState.LENGTH_INCREASE_FACTOR, store.state.pageToken);
@@ -479,10 +466,6 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
       
       /// Shift add the new items to the list to ensure the null value is still present
       store.dispatch(SetItemsEvent(shiftAdd(oldItems, items)));
-
-      if(wasLast){
-        store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardShowState()));
-      }
 
       store.dispatch(_SetLoadingEvent(false));
     }

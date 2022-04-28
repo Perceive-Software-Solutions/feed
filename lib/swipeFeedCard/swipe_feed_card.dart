@@ -12,6 +12,8 @@ import 'package:tuple/tuple.dart';
 
 class SwipeFeedCard<T> extends StatefulWidget {
 
+  final int? index;
+
   /// Object Key
   final String Function(T) objectKey;
 
@@ -63,12 +65,15 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// Controls the bottom animation
   final AnimationSystemController? bottomAnimationSystemController;
 
+  final Function(T)? onLoad;
+
   const SwipeFeedCard({ 
     Key? key,
     required this.objectKey,
     required this.controller,
     required this.item,
     required this.isLast,
+    this.index,
     this.mask,
     this.loadingPlaceHolder,
     this.padding,
@@ -81,7 +86,8 @@ class SwipeFeedCard<T> extends StatefulWidget {
     this.backgroundController,
     this.topAnimationSystemController,
     this.bottomAnimationSystemController,
-    this.backgroundDelegate
+    this.backgroundDelegate,
+    this.onLoad
   }) : super(key: key);
 
   @override
@@ -102,6 +108,13 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
 
     // Initialize controllers
     swipeCardController = SwipeCardController();
+
+    // print("CALLING INIT");
+    // print((widget as SwipeFeedCard<T>).index);
+    // if((widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).onLoad != null && (widget as SwipeFeedCard<T>).index == 0){
+    //   print("RUNNING ON LOAD");
+    //   (widget as SwipeFeedCard<T>).onLoad!((widget as SwipeFeedCard<T>).item.item1);
+    // }
   }
 
   @override

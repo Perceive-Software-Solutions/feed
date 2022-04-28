@@ -124,6 +124,17 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     widget.delegate.onUpdate(0, 0, 0);
   }
 
+  // Dispatch values before swipe
+  void onSwipe(IconPosition iconPosition, CardPosition cardPosition){
+    animationController.animateTo(0.2, duration: Duration.zero);
+    tower.dispatch(SetAllAnimationValues(
+      iconPosition, 
+      cardPosition, 
+      iconPosition == IconPosition.LEFT || iconPosition == IconPosition.RIGHT ? 92 : 0, 
+      iconPosition == IconPosition.TOP ? 92 : iconPosition == IconPosition.BOTTOM ? -158 : 0));
+      widget.delegate.onUpdate(iconPosition == IconPosition.LEFT || iconPosition == IconPosition.RIGHT ? 92 : 0, iconPosition == IconPosition.TOP ? 92 : iconPosition == IconPosition.BOTTOM ? -158 : 0, 0.2);
+  }
+
   Future<void> _reverse() async {
     _onUpdate(0, 0, (direction) => 0, true);
     Future.delayed(Duration(milliseconds: 200));
@@ -246,8 +257,8 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
       else{
         // show left
         i = 1;
-        widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
         tower.dispatch(SetAllAnimationValues(IconPosition.LEFT, CardPosition.Left, dx, dy));
+        widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
         animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
       }
     }
@@ -305,11 +316,14 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animationController,
-      builder: (context, _) {
-        return widget.delegate.build(context, tower.state, animationController.value);
-      }
+    return StoreProvider(
+      store: tower,
+      child: AnimatedBuilder(
+        animation: animationController,
+        builder: (context, _) {
+          return widget.delegate.build(context, tower.state, animationController.value);
+        }
+      ),
     );
   }
 }
@@ -336,6 +350,8 @@ class AnimationSystemController extends ChangeNotifier{
 
   // Completes the current animation
   Future<bool>? onComplete(DismissDirection direction, double dx, {OverlayDelegate? overlay, Future<void> Function()? reverse, List<dynamic>? args}) => _state != null ? _state!._onComplete(direction, dx, overlay: overlay, reverse: reverse, args: args) : null;
+
+  void swipe(IconPosition iconPosition, CardPosition cardPosition) => _state != null ? _state!.onSwipe(iconPosition, cardPosition) : null; 
 
   void reset() => _state != null ? _state!.reset() : null;
 

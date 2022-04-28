@@ -73,6 +73,8 @@ class SwipeFeed<T> extends StatefulWidget {
 
   /// Functions to control the bottom delegate
   final AnimationSystemController? bottomAnimationSystemController;
+
+  final Function(T? item)? onLoad;
   
   const SwipeFeed({ 
     Key? key,
@@ -93,6 +95,7 @@ class SwipeFeed<T> extends StatefulWidget {
     this.topAnimationSystemController,
     this.bottomAnimationSystemController,
     this.showLastCard = true,
+    this.onLoad,
     required this.loader,
     required this.objectKey,
     required this.controller
@@ -114,6 +117,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   // If auto swiping is enabled
   bool enabled = false;
+
+  bool initiated = false;
 
   @override
   void initState(){
@@ -211,19 +216,19 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Removes card when card swipes off the screen
   /// Assigns another swipe controller to the new card
-  Future<void> _onConinue() async {
+  Future<T?> _onConinue() async {
     swipeFeedCardControllers.removeAt(0);
     backgroundSystemControllers.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
     backgroundSystemControllers.add(AnimationSystemController());
-    if((widget as SwipeFeed<T>).onConinue != null){
-      (widget as SwipeFeed<T>).onConinue!(tower.state.items[1].item1);
-    }
+    T? nextItem = tower.state.items[1].item1;
     // Duration after the card is swiped off the screen
     // Before the next card unmasks itself
-    await Future.delayed(Duration(milliseconds: 200));
     tower.dispatch(removeCard<T>());
-    return;
+    if((widget as SwipeFeed<T>).onLoad != null){
+      (widget as SwipeFeed<T>).onLoad!(tower.state.items[1].item1);
+    }
+    return nextItem;
   }
 
   /// Remove Item by Id from the feed
@@ -246,6 +251,33 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Swipes the card at the top of the list in a specific direction
   void _swipe(DismissDirection direction){
+    late IconPosition iconPosition;
+    late CardPosition cardPosition;
+    if(direction == DismissDirection.endToStart){
+      iconPosition = IconPosition.RIGHT;
+      cardPosition = CardPosition.Right;
+    }
+    else if(direction == DismissDirection.startToEnd){
+      iconPosition = IconPosition.LEFT;
+      cardPosition = CardPosition.Left;
+    }
+    else if(direction == DismissDirection.up){
+      iconPosition = IconPosition.TOP;
+      cardPosition = CardPosition.Right;
+    }
+    else{
+      iconPosition = IconPosition.BOTTOM;
+      cardPosition = CardPosition.Right;
+    }
+    if(backgroundSystemControllers.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers[1].isBinded()){
+      backgroundSystemControllers[1].swipe(iconPosition, cardPosition);
+    }
+    if(widget.bottomAnimationSystemController != null && widget.bottomAnimationSystemController!.isBinded()){
+      widget.bottomAnimationSystemController!.swipe(iconPosition, cardPosition);
+    }
+    if(widget.topAnimationSystemController != null && widget.topAnimationSystemController!.isBinded()){
+      widget.topAnimationSystemController!.swipe(iconPosition, cardPosition);
+    }
     if(enabled) swipeFeedCardControllers[0].swipe(direction);
   }
 
@@ -263,6 +295,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     }
 
     Tuple2<T?, Store<SwipeFeedCardState>> item = tower.state.items[index];
+
+    if(!initiated){
+      if(item.item1 != null && (widget as SwipeFeed<T>).onLoad != null && index == 0){
+        (widget as SwipeFeed<T>).onLoad!(item.item1);
+        initiated = true;
+      }
+    }
     
     return SwipeFeedCard<T>(
       key: Key('swipefeed - card - ${item.item1 == null ? 'last - card - key' : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
@@ -274,12 +313,14 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       controller: swipeFeedCardControllers[index],
       padding: widget.padding,
       item: item,
+      index: index,
       childBuilder: (widget as SwipeFeed<T>).childBuilder,
       loadingPlaceHolder: (widget as SwipeFeed<T>).loadingPlaceHolder,
       background: (widget as SwipeFeed<T>).background,
       canExpand: (widget as SwipeFeed<T>).canExpand,
       mask: widget.mask,
       isLast: tower.state.items.length == 1,
+      onLoad: (widget as SwipeFeed<T>).onLoad,
       onPanUpdate: (dx, dy){
         if(swipeFeedCardControllers[index].isBinded()){
           if(widget.bottomAnimationSystemController != null && widget.bottomAnimationSystemController!.isBinded()){
@@ -303,9 +344,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
         return true;
       },
       onContinue: () async {
-        await _onConinue();
+        T? item = await _onConinue();
         // Duration for the switching of a card to go from hide state to show state
         await Future.delayed(Duration(milliseconds: 200));
+        if((widget as SwipeFeed<T>).onConinue != null){
+          (widget as SwipeFeed<T>).onConinue!(item);
+        }
         if(widget.bottomAnimationSystemController != null){
           widget.bottomAnimationSystemController!.reset();
         }
