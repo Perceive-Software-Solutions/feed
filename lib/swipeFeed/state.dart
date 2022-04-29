@@ -473,7 +473,7 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
 }
 
 /// Adds a new item to the top of the list
-ThunkAction<SwipeFeedState<T>> addItem<T>(T item, {Function? onComplete, bool wait = true}) {
+ThunkAction<SwipeFeedState<T>> addItem<T>(T? item, {Function? onComplete, bool wait = true, bool overrideWait = false}) {
   return (Store<SwipeFeedState<T>> store) async {
     if(store.state.items.isNotEmpty){
       store.state.items[0].item2.dispatch(SetSwipeFeedCardState(SwipeCardHideState()));
@@ -482,7 +482,7 @@ ThunkAction<SwipeFeedState<T>> addItem<T>(T item, {Function? onComplete, bool wa
       /// Insert HERE
       
       /// Do we still need to wait this 400 ms when on the no items card and you are adding an item
-      if(store.state.items[0].item1 != null && wait){
+      if((store.state.items[0].item1 != null && wait) || overrideWait){
         await Future.delayed(Duration(milliseconds: 400));
       }
     }
@@ -508,6 +508,18 @@ ThunkAction<SwipeFeedState<T>> updateItem<T>(T item, String id, String Function(
   return (Store<SwipeFeedState<T>> store) async {
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
     if(items.isNotEmpty && items[0].item1 != null && id == objectKey(items[0].item1!)){
+      items.remove(items[0]);
+      store.dispatch(SetItemsEvent(items));
+      List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = [Tuple2(item, SwipeFeedCardState.tower(SwipeCardShowState())), ...store.state.items];
+      store.dispatch(SetItemsEvent(addNewItem));
+    }
+  };
+}
+
+ThunkAction<SwipeFeedState<T>> updateNullableItem<T>(T item){
+  return (Store<SwipeFeedState<T>> store) async {
+    List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
+    if(items.isNotEmpty){
       items.remove(items[0]);
       store.dispatch(SetItemsEvent(items));
       List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = [Tuple2(item, SwipeFeedCardState.tower(SwipeCardShowState())), ...store.state.items];
