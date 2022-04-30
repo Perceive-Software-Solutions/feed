@@ -225,7 +225,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     // Duration after the card is swiped off the screen
     // Before the next card unmasks itself
     tower.dispatch(removeCard<T>());
-    if((widget as SwipeFeed<T>).onLoad != null){
+    if((widget as SwipeFeed<T>).onLoad != null && tower.state.items.length >= 2){
       (widget as SwipeFeed<T>).onLoad!(tower.state.items[1].item1);
     }
     return nextItem;
@@ -250,6 +250,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     swipeFeedCardControllers.removeAt(1);
     swipeFeedCardControllers.insert(0, SwipeFeedCardController());
     backgroundSystemControllers.insert(0, AnimationSystemController());
+
     await Duration(milliseconds: 400);
     tower.dispatch(addItem<T>(null, onComplete: (){}, overrideWait: true));
     await Future.delayed(Duration(seconds: 1));
@@ -261,6 +262,10 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       onError();
     }
     if(item != null){
+      backgroundSystemControllers.removeAt(1);
+      swipeFeedCardControllers.removeAt(1);
+      swipeFeedCardControllers.insert(0, SwipeFeedCardController());
+      backgroundSystemControllers.insert(0, AnimationSystemController());
       tower.dispatch(updateNullableItem(item));
     }
     else{
