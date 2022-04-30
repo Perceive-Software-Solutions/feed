@@ -120,7 +120,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     child: const Center(child: Text("NO NEW ITEMS", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
                   ),
                   onTap: (){
-                    feedController.refresh();
+                    feedController.refreshFeed();
                   },
                 ),
                 noConnectivityPlaceHolder: GestureDetector(
@@ -129,7 +129,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     child: const Center(child: Text("CONNECTIVITY ERROR", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
                   ),
                   onTap: (){
-                    feedController.refresh();
+                    feedController.refreshFeed();
                   },
                 ),
                 background: (context, child){
@@ -181,7 +181,7 @@ class _SwipeFeedExampleState<T> extends State<SwipeFeedExample> {
                     ),
                   );
                 },
-                onSwipe: (dx, dy, direction, reverseAnimation, item) async {
+                onSwipe: (dx, dy, direction, _, reverseAnimation, item) async {
                   return true;
                   // return true;
                 },

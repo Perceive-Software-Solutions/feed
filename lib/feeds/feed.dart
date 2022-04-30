@@ -108,9 +108,6 @@ class _FeedState extends State<Feed> {
   bool get loading => tower.state.loading;
 
   ///Determines the length of each of the lists
-  int get size => tower.state.size;
-
-  ///Determines the length of each of the lists
   String? get token => tower.state.token;
 
   /// Determines if there are no items 
@@ -346,7 +343,7 @@ class _FeedState extends State<Feed> {
   }
 
   ///Builds the tabs used in the custom scroll view
-  Widget _buildFeed(bool loadMore) {
+  Widget _buildFeed(bool loadMore, int size) {
     Widget view = SizedBox();
 
     if (size == 0 && !loadMore) {
@@ -384,11 +381,15 @@ class _FeedState extends State<Feed> {
   Widget build(BuildContext context) {
     return StoreProvider(
       store: tower,
-      child: StoreConnector<FeedState, bool>(
+      child: StoreConnector<FeedState, Tuple2<bool, int>>(
         distinct: true,
-        converter: (store) => store.state.hasMore,
-        builder: (context, loadMore) {
-          return _buildFeed(loadMore);
+        converter: (store) => Tuple2(store.state.hasMore, store.state.size),
+        builder: (context, state) {
+
+          final loadMore = state.item1;
+          final size = state.item2;
+
+          return _buildFeed(loadMore, size);
         }
       )
     );

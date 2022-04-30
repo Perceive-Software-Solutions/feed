@@ -65,7 +65,7 @@ class SlidingSheetFeed extends StatelessWidget {
   final double minExtent;
 
   /// The header for the initial delegate
-  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? headerBuilder;
+  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer, double borderRadius)? headerBuilder;
   /// The persistent footer on the sliding sheet
   final Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder;
 
@@ -76,6 +76,9 @@ class SlidingSheetFeed extends StatelessWidget {
   final bool isBackgroundIntractable;
   final bool closeOnBackdropTap;
   final bool doesPop;
+
+  // Sliding sheet delegate
+  final double staticScrollModifier;
 
   const SlidingSheetFeed({ 
     Key? key,
@@ -105,6 +108,7 @@ class SlidingSheetFeed extends StatelessWidget {
     this.isBackgroundIntractable = false,
     this.closeOnBackdropTap = true,
     this.doesPop = true,
+    this.staticScrollModifier = 0.0
   }) : super(key: key);
 
   @override
@@ -138,6 +142,7 @@ class SlidingSheetFeed extends StatelessWidget {
         wrapper: wrapper,
         pinnedItems: pinnedItems,
         header: headerBuilder,
+        staticScrollModifier: staticScrollModifier
       ),
     );
   }
@@ -179,7 +184,7 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
   /// Items that will be pinned to the top of the list on init
   final List<dynamic>? pinnedItems;
 
-  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? header;
+  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer, double borderRadius)? header;
 
   PerceiveSlidableSingleFeedDelegate({
     required this.loader,
@@ -195,12 +200,13 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
     required this.getItemID,
     required this.wrapper,
     required this.pinnedItems,
-    required this.header
-  }) : super(pageCount: 1);
+    required this.header,
+    double staticScrollModifier = 0.0
+  }) : super(pageCount: 1, staticScrollModifier: staticScrollModifier);
 
   @override
-  Widget headerBuilder(BuildContext context, pageObj, Widget spacer) {
-    return header?.call(context, pageObj, spacer) ?? Container();
+  Widget headerBuilder(BuildContext context, pageObj, Widget spacer, double borderRadius) {
+    return header?.call(context, pageObj, spacer, borderRadius) ?? Container();
   }
 
   @override
@@ -216,7 +222,7 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
       childBuilder: childBuilder,
       initiallyLoad: initiallyLoad,
       disableScroll: (disableScroll ?? false) || scrollLock,
-      placeholder: state == null ? null : placeholder?.call(context, state.extent),
+      placeholder: placeholder?.call(context, state?.extent ?? initialExtent),
       loading: loading,
       getItemID: getItemID,
       wrapper: wrapper,
