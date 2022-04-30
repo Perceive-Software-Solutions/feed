@@ -468,12 +468,14 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Reverses any completed animation
   Future<void> reverse() async {
 
-    setState(() {
-      //Unlock haptic
-      for(var direction in hapticLock.keys){
-        hapticLock[direction] = false;
-      }
-    });
+    if(mounted){
+      setState(() {
+        //Unlock haptic
+        for(var direction in hapticLock.keys){
+          hapticLock[direction] = false;
+        }
+      });
+    }
 
     //List of animation controllers for this widget
     List<AnimationController> animations = [leftSwiper, rightSwiper, downSwiper, upSwiper];

@@ -249,13 +249,13 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                         padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
                         child: SwipeCard(
                           controller: swipeCardController,  
-                          swipable: (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
+                          swipable: !keyboard && (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
                           onPanUpdate: _onPanUpdate,
                           onSwipe: _onSwipe,
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: SmoothBorderRadius.all(SmoothRadius(cornerRadius: 32, cornerSmoothing: 0.6)),
-                              color: Color(0xFFF7FAFD)
+                              color: MediaQuery.of(context).viewInsets.bottom > 0 ? null : Color(0xFFF7FAFD)
                             ),
                             child: AnimatedSwitcher(
                               switchInCurve: Curves.easeInOutCubic,

@@ -225,7 +225,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     // Duration after the card is swiped off the screen
     // Before the next card unmasks itself
     tower.dispatch(removeCard<T>());
-    if((widget as SwipeFeed<T>).onLoad != null){
+    if((widget as SwipeFeed<T>).onLoad != null && tower.state.items.length >= 2){
       (widget as SwipeFeed<T>).onLoad!(tower.state.items[1].item1);
     }
     return nextItem;
@@ -243,6 +243,34 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     swipeFeedCardControllers.insert(0, SwipeFeedCardController());
     backgroundSystemControllers.insert(0, AnimationSystemController());
     tower.dispatch(addItem<T>(item, onComplete: onComplete));
+  }
+
+  void _asyncAddCard(Future<T> loader, Function onError) async {
+    backgroundSystemControllers.removeAt(1);
+    swipeFeedCardControllers.removeAt(1);
+    swipeFeedCardControllers.insert(0, SwipeFeedCardController());
+    backgroundSystemControllers.insert(0, AnimationSystemController());
+
+    await Duration(milliseconds: 400);
+    tower.dispatch(addItem<T>(null, onComplete: (){}, overrideWait: true));
+    await Future.delayed(Duration(seconds: 1));
+    T? item;
+    try{
+      item = await loader;
+    }
+    catch(e){
+      onError();
+    }
+    if(item != null){
+      backgroundSystemControllers.removeAt(1);
+      swipeFeedCardControllers.removeAt(1);
+      swipeFeedCardControllers.insert(0, SwipeFeedCardController());
+      backgroundSystemControllers.insert(0, AnimationSystemController());
+      tower.dispatch(updateNullableItem(item));
+    }
+    else{
+      tower.dispatch(removeItem());
+    }
   }
 
   void _updateCard(T item, String id){
@@ -425,6 +453,9 @@ class SwipeFeedController<T> extends ChangeNotifier{
 
   ///Add an item to the feed, animates in by default
   void addCard(T item, [Function? onComplete]) => _state != null ? _state!._addCard(item, onComplete) : null;
+
+  ///Add future item
+  void asyncAdd(Future<T> loader, Function onError) => _state != null ? _state!._asyncAddCard(loader, onError) : null;
 
   ///Removes an item from the feed, animates the item out of the feed by default
   void removeCard<T>([AdjustList<T>? then]) => _state != null ? _state!._removeCard<T>(then) : null;
