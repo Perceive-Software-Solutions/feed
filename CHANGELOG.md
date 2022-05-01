@@ -1,3 +1,7 @@
+## [0.5.7] v0.5.7
+
+* Various bug fixes
+
 ## [0.5.3] v0.5.3
 
 * Fixes
