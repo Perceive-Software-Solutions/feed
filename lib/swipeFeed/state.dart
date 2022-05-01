@@ -530,14 +530,15 @@ ThunkAction<SwipeFeedState<T>> updateItem<T>(T item, String id, String Function(
   };
 }
 
-ThunkAction<SwipeFeedState<T>> updateNullableItem<T>(T item){
+ThunkAction<SwipeFeedState<T>> updateNullableItem<T>(T newItem, {Function? beforeUpdate}){
   return (Store<SwipeFeedState<T>> store) async {
     List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
     if(items.isNotEmpty){
+      Tuple2<T?, Store<SwipeFeedCardState>> item = items[0];
       items.remove(items[0]);
       store.dispatch(SetItemsEvent(items));
-      List<Tuple2<T?, Store<SwipeFeedCardState>>> addNewItem = [Tuple2(item, SwipeFeedCardState.tower(SwipeCardShowState())), ...store.state.items];
-      store.dispatch(SetItemsEvent(addNewItem));
+      items = [Tuple2(newItem, item.item2), ...items];
+      store.dispatch(SetItemsEvent(items));
     }
   };
 }

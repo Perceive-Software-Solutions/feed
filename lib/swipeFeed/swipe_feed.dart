@@ -246,11 +246,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   }
 
   void _asyncAddCard(Future<T> loader, Function onError) async {
-    backgroundSystemControllers.removeAt(1);
-    swipeFeedCardControllers.removeAt(1);
-    swipeFeedCardControllers.insert(0, SwipeFeedCardController());
-    backgroundSystemControllers.insert(0, AnimationSystemController());
-
     await Duration(milliseconds: 400);
     tower.dispatch(addItem<T>(null, onComplete: (){}, overrideWait: true));
     await Future.delayed(Duration(seconds: 1));
@@ -262,10 +257,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       onError();
     }
     if(item != null){
-      backgroundSystemControllers.removeAt(1);
-      swipeFeedCardControllers.removeAt(1);
-      swipeFeedCardControllers.insert(0, SwipeFeedCardController());
-      backgroundSystemControllers.insert(0, AnimationSystemController());
       tower.dispatch(updateNullableItem(item));
     }
     else{
@@ -419,6 +410,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
                 delegate: widget.topDelegate!,
                 animateAccordingToPosition: widget.topDelegate!.animateAccordingToPosition
               ) : SizedBox.shrink(),
+
 
               _buildCard(0)
             ],

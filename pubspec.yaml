@@ -1,11 +1,12 @@
 name: feed
 description: A package for managing load more lists and sliding sheets.
-version: 0.5.5
+version: 0.5.6
 homepage: https://github.com/Perceive-Software-Solutions/feed
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
   flutter: ">=1.17.0"
+
 
 dependencies:
   flutter_svg: ^0.22.0
