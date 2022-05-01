@@ -241,14 +241,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   }
 
   /// Add a card to the feed
-  void _addCard(T? item, [Function? onComplete]) {
+  void _addCard(T? item, [Function? onComplete]) async {
     List<AnimationSystemController> backgroundSystemControllersState = backgroundSystemControllers.state;
     backgroundSystemControllersState.removeAt(1);
     swipeFeedCardControllers.removeAt(1);
     swipeFeedCardControllers.insert(0, SwipeFeedCardController());
     backgroundSystemControllersState.insert(0, AnimationSystemController());
-    backgroundSystemControllers.emit(backgroundSystemControllersState);
+    backgroundSystemControllers.emit([]);
     tower.dispatch(addItem<T>(item, onComplete: onComplete, overrideWait: item == null));
+    await Future.delayed(Duration(milliseconds: 400));
+    backgroundSystemControllers.emit(backgroundSystemControllersState);
   }
 
   void _asyncAddCard(Future<T> loader, Function onError) async {
