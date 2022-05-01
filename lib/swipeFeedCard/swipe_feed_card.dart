@@ -4,15 +4,19 @@ import 'package:feed/animationSystem/animation_system_delegate_builder.dart';
 import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:fort/fort.dart';
 import 'package:tuple/tuple.dart';
 
 class SwipeFeedCard<T> extends StatefulWidget {
 
-  final int? index;
+  final int index;
+
+  final ConcreteCubit<List<AnimationSystemController>>? bloc;
 
   /// Object Key
   final String Function(T) objectKey;
@@ -56,9 +60,6 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// Background card without a child, delegate
   final AnimationSystemDelegate? backgroundDelegate;
 
-  /// Controller for the animation background delegate
-  final AnimationSystemController? backgroundController;
-
   /// Controls the top animation
   final AnimationSystemController? topAnimationSystemController;
 
@@ -73,7 +74,8 @@ class SwipeFeedCard<T> extends StatefulWidget {
     required this.controller,
     required this.item,
     required this.isLast,
-    this.index,
+    required this.index,
+    this.bloc,
     this.mask,
     this.loadingPlaceHolder,
     this.padding,
@@ -83,7 +85,6 @@ class SwipeFeedCard<T> extends StatefulWidget {
     this.onPanUpdate,
     this.onSwipe,
     this.onContinue,
-    this.backgroundController,
     this.topAnimationSystemController,
     this.bottomAnimationSystemController,
     this.backgroundDelegate,
@@ -182,7 +183,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// If the swipe card is at the top of the feed it will unmask the swipe card
   /// If the swipe card is behind another swipe card will mask the swipe card 
   /// with background
-  Widget _loadCard(BuildContext context, FeedCardState state, Widget? child){
+  Widget _loadCard(BuildContext context, FeedCardState state, Widget? child, AnimationSystemController? backgroundSystemController){
     bool isExpanded = state is SwipeCardExpandState;
     bool show = state is SwipeCardShowState || state is SwipeCardExpandState;
 
@@ -190,8 +191,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
       if(child == null){
         return Container(
           key: ValueKey('SwipeFeed Background Card Without Child}'),
-          child: (widget as SwipeFeedCard<T>).backgroundDelegate != null && (widget as SwipeFeedCard<T>).backgroundController != null ? AnimationSystemDelegateBuilder(
-            controller: (widget as SwipeFeedCard<T>).backgroundController!,
+          child: backgroundSystemController != null ? AnimationSystemDelegateBuilder(
+            controller: backgroundSystemController,
             delegate: (widget as SwipeFeedCard<T>).backgroundDelegate!
           ) : (widget as SwipeFeedCard<T>).background!(context, null)
         );
@@ -249,7 +250,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                         padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
                         child: SwipeCard(
                           controller: swipeCardController,  
-                          swipable: !keyboard && (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
+                          swipable: true,
+                          // swipable: !keyboard && (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
                           onPanUpdate: _onPanUpdate,
                           onSwipe: _onSwipe,
                           child: Container(
@@ -261,7 +263,13 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                               switchInCurve: Curves.easeInOutCubic,
                               switchOutCurve: Curves.easeInOutCubic,
                               duration: Duration(milliseconds: 200),
-                              child: _loadCard(context, state, hiddenChild)
+                              child: BlocBuilder<ConcreteCubit<List<AnimationSystemController>>, List<AnimationSystemController>>(
+                                builder: (context, backgroundSystemControllerState) {
+                                  return _loadCard(context, state, hiddenChild, 
+                                  backgroundSystemControllerState.length >= ((widget as SwipeFeedCard<T>).index + 1) ? 
+                                  backgroundSystemControllerState[(widget as SwipeFeedCard<T>).index] : null);
+                                }
+                              )
                             ),
                           ),
                         ),

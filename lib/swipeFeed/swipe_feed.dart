@@ -7,7 +7,9 @@ import 'package:feed/swipeFeed/state.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/swipeFeedCard/swipe_feed_card.dart';
 import 'package:feed/util/global/functions.dart';
+import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fort/fort.dart';
 import 'package:tuple/tuple.dart';
 
@@ -110,10 +112,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   ///Holds the current state of the SwipeFeed
   late Tower<SwipeFeedState<T>> tower;
 
+  // ConcreteCubit<List<SwipeFeedController>> swipeFeedCardControllers = ConcreteCubit<List<SwipeFeedController>>([]);
+
+  ConcreteCubit<List<AnimationSystemController>> backgroundSystemControllers = ConcreteCubit([]);
+
   ///Controls automating swipes
   List<SwipeFeedCardController> swipeFeedCardControllers = [];
-
-  List<AnimationSystemController> backgroundSystemControllers = [];
 
   // If auto swiping is enabled
   bool enabled = false;
@@ -150,8 +154,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     //Initialize Controllers
     swipeFeedCardControllers.add(SwipeFeedCardController());
     swipeFeedCardControllers.add(SwipeFeedCardController());
-    backgroundSystemControllers.add(AnimationSystemController());
-    backgroundSystemControllers.add(AnimationSystemController());
+    backgroundSystemControllers.emit([AnimationSystemController(), AnimationSystemController()]);
   }
 
   void enableAutoSwiping() async {
@@ -202,9 +205,9 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   Future<void> resetAnimations() async {
     if(widget.topAnimationSystemController != null) widget.topAnimationSystemController!.reverse();
     if(widget.bottomAnimationSystemController != null) widget.bottomAnimationSystemController!.reverse();
-    if(backgroundSystemControllers.length >= 2){
-      backgroundSystemControllers[1].reverse();
-      backgroundSystemControllers[0].reverse();
+    if(backgroundSystemControllers.state.length >= 2){
+      backgroundSystemControllers.state[1].reverse();
+      backgroundSystemControllers.state[0].reverse();
     }
     if(swipeFeedCardControllers.length > 0) await swipeFeedCardControllers[0].reverseAnimation();
   }
@@ -217,10 +220,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   /// Removes card when card swipes off the screen
   /// Assigns another swipe controller to the new card
   Future<T?> _onConinue() async {
+    List<AnimationSystemController> backgroundSystemControllersState = backgroundSystemControllers.state;
     swipeFeedCardControllers.removeAt(0);
-    backgroundSystemControllers.removeAt(0);
+    backgroundSystemControllersState.removeAt(0);
     swipeFeedCardControllers.add(SwipeFeedCardController());
-    backgroundSystemControllers.add(AnimationSystemController());
+    backgroundSystemControllersState.add(AnimationSystemController());
+    backgroundSystemControllers.emit(backgroundSystemControllersState);
     T? nextItem = tower.state.items[1].item1;
     // Duration after the card is swiped off the screen
     // Before the next card unmasks itself
@@ -237,17 +242,25 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   }
 
   /// Add a card to the feed
-  void _addCard(T item, [Function? onComplete]) {
-    backgroundSystemControllers.removeAt(1);
+  void _addCard(T? item, [Function? onComplete]) {
+    List<AnimationSystemController> backgroundSystemControllersState = backgroundSystemControllers.state;
+    backgroundSystemControllersState.removeAt(1);
     swipeFeedCardControllers.removeAt(1);
     swipeFeedCardControllers.insert(0, SwipeFeedCardController());
-    backgroundSystemControllers.insert(0, AnimationSystemController());
-    tower.dispatch(addItem<T>(item, onComplete: onComplete));
+    backgroundSystemControllersState.insert(0, AnimationSystemController());
+    backgroundSystemControllers.emit(backgroundSystemControllersState);
+    tower.dispatch(addItem<T>(item, onComplete: onComplete, overrideWait: item == null));
   }
 
   void _asyncAddCard(Future<T> loader, Function onError) async {
-    await Duration(milliseconds: 400);
+    List<AnimationSystemController> backgroundSystemControllersState = backgroundSystemControllers.state;
+    backgroundSystemControllersState.removeAt(1);
+    swipeFeedCardControllers.removeAt(1);
+    swipeFeedCardControllers.insert(0, SwipeFeedCardController());
+    backgroundSystemControllersState.insert(0, AnimationSystemController());
+    backgroundSystemControllers.emit([]);
     tower.dispatch(addItem<T>(null, onComplete: (){}, overrideWait: true));
+    await Duration(milliseconds: 400);
     await Future.delayed(Duration(seconds: 1));
     T? item;
     try{
@@ -257,6 +270,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       onError();
     }
     if(item != null){
+      backgroundSystemControllers.emit(backgroundSystemControllersState);
       tower.dispatch(updateNullableItem(item));
     }
     else{
@@ -288,8 +302,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       iconPosition = IconPosition.BOTTOM;
       cardPosition = CardPosition.Right;
     }
-    if(backgroundSystemControllers.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers[1].isBinded()){
-      backgroundSystemControllers[1].swipe(iconPosition, cardPosition);
+    if(backgroundSystemControllers.state.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers.state[1].isBinded()){
+      backgroundSystemControllers.state[1].swipe(iconPosition, cardPosition);
     }
     if(widget.bottomAnimationSystemController != null && widget.bottomAnimationSystemController!.isBinded()){
       widget.bottomAnimationSystemController!.swipe(iconPosition, cardPosition);
@@ -326,7 +340,6 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       key: Key('swipefeed - card - ${item.item1 == null ? 'last - card - key' : (widget as SwipeFeed<T>).objectKey(item.item1!)}'),
       objectKey: (widget as SwipeFeed<T>).objectKey,
       backgroundDelegate: widget.backgroundDelegate,
-      backgroundController: backgroundSystemControllers[index],
       topAnimationSystemController: widget.topAnimationSystemController,
       bottomAnimationSystemController: widget.bottomAnimationSystemController,
       controller: swipeFeedCardControllers[index],
@@ -340,6 +353,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       mask: widget.mask,
       isLast: tower.state.items.length == 1,
       onLoad: (widget as SwipeFeed<T>).onLoad,
+      bloc: backgroundSystemControllers,
       onPanUpdate: (dx, dy){
         if(swipeFeedCardControllers[index].isBinded()){
           if(widget.bottomAnimationSystemController != null && widget.bottomAnimationSystemController!.isBinded()){
@@ -348,8 +362,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
           if(widget.topAnimationSystemController != null && widget.topAnimationSystemController!.isBinded()){
             widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
           }
-          if(backgroundSystemControllers.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers[1].isBinded()){
-            backgroundSystemControllers[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+          if(backgroundSystemControllers.state.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers.state[1].isBinded()){
+            backgroundSystemControllers.state[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
           }
         }
       },
@@ -382,41 +396,44 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   /// Build Method!!
   @override
   Widget build(BuildContext context) {
-    return StoreProvider(
-      store: tower,
-      child: StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
-        converter: (store) => store.state.items,
-        builder: (context, state) {
-          return Stack(
-            children: [
+    return BlocProvider(
+      create: (context) => backgroundSystemControllers,
+      child: StoreProvider(
+        store: tower,
+        child: StoreConnector<SwipeFeedState<T>, List<Tuple2<T?, Store<SwipeFeedCardState>>>>(
+          converter: (store) => store.state.items,
+          builder: (context, state) {
+            return Stack(
+              children: [
 
-              // Animation system
-              widget.bottomDelegate != null && widget.bottomAnimationSystemController != null ? 
-              AnimationSystemDelegateBuilder(
-                key: Key("Percent - Bar - Animation - System"),
-                controlHeptic: true,
-                controller: widget.bottomAnimationSystemController!, 
-                delegate: widget.bottomDelegate!,
-                animateAccordingToPosition: widget.bottomDelegate!.animateAccordingToPosition,
-              ) : SizedBox.shrink(),
+                // Animation system
+                widget.bottomDelegate != null && widget.bottomAnimationSystemController != null ? 
+                AnimationSystemDelegateBuilder(
+                  key: Key("Percent - Bar - Animation - System"),
+                  controlHeptic: true,
+                  controller: widget.bottomAnimationSystemController!, 
+                  delegate: widget.bottomDelegate!,
+                  animateAccordingToPosition: widget.bottomDelegate!.animateAccordingToPosition,
+                ) : SizedBox.shrink(),
 
-              _buildCard(1),
+                _buildCard(1),
 
-              // Animation system
-              widget.topDelegate != null && widget.topAnimationSystemController != null ? 
-              AnimationSystemDelegateBuilder(
-                key: Key("Icon - Animation - System"),
-                controller: widget.topAnimationSystemController!, 
-                delegate: widget.topDelegate!,
-                animateAccordingToPosition: widget.topDelegate!.animateAccordingToPosition
-              ) : SizedBox.shrink(),
+                // Animation system
+                widget.topDelegate != null && widget.topAnimationSystemController != null ? 
+                AnimationSystemDelegateBuilder(
+                  key: Key("Icon - Animation - System"),
+                  controller: widget.topAnimationSystemController!, 
+                  delegate: widget.topDelegate!,
+                  animateAccordingToPosition: widget.topDelegate!.animateAccordingToPosition
+                ) : SizedBox.shrink(),
 
 
-              _buildCard(0)
-            ],
-          );
-        }
-      )
+                _buildCard(0)
+              ],
+            );
+          }
+        )
+      ),
     );
   }
 }
@@ -468,7 +485,7 @@ class SwipeFeedController<T> extends ChangeNotifier{
   Future<void> reverseAnimations() async => _state != null ? _state!.resetAnimations() : null;
 
   // Retrieves background controller from the feed
-  AnimationSystemController? backgroundController() => _state != null && _state!.backgroundSystemControllers.length >= 2 ? _state!.backgroundSystemControllers[1] : null;
+  AnimationSystemController? backgroundController() => _state != null && _state!.backgroundSystemControllers.state.length >= 2 ? _state!.backgroundSystemControllers.state[1] : null;
 
   /// Get the collective state of items from the feed
   InitialFeedState<T> get collectiveState => InitialFeedState(
