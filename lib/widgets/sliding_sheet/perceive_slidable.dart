@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 
+import 'package:feed/feed.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,10 @@ import 'package:tuple/tuple.dart';
 part 'state.dart';
 
 class PerceiveSlidable extends StatefulWidget {
+
+  //Static variables
+  static const double EXPANDED_BORDER_RADIUS = 0;
+  static const double INITIAL_BORDER_RADIUS = 32;
 
   ///Controller for the sheet
   final PerceiveSlidableController? controller;
@@ -42,14 +48,14 @@ class PerceiveSlidable extends StatefulWidget {
 
   // Builders
   /// Optional builder for the initial delegate
-  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? header;
+  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer, double borderRadius)? header;
   /// The optional builder for the body of the sheet
   final Widget Function(BuildContext context, SheetState?, double)? customBodyBuilder;
   /// The persistent footer on the sliding sheet
   final Widget Function(BuildContext context, SheetState, dynamic pageObject)? footerBuilder;
 
   /// A persistent header over the navigator, when defined, disables any delegates from building headers
-  final Widget Function(BuildContext context, Widget spacer)? persistentHeader;
+  final Widget Function(BuildContext context, Widget spacer, double borderRadius)? persistentHeader;
   
 
   /// Listeners
@@ -84,6 +90,14 @@ class PerceiveSlidable extends StatefulWidget {
 
   @override
   _PerceiveSlidableState createState() => _PerceiveSlidableState();
+
+  //Static function
+  static double getIntervalFromExtent(double extent, double extentMatcher){
+    return Interval(
+      extentMatcher > 0.7 ? extentMatcher : 0.85,
+      1.0,
+    ).transform(extent);
+  }
 }
 
 class _PerceiveSlidableState extends State<PerceiveSlidable> {
@@ -130,6 +144,7 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
     tower.dispatch(_AddDelegateEvent(delegate));
 
     Widget delegateBuilder = _PerceiveSlidableDelegateBuilder(
+      backgroundColor: widget.backgroundColor,
       controller: stateController,
       sheetStateController: slidingSheetStateController,
       delegate: delegate,
@@ -175,13 +190,13 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
     double pageWidth = MediaQuery.of(context).size.width;
     
     return SlidingSheet(
-      color: widget.backgroundColor,
+      // color: widget.backgroundColor,
       controller: sheetController,
       isBackdropInteractable: widget.isBackgroundIntractable,
       closeOnBackdropTap: widget.closeOnBackdropTap,
       duration: Duration(milliseconds: 300),
-      cornerRadius: 32,
-      cornerRadiusWhenExpanded: 0,
+      cornerRadius: PerceiveSlidable.INITIAL_BORDER_RADIUS,
+      cornerRadiusWhenExpanded: PerceiveSlidable.EXPANDED_BORDER_RADIUS,
       extendBody: true,
       slidingSheetStateController: slidingSheetStateController,
       backdropColor: widget.minBackdropColor,
@@ -216,6 +231,7 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
                       return widget.persistentHeader!(
                         context, 
                         Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
+                        lerpDouble(PerceiveSlidable.INITIAL_BORDER_RADIUS, PerceiveSlidable.EXPANDED_BORDER_RADIUS, PerceiveSlidable.getIntervalFromExtent(extent, max(widget.initialExtent, widget.mediumExtent)))!
                       );
                     }
                   ),
@@ -226,6 +242,7 @@ class _PerceiveSlidableState extends State<PerceiveSlidable> {
                         settings: settings,
                         builder: (context) {
                           return _PerceiveSlidableDelegateBuilder(
+                            backgroundColor: widget.backgroundColor,
                             controller: stateController,
                             sheetStateController: slidingSheetStateController,
                             delegate: delegates[0],
@@ -315,6 +332,8 @@ class _PerceiveSlidableDelegateBuilder extends StatefulWidget {
 
   final bool disableHeader;
 
+  final Color? backgroundColor;
+
   const _PerceiveSlidableDelegateBuilder({ 
     Key? key,
     required this.delegate,
@@ -326,6 +345,7 @@ class _PerceiveSlidableDelegateBuilder extends StatefulWidget {
     required this.minExtent,
     required this.staticSheet,
     required this.disableHeader,
+    required this.backgroundColor
   }) : super(key: key);
 
   @override
@@ -346,6 +366,8 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
     super.initState();
 
     widget.delegate._bind(this);
+
+    Future.delayed(Duration(milliseconds: 100)).then((value) => rebuild((){}));
   }
 
   @override
@@ -358,6 +380,10 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
   late double lastExtent = widget.controller.extent;
 
   late Completer<bool> completer = Completer<bool>()..complete(true);
+
+  void rebuild(void Function() fn){
+    setState(fn);
+  }
 
   void sheetListener(double extent) async {
     // When the sheet is switching from expanded to unexpanded
@@ -419,17 +445,24 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
 
   Widget _buildHeader(BuildContext context){
 
+
+
     Widget header = StoreConnector<PerceiveSlidableState, double>(
       converter: (store) => store.state.extent,
       builder: (context, extent) {
         //The animation value for the topExtent animation
         double topExtentValue = Functions.animateOver(extent, percent: 0.9);
+
+        //Border radius interval
+        
+
         return Stack(
           children: [
             widget.delegate.headerBuilder(
               context, 
               widget.delegate.delegateObject, 
               Container(height: lerpDouble(0, statusBarHeight, topExtentValue)),
+              lerpDouble(PerceiveSlidable.INITIAL_BORDER_RADIUS, PerceiveSlidable.EXPANDED_BORDER_RADIUS, PerceiveSlidable.getIntervalFromExtent(extent, max(widget.initialExtent, widget.mediumExtent)))!
             ),
 
             Align(
@@ -441,7 +474,7 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
                     scrollUp();
                   }
                 },
-                child: Container(height: lerpDouble(0, statusBarHeight * 2, topExtentValue)),
+                child: Container(height: lerpDouble(0, statusBarHeight * 1.3, topExtentValue)),
               ),
             )
           ],
@@ -519,7 +552,10 @@ class _PerceiveSlidableDelegateBuilderState extends State<_PerceiveSlidableDeleg
       children: [
         if(!widget.disableHeader)
           _buildHeader(context),
-        Expanded(child: _buildBody(context)),
+        Expanded(child: Container(
+          color: widget.backgroundColor,
+          child: _buildBody(context)
+        )),
       ],
     ));
   }
@@ -538,6 +574,8 @@ abstract class PerceiveSlidableDelegate{
   PerceiveSlidableController get sheetController => delegateState!.widget.controller;
 
   Store<PerceiveSlidableState> get stateTower => delegateState!.tower;
+
+  double get initialExtent => delegateState?.widget.initialExtent ?? 0;
 
   bool get isScrolled => scrollControllers.map<double>((e){
     try{
@@ -586,8 +624,13 @@ abstract class PerceiveSlidableDelegate{
     delegateState = null;
   }
 
+  // Calls the set state within the delegate
+  void rebuild([void Function()? fn]){
+    delegateState?.rebuild(fn ?? () {});
+  }
+
   /// Builders and Listeners to be overriden
-  Widget headerBuilder(BuildContext context, dynamic pageObj, Widget spacer);
+  Widget headerBuilder(BuildContext context, dynamic pageObj, Widget spacer, double borderRadius);
   Widget customBodyBuilder(BuildContext context, SheetState? state, double extent, int pageIndex);
   Widget wrapperBuilder(BuildContext context, Widget page) => page;
   void sheetListener(BuildContext context, SheetState state){}
@@ -614,7 +657,7 @@ class _PerceiveSlidableBaseDelegate extends PerceiveSlidableDelegate{
   /// Listeners
   final Function(double extent)? extentListener;
   final Widget Function(BuildContext context, SheetState?, double)? body;
-  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer)? header;
+  final Widget Function(BuildContext context, dynamic pageObj, Widget spacer, double borderRadius)? header;
 
   _PerceiveSlidableBaseDelegate({
     required this.extentListener,
@@ -635,8 +678,8 @@ class _PerceiveSlidableBaseDelegate extends PerceiveSlidableDelegate{
   }
 
   @override
-  Widget headerBuilder(BuildContext context, pageObj, Widget spacer) {
-    return header?.call(context, pageObj, spacer) ?? SizedBox.shrink();
+  Widget headerBuilder(BuildContext context, pageObj, Widget spacer, double borderRadius) {
+    return header?.call(context, pageObj, spacer, borderRadius) ?? SizedBox.shrink();
   }
 
 }
