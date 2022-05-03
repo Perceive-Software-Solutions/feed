@@ -253,7 +253,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     backgroundSystemControllers.emit(backgroundSystemControllersState);
   }
 
-  void _asyncAddCard(Future<T> loader, Function onError) async {
+  Future<void> _asyncAddCard(Future<T?> loader, Function onError) async {
     List<AnimationSystemController> backgroundSystemControllersState = backgroundSystemControllers.state;
     backgroundSystemControllersState.removeAt(1);
     swipeFeedCardControllers.removeAt(1);
@@ -275,8 +275,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       tower.dispatch(updateNullableItem(item));
     }
     else{
-      tower.dispatch(removeItem());
+      swipeFeedCardControllers.removeAt(0);
+      swipeFeedCardControllers.add(SwipeFeedCardController());
+      backgroundSystemControllers.emit(backgroundSystemControllersState);
+      tower.dispatch(removeCard());
     }
+    return;
   }
 
   void _updateCard(T item, String id){
@@ -465,7 +469,7 @@ class SwipeFeedController<T> extends ChangeNotifier{
   void addCard(T item, [Function? onComplete]) => _state != null ? _state!._addCard(item, onComplete) : null;
 
   ///Add future item
-  void asyncAdd(Future<T> loader, Function onError) => _state != null ? _state!._asyncAddCard(loader, onError) : null;
+  Future<void> asyncAdd(Future<T?> loader, Function onError) async => _state != null ? await _state!._asyncAddCard(loader, onError) : null;
 
   ///Removes an item from the feed, animates the item out of the feed by default
   void removeCard<T>([AdjustList<T>? then]) => _state != null ? _state!._removeCard<T>(then) : null;

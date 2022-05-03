@@ -248,6 +248,9 @@ ThunkAction<SwipeFeedState<T>> refresh<T>({Function? onComplete}) {
         store.dispatch(_SetHasMoreEvent(false));
       }
 
+      //Set page token
+      store.dispatch(_SetPageTokenEvent(pageToken));
+
       /// Generate new items
       List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
         List<Tuple2<T, Store<SwipeFeedCardState>>>.generate(
@@ -467,7 +470,8 @@ ThunkAction<SwipeFeedState<T>> loadMore<T>() {
         store.dispatch(_SetHasMoreEvent(false));
       }
 
-      store.dispatch(_SetPageTokenEvent(loaded.item2));
+      // Set the page token
+      store.dispatch(_SetPageTokenEvent(pageToken));
 
       /// Generate new items
       List<Tuple2<T, Store<SwipeFeedCardState>>> items = 
