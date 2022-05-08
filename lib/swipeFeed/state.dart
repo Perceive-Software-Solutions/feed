@@ -358,6 +358,19 @@ ThunkAction<SwipeFeedState<T>> removeCard<T>(){
   };
 }
 
+ThunkAction<SwipeFeedState<T>> removeItemIfNotFirst<T>(T item, String Function(T) compare){
+  return (Store<SwipeFeedState<T>> store) async {
+    int index = store.state.items.indexWhere((element) => element.item1 != null && compare(item) == compare(element.item1!));
+    if(store.state.items.isNotEmpty){
+      if(index != -1){
+        List<Tuple2<T?, Store<SwipeFeedCardState>>> items = store.state.items;
+        items.removeAt(index);
+        store.dispatch(SetItemsEvent(items));
+      }
+    }
+  };
+}
+
 /// Removes a card from the list, do not use when the card is being swiped
 ThunkAction<SwipeFeedState<T>> removeItem<T>([AdjustList<T>? then]){
   return (Store<SwipeFeedState<T>> store) async {

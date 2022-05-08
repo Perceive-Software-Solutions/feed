@@ -7,6 +7,7 @@ import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/swipeFeedCard/swipe_feed_card.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
+import 'package:feed/util/state/feed_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fort/fort.dart';
@@ -272,6 +273,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
     }
     if(item != null){
       backgroundSystemControllers.emit(backgroundSystemControllersState);
+      tower.dispatch(removeItemIfNotFirst<T>(item, (widget as SwipeFeed<T>).objectKey));
       tower.dispatch(updateNullableItem(item));
     }
     else{
