@@ -400,7 +400,7 @@ class _FeedState extends State<Feed> {
 ///Holds a nested Page, Tab and Scroll controllers
 class FeedController extends ChangeNotifier {
 
-  late _FeedState? _state;
+  _FeedState? _state;
 
   ///Holds the grid delegates for the defined by the key
   FeedGridViewDelegate? _gridDelegate;
@@ -429,6 +429,8 @@ class FeedController extends ChangeNotifier {
       gridDelegate
     );
   }
+
+  bool isBinded() => _state != null;
 
   ///Binds the feed state
   void _bind(_FeedState bind) => _state = bind;

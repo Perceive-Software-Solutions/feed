@@ -1,6 +1,6 @@
 name: feed
 description: A package for managing load more lists and sliding sheets.
-version: 0.5.13
+version: 0.5.14
 homepage: https://github.com/Perceive-Software-Solutions/feed
 
 environment:
