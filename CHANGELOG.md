@@ -1,3 +1,7 @@
+## [0.5.15] v0.5.15
+
+* Supports Flutter 3
+
 ## [0.5.7] v0.5.7
 
 * Various bug fixes

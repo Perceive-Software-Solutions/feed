@@ -322,7 +322,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     //Set swipable
     setSwipeable(widget.swipable);
 
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       //Determines the thresholds
       _determineThresholds();
 

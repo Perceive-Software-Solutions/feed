@@ -124,7 +124,7 @@ class _PagedCompactListState<T> extends State<PagedCompactList<T>> {
     super.initState();
 
     ///Resets the page when the [animationState] is connected
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       reset();
     });
   }
