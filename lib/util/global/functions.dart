@@ -85,6 +85,9 @@ typedef SwipeFeedBuilder<T> = Widget Function(T value, bool expanded, void Funct
 ///Builder for the feed items
 typedef FeedBuilder = Widget Function(dynamic item, bool isLast);
 
+///Builder for the feed items
+typedef IndexedFeedBuilder = Widget Function(List items, int index);
+
 ///Builder for the multi feed items
 typedef MultiFeedBuilder = Widget Function(dynamic item, int index, bool isLast);
 

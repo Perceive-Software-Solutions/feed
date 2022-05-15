@@ -1,3 +1,7 @@
+## [0.5.16] v0.5.16
+
+* Updated feed interface
+
 ## [0.5.15] v0.5.15
 
 * Supports Flutter 3
