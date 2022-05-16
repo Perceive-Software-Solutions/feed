@@ -99,7 +99,10 @@ class _FeedListViewState extends State<FeedListView> {
     ///Simple List
     late Widget list;
 
-    if(widget.gridDelegate != null){
+    if(items.isEmpty){
+      list = SizedBox.shrink();
+    }
+    else if(widget.gridDelegate != null){
       //Grid list
       list = StaggeredGridView.countBuilder(
         reverse: widget.reverse,

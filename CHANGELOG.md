@@ -1,3 +1,7 @@
+## [0.5.17] v0.5.17
+
+* Added `usePlaceholder` to feed
+
 ## [0.5.16] v0.5.16
 
 * Updated feed interface

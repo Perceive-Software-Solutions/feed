@@ -69,6 +69,10 @@ class Feed extends StatefulWidget {
   /// The amount of items that are rendered at once
   final int? renderCount;
 
+  /// Determines if the place holder should be used when the feed is empty
+  /// Defaulted to true
+  final bool usePlaceholder;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const Feed(
@@ -91,6 +95,7 @@ class Feed extends StatefulWidget {
       this.pinnedItems,
       this.reverse = false,
       this.renderCount,
+      this.usePlaceholder = true,
     })  : super(key: key);
 
   @override
@@ -357,7 +362,7 @@ class _FeedState extends State<Feed> {
   Widget _buildFeed(bool loadMore, int size) {
     Widget view = SizedBox();
 
-    if (size == 0 && !loadMore) {
+    if (size == 0 && !loadMore && widget.usePlaceholder) {
       if(widget.placeholder != null){
         //No items placeholder
         view = widget.placeholder!;
