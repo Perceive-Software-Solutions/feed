@@ -34,6 +34,8 @@ class Feed extends StatefulWidget {
 
   final FeedBuilder? childBuilder;
 
+  final IndexedFeedBuilder? indexedBuilder;
+
   ///defines the height to offset the body
   final double? footerHeight;
 
@@ -61,6 +63,16 @@ class Feed extends StatefulWidget {
   /// Items that will be pinned to the top of the list on init
   final List<dynamic>? pinnedItems;
 
+  /// Transform the feed into reverse
+  final bool reverse;
+
+  /// The amount of items that are rendered at once
+  final int? renderCount;
+
+  /// Determines if the place holder should be used when the feed is empty
+  /// Defaulted to true
+  final bool usePlaceholder;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const Feed(
@@ -70,6 +82,7 @@ class Feed extends StatefulWidget {
       this.lengthFactor,
       this.initialLength,
       this.childBuilder,
+      this.indexedBuilder,
       this.footerHeight,
       this.placeholder,
       this.loading,
@@ -79,8 +92,11 @@ class Feed extends StatefulWidget {
       this.scrollController,
       this.compact = false,
       this.initiallyLoad = true,
-      this.pinnedItems})
-      : super(key: key);
+      this.pinnedItems,
+      this.reverse = false,
+      this.renderCount,
+      this.usePlaceholder = true,
+    })  : super(key: key);
 
   @override
   State<Feed> createState() => _FeedState();
@@ -204,7 +220,7 @@ class _FeedState extends State<Feed> {
   List _allocateToPending(List items){
 
     //Determine split index as a fraction fo the items loaded
-    int splitIndex = min(RENDER_COUNT, items.length);
+    int splitIndex = min(widget.renderCount ?? RENDER_COUNT, items.length);
 
     // Allocate the remaining items to pending
     tower.dispatch(SetPendingFeedItemsEvent(items.sublist(splitIndex)));
@@ -346,7 +362,7 @@ class _FeedState extends State<Feed> {
   Widget _buildFeed(bool loadMore, int size) {
     Widget view = SizedBox();
 
-    if (size == 0 && !loadMore) {
+    if (size == 0 && !loadMore && widget.usePlaceholder) {
       if(widget.placeholder != null){
         //No items placeholder
         view = widget.placeholder!;
@@ -358,6 +374,7 @@ class _FeedState extends State<Feed> {
         child: FeedListView(
           controller: widget.scrollController ?? widget.controller!.scrollController(),
           compact: widget.compact,
+          reverse: widget.reverse,
           gridDelegate: widget.controller?.getGridDelegate(),
           disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
           footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
@@ -367,7 +384,7 @@ class _FeedState extends State<Feed> {
             if (i == items.length) {
               return loadMore ? load : SizedBox.shrink();
             }
-            return widget.childBuilder!(items[i], items.length - 1 == i);
+            return widget.indexedBuilder?.call(items, i) ?? widget.childBuilder!(items[i], items.length - 1 == i);
           },
         )
       );

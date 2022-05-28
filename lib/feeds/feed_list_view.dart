@@ -60,10 +60,14 @@ class FeedListView extends StatefulWidget {
   ///If defined builds this feed in grid mode
   final FeedGridViewDelegate? gridDelegate;
 
+  /// If the feed is built in reverse
+  final bool reverse;
+
   const FeedListView({ 
     Key? key, 
     this.disableScroll = false, 
     this.compact = false, 
+    this.reverse = false, 
     this.onLoad, 
     required this.builder, 
     required this.controller, 
@@ -95,9 +99,13 @@ class _FeedListViewState extends State<FeedListView> {
     ///Simple List
     late Widget list;
 
-    if(widget.gridDelegate != null){
+    if(items.isEmpty){
+      list = SizedBox.shrink();
+    }
+    else if(widget.gridDelegate != null){
       //Grid list
       list = StaggeredGridView.countBuilder(
+        reverse: widget.reverse,
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         addRepaintBoundaries: true,
@@ -112,6 +120,7 @@ class _FeedListViewState extends State<FeedListView> {
     }
     else{
       list = ListView.builder(
+        reverse: widget.reverse,
         padding: EdgeInsets.zero,
         shrinkWrap: true,
         addRepaintBoundaries: true,
@@ -155,6 +164,7 @@ class _FeedListViewState extends State<FeedListView> {
 
           if(!widget.compact){
             list = SingleChildScrollView(
+              reverse: widget.reverse,
               physics: widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
               controller: scrollController,
               child: list,

@@ -1,3 +1,15 @@
+## [0.5.17] v0.5.17
+
+* Added `usePlaceholder` to feed
+
+## [0.5.16] v0.5.16
+
+* Updated feed interface
+
+## [0.5.15] v0.5.15
+
+* Supports Flutter 3
+
 ## [0.5.7] v0.5.7
 
 * Various bug fixes
