@@ -101,14 +101,14 @@ class _AppColorThemeControllerState extends State<AppColorThemeController> with 
   void initState() {
     super.initState();
     //Binds this as a listner to the widgets binnding and populates the innitial system brigtness value
-    appTheme = WidgetsBinding.instance!.window.platformBrightness;
-    WidgetsBinding.instance!.addObserver(this);
+    appTheme = WidgetsBinding.instance.window.platformBrightness;
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     //Removes this from the observers list
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
 
     super.dispose();
   }
@@ -119,7 +119,7 @@ class _AppColorThemeControllerState extends State<AppColorThemeController> with 
     super.didChangePlatformBrightness();
 
     setState(() {
-      appTheme = WidgetsBinding.instance!.window.platformBrightness;
+      appTheme = WidgetsBinding.instance.window.platformBrightness;
     });
   }
 

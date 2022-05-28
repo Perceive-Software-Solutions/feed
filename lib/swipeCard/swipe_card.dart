@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:feed/util/global/functions.dart';
-import 'package:feed/util/one_sequence_gesture_recognizer.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -25,6 +23,13 @@ enum SwipeCardAngle{
   None,
   Top,
   Bottom
+}
+
+enum SwipeCardSimulation{
+  None,
+  SwipeLeftRight,
+  SwipeDown,
+  SwipeUp
 }
 
 // background opac: 75%, inner shadow 1x, 1y, 1blur white 25%opac duration 0.09s
@@ -58,12 +63,12 @@ class SwipeCard extends StatefulWidget {
 
   const SwipeCard({
     Key? key,
-    this.swipable = false,
-    this.controller,
     required this.onSwipe,
+    this.swipable = false,
+    this.sim = SwipeCardSimulation.None,
+    this.controller,
     this.child,
     this.onPanUpdate,
-    this.opacityChange = false,
   }) : super(key: key);
 
   @override
@@ -95,8 +100,8 @@ class SwipeCard extends StatefulWidget {
   ///The function that runs when the pan is updated
   final Function(double dx, double dy)? onPanUpdate;
 
-  ///whether or not the card should fade out opacity
-  final bool opacityChange;
+  ///Card simulation
+  final SwipeCardSimulation sim;
 }
 
 class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
@@ -177,6 +182,9 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
  
 */
 
+  ///Controls the automated swiping
+  late AnimationController simulationSwiper = AnimationController(vsync: this, duration: Duration(seconds: 2), value: 0);
+
   ///Controls the right swipe animation
   late AnimationController rightSwiper = AnimationController(duration: Duration.zero, vsync: this);
   ///Controls the left swipe animation
@@ -227,6 +235,9 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   //Determines if the card is swipable
   bool swipable = false;
+
+  //Determines simulation of the card
+  SwipeCardSimulation sim = SwipeCardSimulation.None;
 
   ///Locks the haptic feedback
   Map<DismissDirection, bool> hapticLock = {
@@ -321,31 +332,21 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //Set swipable
     setSwipeable(widget.swipable);
+    //Set simulation
+    setSim(widget.sim);
 
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       //Determines the thresholds
       _determineThresholds();
 
       //Define the animations
       _defineAnimations();
+
+      //Run Simulation of Card
+      if(getSim() != SwipeCardSimulation.None){
+        _runSim();
+      }
     });
-
-    
-    
-  }
-
-  void bindListeners(){
-    // leftSwiper.addListener(() { 
-    //   if(leftSwiper.value == 0){
-    //     const spring = SpringDescription(
-    //       mass: 1,
-    //       stiffness: 300,
-    //       damping: 20,
-    //     );
-
-    //     final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
-    //   }
-    // });
   }
 
   @override
@@ -362,6 +363,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     //Update swipable
     if(oldWidget.swipable != widget.swipable){
       setSwipeable(widget.swipable);
+    }
+    if(oldWidget.sim != widget.sim){
+      setSim(widget.sim);
+      if(getSim() != SwipeCardSimulation.None){
+        _runSim();
+      }
     }
   }
 
@@ -392,67 +399,56 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
  
 */
 
-    /// Calculates and runs a [SpringSimulation].
-  void _runAnimation(Offset pixelsPerSecond, Size size) {
+  void leftRightSim(){
+    if(simulationSwiper.value <= 0.25){
+      // 0.0 - 1.0
+      double value = simulationSwiper.value * 4;
+      rightSwiper.animateTo(value, duration: Duration.zero);
+    }
+    else if(simulationSwiper.value >= 0.25 && simulationSwiper.value <= 0.5){
+      // 1.0 - 0.0
+      double value = (simulationSwiper.value - 0.25) * 4;
+      rightSwiper.animateTo((value - 1).abs(), duration: Duration.zero);
+    }
+    else if(simulationSwiper.value >= 0.5 && simulationSwiper.value <= 0.75){
+      // 0.0 - 1.0
+      double value = (simulationSwiper.value - 0.5) * 4;
+      leftSwiper.animateTo(value, duration: Duration.zero);
+    }
+    else{
+      // 1.0 - 0.0
+      double value = (simulationSwiper.value - 0.75) * 4;
+      leftSwiper.animateTo((value - 1).abs(), duration: Duration.zero);
+    }
+  }
 
-    // setState(() {
-    //   //Unlock haptic
-    //   for(var direction in hapticLock.keys){
-    //     hapticLock[direction] = false;
-    //   }
-    // });
+  void upSim(){
 
-    // //List of animation controllers for this widget
-    // List<AnimationController> animations = [leftSwiper, rightSwiper, downSwiper, upSwiper];
-    // List<Duration> durations = [];
+  }
 
-    // ///Find out durations
-    // for(AnimationController animation in animations){
-    //   if(animation.value != 0){
-    //     int duration = 200 ~/ animation.value;
-    //     animation.duration = Duration(milliseconds: duration);
-    //   }
-    //   else{
-    //     durations.add(Duration(milliseconds: 0));
-    //   }
-    // }
+  void downSim(){
 
-    // rightAnimation = rightSwiper.drive(
-    //   Tween<double>(begin: xDrag, end: 0)
-    // );
-    // leftAnimation = leftSwiper.drive(
-    //   Tween<double>(begin: xDrag, end: 0)
-    // );
-    // upAnimation = upSwiper.drive(
-    //   Tween<double>(begin: yDrag, end: 0)
-    // );
-    // downAnimation = downSwiper.drive(
-    //   Tween<double>(begin: yDrag, end: 0)
-    // );
+  }
 
-    // // Calculate the velocity relative to the unit interval, [0,1],
-    // // used by the animation controller.
-    // final unitsPerSecondX = pixelsPerSecond.dx / size.width;
-    // final unitsPerSecondY = pixelsPerSecond.dy / size.height;
-    // final unitsPerSecond = Offset(unitsPerSecondX, unitsPerSecondY);
-    // final unitVelocity = unitsPerSecond.distance;
+  void simulationListener(){
+    if(simulationSwiper.isCompleted){
+      simulationSwiper.repeat();
+    }
+    switch (getSim()) {
+      case SwipeCardSimulation.SwipeLeftRight:
+        leftRightSim();
+        break;
+      case SwipeCardSimulation.SwipeUp:
+        break;
+      case SwipeCardSimulation.SwipeDown:
+        break;
+      default:
+    }
+  }
 
-    // const spring = SpringDescription(
-    //   mass: 1,
-    //   stiffness: 300,
-    //   damping: 20,
-    // );
-
-    // final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
-
-    // rightSwiper.animateWith(simulation);
-    // leftSwiper.animateWith(simulation);
-    // upSwiper.animateWith(simulation);
-    // downSwiper.animateWith(simulation);
-
-    
-
-    // setSwipeable(widget.swipable);
+  void _runSim(){
+    simulationSwiper.forward();
+    simulationSwiper.addListener(simulationListener);
   }
 
   //Controls enabling gestures on the card
@@ -461,8 +457,19 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     swipable = swipe;
   }
 
+  //Getter swipeable
   bool getSwipeable(){
     return swipable;
+  }
+
+  //Set the simulation
+  void setSim(SwipeCardSimulation simulation){
+    sim = simulation;
+  }
+
+  //Getter simulation
+  SwipeCardSimulation getSim(){
+    return sim;
   }
 
   ///Reverses any completed animation
@@ -571,9 +578,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       })
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed && rightSwiper.value == 1.0) {
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.startToEnd);
-
           //Reset duration
           rightSwiper.duration = Duration.zero;
         }
@@ -593,9 +597,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       })
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed && leftSwiper.value == 1.0) {
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.endToStart);
-
           //Reset duration
           leftSwiper.duration = Duration.zero;
         }
@@ -615,9 +616,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       })
       ..addStatusListener((status) { 
         if(status == AnimationStatus.completed && downSwiper.value == 1.0){
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.down);
-
           //Reset duration
           downSwiper.duration = Duration.zero;
         }
@@ -637,9 +635,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       })
       ..addStatusListener((status) { 
         if(status == AnimationStatus.completed && upSwiper.value == 1.0){
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.up);
-
           //Reset duration
           upSwiper.duration = Duration.zero;
         }

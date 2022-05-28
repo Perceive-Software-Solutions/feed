@@ -250,6 +250,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                         padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
                         child: SwipeCard(
                           controller: swipeCardController,  
+                          sim: SwipeCardSimulation.SwipeLeftRight,
                           swipable: !keyboard && (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
                           onPanUpdate: _onPanUpdate,
                           onSwipe: _onSwipe,

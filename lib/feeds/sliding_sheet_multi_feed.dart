@@ -291,6 +291,6 @@ class MultiFeedController {
   }
 
   FeedController controllerAt(int index) => _controllers[index];
-
+  
   bool isBinded(int index) => _controllers[index].isBinded();
 }
