@@ -147,6 +147,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   ///The minimum distance to be considered a fling
   static const Curve SWIPE_CURVE = Curves.linear;
+  
+  /// Simulation sequences 
+  late TweenSequence HorizontalLeftRightSimTween;
+  late TweenSequence VerticalLeftRightSimTween;
 
   ///The minimum distance to be considered a fling
   // static const Curve SPRING_CURVE = ElasticInCurve(0.4);
@@ -183,7 +187,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 */
 
   ///Controls the automated swiping
-  late AnimationController simulationSwiper = AnimationController(vsync: this, duration: Duration(seconds: 2), value: 0);
+  late AnimationController simulationSwiper = AnimationController(vsync: this, duration: Duration(seconds: 4), value: 0);
 
   ///Controls the right swipe animation
   late AnimationController rightSwiper = AnimationController(duration: Duration.zero, vsync: this);
@@ -329,6 +333,24 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    
+    /// Define simulation sequences 
+    HorizontalLeftRightSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.25),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.25),
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.25),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.25)
+      ]
+    );
+    VerticalLeftRightSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.25),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.25),
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.25),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.25)
+      ]
+    );
 
     //Set swipable
     setSwipeable(widget.swipable);
@@ -399,27 +421,18 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
  
 */
 
+  ///
   void leftRightSim(){
-    if(simulationSwiper.value <= 0.25){
-      // 0.0 - 1.0
-      double value = simulationSwiper.value * 4;
-      rightSwiper.animateTo(value, duration: Duration.zero);
-    }
-    else if(simulationSwiper.value >= 0.25 && simulationSwiper.value <= 0.5){
-      // 1.0 - 0.0
-      double value = (simulationSwiper.value - 0.25) * 4;
-      rightSwiper.animateTo((value - 1).abs(), duration: Duration.zero);
-    }
-    else if(simulationSwiper.value >= 0.5 && simulationSwiper.value <= 0.75){
-      // 0.0 - 1.0
-      double value = (simulationSwiper.value - 0.5) * 4;
-      leftSwiper.animateTo(value, duration: Duration.zero);
+    double horizontalValue = HorizontalLeftRightSimTween.animate(CurvedAnimation(parent: simulationSwiper, curve: Curves.easeInOut)).value;
+    double vertialValue = VerticalLeftRightSimTween.animate(CurvedAnimation(parent: simulationSwiper, curve: Curves.easeInOut)).value;
+    if(simulationSwiper.value <= 0.5){
+      rightSwiper.animateTo(horizontalValue, duration: Duration.zero);
     }
     else{
-      // 1.0 - 0.0
-      double value = (simulationSwiper.value - 0.75) * 4;
-      leftSwiper.animateTo((value - 1).abs(), duration: Duration.zero);
+      leftSwiper.animateTo(horizontalValue, duration: Duration.zero);
     }
+    downSwiper.animateTo(vertialValue, curve: Curves.easeInOutCubic, duration: Duration.zero);
+    rotation = SwipeCardAngle.Top;
   }
 
   void upSim(){
