@@ -1,11 +1,8 @@
 import 'package:feed/util/global/functions.dart';
-import 'package:feed/util/state/concrete_cubit.dart';
 import 'package:feed/util/state/feed_store.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:fort/fort.dart';
-import 'package:perceive_slidable/sliding_sheet.dart';
 
 ///Defines the laoding state
 enum FeedLoadingState {
@@ -36,6 +33,8 @@ class FeedListView extends StatefulWidget {
 
   final bool compact;
 
+  final bool usePrimaryScrollController;
+
   //Whether to disable scrolling
   final bool? disableScroll;
 
@@ -63,8 +62,12 @@ class FeedListView extends StatefulWidget {
   /// If the feed is built in reverse
   final bool reverse;
 
+  /// Physics
+  final ScrollPhysics? physics;
+
   const FeedListView({ 
     Key? key, 
+    this.usePrimaryScrollController = false,
     this.disableScroll = false, 
     this.compact = false, 
     this.reverse = false, 
@@ -75,6 +78,7 @@ class FeedListView extends StatefulWidget {
     this.wrapper, 
     this.loading, 
     this.gridDelegate,
+    this.physics
   }) : super(key: key);
 
   @override
@@ -165,8 +169,8 @@ class _FeedListViewState extends State<FeedListView> {
           if(!widget.compact){
             list = SingleChildScrollView(
               reverse: widget.reverse,
-              physics: widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              controller: scrollController,
+              physics: widget.physics != null ? widget.physics : widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              controller: widget.usePrimaryScrollController ? null : scrollController,
               child: list,
             );
           }

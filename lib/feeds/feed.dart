@@ -24,6 +24,8 @@ class Feed extends StatefulWidget {
   /// Overrides the scroll controller provided in the feed controller
   final ScrollController? scrollController;
 
+  final bool usePrimaryScrollController;
+
   final FeedLoader loader;
 
   final FeedController? controller;
@@ -73,6 +75,9 @@ class Feed extends StatefulWidget {
   /// Defaulted to true
   final bool usePlaceholder;
 
+  /// Physics
+  final ScrollPhysics? physics;
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extra ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const Feed(
@@ -96,6 +101,8 @@ class Feed extends StatefulWidget {
       this.reverse = false,
       this.renderCount,
       this.usePlaceholder = true,
+      this.usePrimaryScrollController = false,
+      this.physics
     })  : super(key: key);
 
   @override
@@ -373,8 +380,10 @@ class _FeedState extends State<Feed> {
       view = KeepAliveWidget(
         child: FeedListView(
           controller: widget.scrollController ?? widget.controller!.scrollController(),
+          usePrimaryScrollController: widget.usePrimaryScrollController,
           compact: widget.compact,
           reverse: widget.reverse,
+          physics: widget.physics,
           gridDelegate: widget.controller?.getGridDelegate(),
           disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
           footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
