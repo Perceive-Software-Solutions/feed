@@ -11,29 +11,31 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+The feed package is used to help developers page paginated list views in flutter.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
+- Paginated Feed Widget
+- Swipe Feed
+    - Tinder like paginated feed
+- Sliding sheet paginated feed
+    - Page view sliding sheet feed
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add the dependency:
+```yaml
+    feed:
+```
+
+Import the package:
+```dart
+import 'package:feed/feed.dart';
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
-```dart
-const like = 'sample';
-```
+Follow the examples in the `/example` and feel free to reach out to infoperceive@gmail.com for any questions.
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+The `fort` repository is a state management tool derived from Redux and it is used to manage state within this package.

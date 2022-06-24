@@ -1,6 +1,5 @@
 library Feed;
 
-export 'package:feed/widgets/sliding_sheet/perceive_slidable.dart';
 export 'package:feed/feeds/feed.dart';
 export 'package:feed/feeds/compact_feed.dart';
 export 'package:feed/feeds/sliding_sheet_feed.dart';
