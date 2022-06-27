@@ -1,3 +1,7 @@
+## [0.5.19] v0.5.19
+
+* Removed perceive slidable coupling
+
 ## [0.5.17] v0.5.17
 
 * Added `usePlaceholder` to feed

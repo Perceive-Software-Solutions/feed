@@ -2,7 +2,6 @@ import 'package:feed/feed.dart';
 import 'package:flutter/material.dart';
 import 'package:perceive_slidable/sliding_sheet.dart';
 
-
 @Deprecated('Deleted Multi Feed')
 class MultiFeedExample extends StatefulWidget {
   final SheetController? sheetController;
