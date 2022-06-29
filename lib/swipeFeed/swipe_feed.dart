@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:feed/feed.dart';
+import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeed/state.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/swipeFeedCard/swipe_feed_card.dart';
 import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/state/concrete_cubit.dart';
-import 'package:feed/util/state/feed_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fort/fort.dart';
@@ -76,6 +76,9 @@ class SwipeFeed<T> extends StatefulWidget {
   /// Functions to control the bottom delegate
   final AnimationSystemController? bottomAnimationSystemController;
 
+  /// Gets the simulationDelegate
+  final SimulationDelegate? Function(BuildContext context, bool isNull)? simulationDelegate;
+
   final Function(T? item)? onLoad;
   
   const SwipeFeed({ 
@@ -98,6 +101,7 @@ class SwipeFeed<T> extends StatefulWidget {
     this.bottomAnimationSystemController,
     this.showLastCard = true,
     this.onLoad,
+    this.simulationDelegate,
     required this.loader,
     required this.objectKey,
     required this.controller
@@ -210,6 +214,16 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       backgroundSystemControllers.state[0].reverse();
     }
     if(swipeFeedCardControllers.length > 0) await swipeFeedCardControllers[0].reverseAnimation();
+  }
+
+  /// Display overlay card delegate
+  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight}){
+    if(swipeFeedCardControllers.length > 0) swipeFeedCardControllers[0].displayStaticOverlayCardDelegate(runSimulation: runSimulation, swipeCardSimulation: simulation);
+  }
+
+  /// Remove overlay card delegate
+  void removeOverlayCardDelegate(){
+    if(swipeFeedCardControllers.length > 0) swipeFeedCardControllers[0].removeOverlayCardDelegate();
   }
 
   /// Remove a card from the feed
@@ -353,6 +367,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       padding: widget.padding,
       item: item,
       index: index,
+      simulationDelegate: widget.simulationDelegate?.call(context, item.item1 == null),
       childBuilder: (widget as SwipeFeed<T>).childBuilder,
       loadingPlaceHolder: (widget as SwipeFeed<T>).loadingPlaceHolder,
       background: (widget as SwipeFeed<T>).background,
@@ -493,6 +508,12 @@ class SwipeFeedController<T> extends ChangeNotifier{
 
   // Retrieves background controller from the feed
   AnimationSystemController? backgroundController() => _state != null && _state!.backgroundSystemControllers.state.length >= 2 ? _state!.backgroundSystemControllers.state[1] : null;
+
+  // Display static overlay delegate
+  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight}) => _state != null ? _state!.displayStaticOverlayCardDelegate(runSimulation: runSimulation, simulation: simulation) : null;
+
+  // Remove static overlay delegate
+  void removeOverlayCardDelegate() => _state != null ? _state!.removeOverlayCardDelegate() : null;
 
   /// Get the collective state of items from the feed
   InitialFeedState<T> get collectiveState => InitialFeedState(

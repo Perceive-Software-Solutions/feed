@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'dart:ui';
-
 import 'package:feed/util/global/functions.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
-
-import 'package:flutter/physics.dart';
 
 /*
 
@@ -65,7 +62,7 @@ class SwipeCard extends StatefulWidget {
     Key? key,
     required this.onSwipe,
     this.swipable = false,
-    this.sim = SwipeCardSimulation.None,
+    required this.simulationSwiper,
     this.controller,
     this.child,
     this.onPanUpdate,
@@ -86,6 +83,8 @@ class SwipeCard extends StatefulWidget {
  
 */
 
+  final AnimationController simulationSwiper;
+
   final SwipeCardController? controller;
 
   ///Disbales all swiping on the card
@@ -99,9 +98,6 @@ class SwipeCard extends StatefulWidget {
   
   ///The function that runs when the pan is updated
   final Function(double dx, double dy)? onPanUpdate;
-
-  ///Card simulation
-  final SwipeCardSimulation sim;
 }
 
 class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
@@ -187,7 +183,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 */
 
   ///Controls the automated swiping
-  late AnimationController simulationSwiper = AnimationController(vsync: this, duration: Duration(seconds: 4), value: 0);
+  late AnimationController leftAnimationController;
+
+  /// Animates card to the right
+  late AnimationController rightAnimationController;
 
   ///Controls the right swipe animation
   late AnimationController rightSwiper = AnimationController(duration: Duration.zero, vsync: this);
@@ -333,29 +332,31 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
+    // Configure animation controllers
+    leftAnimationController = AnimationController(vsync: this, duration: Duration(seconds: widget.simulationSwiper.duration!.inSeconds ~/ 2));
+    rightAnimationController = AnimationController(vsync: this, duration: Duration(seconds: widget.simulationSwiper.duration!.inSeconds ~/ 2));
     
     /// Define simulation sequences 
     HorizontalLeftRightSimTween = TweenSequence<double>(
       [
-        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.25),
-        TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.25),
-        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.25),
-        TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.25)
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.5),
+        // TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.25),
+        // TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.25)
       ]
     );
     VerticalLeftRightSimTween = TweenSequence<double>(
       [
-        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.25),
-        TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.25),
-        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.25),
-        TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.25)
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.5),
+        // TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.25),
+        // TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.25)
       ]
     );
 
     //Set swipable
     setSwipeable(widget.swipable);
-    //Set simulation
-    setSim(widget.sim);
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       //Determines the thresholds
@@ -363,11 +364,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
       //Define the animations
       _defineAnimations();
-
-      //Run Simulation of Card
-      if(getSim() != SwipeCardSimulation.None){
-        _runSim();
-      }
     });
   }
 
@@ -386,12 +382,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     if(oldWidget.swipable != widget.swipable){
       setSwipeable(widget.swipable);
     }
-    if(oldWidget.sim != widget.sim){
-      setSim(widget.sim);
-      if(getSim() != SwipeCardSimulation.None){
-        _runSim();
-      }
-    }
+    // if(oldWidget.sim != widget.sim){
+    //   setSim(widget.sim);
+    //   if(getSim() != SwipeCardSimulation.None){
+    //     _runSim();
+    //   }
+    // }
   }
 
   @override
@@ -421,17 +417,35 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
  
 */
 
-  ///
   void leftRightSim(){
-    double horizontalValue = HorizontalLeftRightSimTween.animate(CurvedAnimation(parent: simulationSwiper, curve: Curves.easeInOut)).value;
-    double vertialValue = VerticalLeftRightSimTween.animate(CurvedAnimation(parent: simulationSwiper, curve: Curves.easeInOut)).value;
-    if(simulationSwiper.value <= 0.5){
-      rightSwiper.animateTo(horizontalValue, duration: Duration.zero);
+
+    // Configure animation
+    if(widget.simulationSwiper.isCompleted){
+      widget.simulationSwiper.repeat();
+    }
+    
+    if(widget.simulationSwiper.value <= 0.5 && widget.simulationSwiper.value >= 0 && !rightAnimationController.isAnimating){
+      leftAnimationController.reset();
+      rightAnimationController.forward();
+    }
+    else if(widget.simulationSwiper.value > 0.5 && widget.simulationSwiper.value <= 1 && !leftAnimationController.isAnimating){
+      rightAnimationController.reset();
+      leftAnimationController.forward();
+    }
+
+    // Run animation
+    double leftHorizontalValue = HorizontalLeftRightSimTween.animate(CurvedAnimation(parent: leftAnimationController, curve: Curves.slowMiddle)).value;
+    double rightHorizontalValue = HorizontalLeftRightSimTween.animate(CurvedAnimation(parent: rightAnimationController, curve: Curves.slowMiddle)).value;
+    double veritcalValue;
+    if(leftAnimationController.isAnimating){
+      veritcalValue = VerticalLeftRightSimTween.animate(CurvedAnimation(parent: leftAnimationController, curve: Curves.slowMiddle)).value;
     }
     else{
-      leftSwiper.animateTo(horizontalValue, duration: Duration.zero);
+      veritcalValue = VerticalLeftRightSimTween.animate(CurvedAnimation(parent: rightAnimationController, curve: Curves.slowMiddle)).value;
     }
-    downSwiper.animateTo(vertialValue, curve: Curves.easeInOutCubic, duration: Duration.zero);
+    rightSwiper.animateTo(rightHorizontalValue, duration: Duration.zero);
+    leftSwiper.animateTo(leftHorizontalValue, duration: Duration.zero);
+    downSwiper.animateTo(veritcalValue, curve: Curves.easeInOutCubic, duration: Duration.zero);
     rotation = SwipeCardAngle.Top;
   }
 
@@ -443,25 +457,24 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   }
 
-  void simulationListener(){
-    if(simulationSwiper.isCompleted){
-      simulationSwiper.repeat();
-    }
-    switch (getSim()) {
+  void _simulationListener(SwipeCardSimulation simulation){
+    switch (simulation) {
       case SwipeCardSimulation.SwipeLeftRight:
         leftRightSim();
         break;
       case SwipeCardSimulation.SwipeUp:
+        upSim();
         break;
       case SwipeCardSimulation.SwipeDown:
+        downSim();
         break;
       default:
     }
   }
 
-  void _runSim(){
-    simulationSwiper.forward();
-    simulationSwiper.addListener(simulationListener);
+  void _runSim(SwipeCardSimulation simulation){
+    widget.simulationSwiper.forward();
+    widget.simulationSwiper.addListener(() => _simulationListener(simulation));
   }
 
   //Controls enabling gestures on the card
@@ -474,16 +487,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   bool getSwipeable(){
     return swipable;
   }
-
-  //Set the simulation
-  void setSim(SwipeCardSimulation simulation){
-    sim = simulation;
-  }
-
-  //Getter simulation
-  SwipeCardSimulation getSim(){
-    return sim;
-  }
+  
 
   ///Reverses any completed animation
   Future<void> reverse() async {
@@ -1023,6 +1027,9 @@ class SwipeCardController extends ChangeNotifier {
 
   ///Get values of the card from a designated direction
   double value(DismissDirection direction) => _state != null ? _state!.value(direction) : 0;
+
+  /// Run Simulation
+  void runSimulation(SwipeCardSimulation sim) => _state != null ? _state!._runSim(sim) : null;
 
   //Disposes of the controller
   @override

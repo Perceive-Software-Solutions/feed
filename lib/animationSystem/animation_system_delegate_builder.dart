@@ -5,7 +5,7 @@ import 'package:feed/util/global/functions.dart';
 import 'package:feed/util/icon_position.dart';
 import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
-part 'animation_system_delegate.dart';
+part './animation_system_delegate.dart';
 
 class AnimationSystemDelegateBuilder extends StatefulWidget {
   final AnimationSystemDelegate delegate;

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:feed/animationSystem/animation_system_delegate_builder.dart';
+import 'package:feed/animationSystem/simulation_system_delegate_builder.dart';
 import 'package:feed/swipeCard/swipe_card.dart';
 import 'package:feed/swipeFeedCard/state.dart';
 import 'package:feed/util/global/functions.dart';
@@ -60,6 +61,9 @@ class SwipeFeedCard<T> extends StatefulWidget {
   /// Background card without a child, delegate
   final AnimationSystemDelegate? backgroundDelegate;
 
+  /// Simulation Delegate
+  final SimulationDelegate? simulationDelegate;
+
   /// Controls the top animation
   final AnimationSystemController? topAnimationSystemController;
 
@@ -75,6 +79,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
     required this.item,
     required this.isLast,
     required this.index,
+    this.simulationDelegate,
     this.bloc,
     this.mask,
     this.loadingPlaceHolder,
@@ -95,7 +100,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
   _SwipeFeedCardState<T> createState() => _SwipeFeedCardState<T>();
 }
 
-class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
+class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProviderStateMixin {
 
   /// Controller
   late SwipeCardController swipeCardController;
@@ -103,19 +108,16 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// If the animation system should be updated
   bool fillLock = false;
 
+  /// Simulation animation controller
+  late AnimationController simulationSwiper = AnimationController(vsync: this, duration: Duration(seconds: 4), value: 0);
+
+
   @override
   void initState(){
     super.initState();
 
     // Initialize controllers
     swipeCardController = SwipeCardController();
-
-    // print("CALLING INIT");
-    // print((widget as SwipeFeedCard<T>).index);
-    // if((widget as SwipeFeedCard<T>).item.item1 != null && (widget as SwipeFeedCard<T>).onLoad != null && (widget as SwipeFeedCard<T>).index == 0){
-    //   print("RUNNING ON LOAD");
-    //   (widget as SwipeFeedCard<T>).onLoad!((widget as SwipeFeedCard<T>).item.item1);
-    // }
   }
 
   @override
@@ -177,6 +179,26 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
   /// Swipe the swipe card in a specific direction
   void swipe(DismissDirection direction){
     swipeCardController.swipe(direction);
+  }
+
+  void removeOverlayCardDelegate(){
+    // Stop simulation
+    simulationSwiper.stop();
+
+    // Unshow Delegate
+    widget.item.item2.dispatch(SetDisplayOverlayCardDelegateEvent(false));
+  }
+
+  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight}){
+    // Show Delegate
+    widget.item.item2.dispatch(SetDisplayOverlayCardDelegateEvent(true));
+
+    if(runSimulation){
+      // Configure animation controller
+
+      // Run Simulation
+      swipeCardController.runSimulation(simulation);
+    }
   }
 
   /// Loads the Swipe Card
@@ -249,8 +271,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                         duration: Duration(milliseconds: 200),
                         padding: !show ? const EdgeInsets.only(top: 74, bottom: 12, left: 8, right: 8) : EdgeInsets.zero,
                         child: SwipeCard(
+                          simulationSwiper: simulationSwiper,
                           controller: swipeCardController,  
-                          sim: SwipeCardSimulation.SwipeLeftRight,
                           swipable: !keyboard && (state is SwipeCardShowState && (widget as SwipeFeedCard<T>).item.item1 != null) || (state is SwipeCardExpandState && !keyboard),
                           onPanUpdate: _onPanUpdate,
                           onSwipe: _onSwipe,
@@ -265,9 +287,26 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                               duration: Duration(milliseconds: 200),
                               child: BlocBuilder<ConcreteCubit<List<AnimationSystemController>>, List<AnimationSystemController>>(
                                 builder: (context, backgroundSystemControllerState) {
-                                  return _loadCard(context, state, hiddenChild, 
-                                  backgroundSystemControllerState.length >= ((widget as SwipeFeedCard<T>).index + 1) ? 
-                                  backgroundSystemControllerState[(widget as SwipeFeedCard<T>).index] : null);
+                                  return Stack(
+                                    children: [
+                                      _loadCard(context, state, hiddenChild, 
+                                      backgroundSystemControllerState.length >= ((widget as SwipeFeedCard<T>).index + 1) ? 
+                                      backgroundSystemControllerState[(widget as SwipeFeedCard<T>).index] : null),
+
+                                      StoreConnector<SwipeFeedCardState, bool>(
+                                        converter: (store) => store.state.displayOverlayCardDelegate,
+                                        builder: (context, show) {
+                                          if(show && widget.simulationDelegate != null){
+                                            return SimulationDelegateBuilder(
+                                              delegate: widget.simulationDelegate!, 
+                                              controller: simulationSwiper
+                                            );
+                                          }
+                                          return SizedBox.shrink();
+                                        }
+                                      )
+                                    ],
+                                  );
                                 }
                               )
                             ),
@@ -276,7 +315,7 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> {
                       ),
                     ),
                 ),
-                )
+              )
             );
           }
         );
@@ -315,6 +354,13 @@ class SwipeFeedCardController extends ChangeNotifier {
 
   /// Get the current value of one of the swipers
   void value(DismissDirection direction) => _state != null ? _state!.swipeCardController.value(direction) : null;
+
+  /// Run Simulation
+  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation swipeCardSimulation = SwipeCardSimulation.SwipeLeftRight}) => _state != null ? 
+  _state!.displayStaticOverlayCardDelegate(runSimulation: runSimulation, simulation: swipeCardSimulation) : null;
+
+  /// Stop Simulation
+  void removeOverlayCardDelegate() => _state != null ? _state!.removeOverlayCardDelegate() : null;
 
   //Disposes of the controller
   @override
