@@ -77,7 +77,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final AnimationSystemController? bottomAnimationSystemController;
 
   /// Gets the simulationDelegate
-  final SimulationDelegate? Function(BuildContext context, bool isNull)? simulationDelegate;
+  final SimulationDelegate? Function(BuildContext context, T? item)? simulationDelegate;
 
   final Function(T? item)? onLoad;
   
@@ -367,7 +367,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       padding: widget.padding,
       item: item,
       index: index,
-      simulationDelegate: widget.simulationDelegate?.call(context, item.item1 == null),
+      simulationDelegate: (widget as SwipeFeed<T>).simulationDelegate?.call(context, item.item1),
       childBuilder: (widget as SwipeFeed<T>).childBuilder,
       loadingPlaceHolder: (widget as SwipeFeed<T>).loadingPlaceHolder,
       background: (widget as SwipeFeed<T>).background,
