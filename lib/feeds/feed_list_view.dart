@@ -91,9 +91,9 @@ class _FeedListViewState extends State<FeedListView> {
 
   Widget get loading => widget.loading == null ? Container() : widget.loading!;
 
-  Widget wrapperBuilder({required BuildContext context, required Widget child}){
+  Widget wrapperBuilder({required BuildContext context, required Widget child, required dynamic item}){
     if(widget.wrapper != null){
-      return widget.wrapper!(context, child);
+      return widget.wrapper!(context, child, item);
     }
     return child;
   }
@@ -139,7 +139,8 @@ class _FeedListViewState extends State<FeedListView> {
       children: [
         wrapperBuilder(
           context: context,
-          child: list
+          child: list,
+          item: items.isEmpty ? null : items[0]
         ),
 
         Container(

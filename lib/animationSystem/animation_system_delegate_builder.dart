@@ -142,7 +142,7 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
   }
 
   /// When the values of the animation system need to be updated from swipefeed (internal)
-  void _onUpdate(double dx, double dy, Function(DismissDirection)? value, [bool reverse = false]) async {
+  void _onUpdate(double dx, double dy, Function(DismissDirection)? value, [bool reverse = false, bool trustinAnimationRunning = false]) async {
 
     if(value == null || !mounted) return;
 
@@ -169,6 +169,19 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
 
     ///Locks the output from sending to any other axis when locked
     Axis axisLock = Axis.horizontal;
+
+    if(trustinAnimationRunning){
+      tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Left, dx, dy));
+      if(widget.delegate.animateAccordingToPosition){
+        widget.delegate.onUpdate(dx, dy, value(DismissDirection.down));
+        animationController.animateTo(value(DismissDirection.down), duration: Duration(milliseconds: 0));
+      }
+      else{
+        widget.delegate.onUpdate(dx, dy, value(DismissDirection.endToStart));
+        animationController.animateTo(value(DismissDirection.endToStart), duration: Duration(milliseconds: 0));
+      }
+      return;
+    }
 
     if(dx.abs() >= 0 && dy > verticalLength*-1 && dy < verticalLength){
       axisLock = Axis.horizontal;
@@ -203,7 +216,6 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
         }
         // Card Position Left Vertical Axis, Below Y axis
         else{
-          // show top
           tower.dispatch(SetAllAnimationValues(IconPosition.BOTTOM, CardPosition.Left, dx, dy));
           if(widget.delegate.animateAccordingToPosition){
             widget.delegate.onUpdate(dx, dy, value(DismissDirection.down));
@@ -341,7 +353,7 @@ class AnimationSystemController extends ChangeNotifier{
   bool isBinded() => _state != null;
 
   //Update on update of dx and dy values inside of the animation state
-  void onUpdate(double dx, double dy, Function(DismissDirection) value, [bool reverse = false]) => _state != null ? _state!._onUpdate(dx, dy, value, reverse) : null;
+  void onUpdate(double dx, double dy, Function(DismissDirection) value, {bool reverse = false, bool trustinAnimationRunning = false}) => _state != null ? _state!._onUpdate(dx, dy, value, reverse, trustinAnimationRunning) : null;
 
   Future<void> reverse() async => _state != null ? await _state!._reverse() : null;
 

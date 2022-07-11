@@ -97,7 +97,7 @@ class SwipeCard extends StatefulWidget {
   final Widget? child;
   
   ///The function that runs when the pan is updated
-  final Function(double dx, double dy)? onPanUpdate;
+  final Function(double dx, double dy, bool trustSimulationRunning)? onPanUpdate;
 }
 
 class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
@@ -147,6 +147,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   /// Simulation sequences 
   late TweenSequence HorizontalLeftRightSimTween;
   late TweenSequence VerticalLeftRightSimTween;
+  late TweenSequence upSimTween;
+  late TweenSequence downSimTween;
 
   ///The minimum distance to be considered a fling
   // static const Curve SPRING_CURVE = ElasticInCurve(0.4);
@@ -238,6 +240,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   //Determines if the card is swipable
   bool swipable = false;
+
+  bool trustinAnimationRunning = false;
 
   //Determines simulation of the card
   SwipeCardSimulation sim = SwipeCardSimulation.None;
@@ -334,26 +338,35 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     super.initState();
 
     // Configure animation controllers
-    leftAnimationController = AnimationController(vsync: this, duration: Duration(seconds: widget.simulationSwiper.duration!.inSeconds ~/ 2));
-    rightAnimationController = AnimationController(vsync: this, duration: Duration(seconds: widget.simulationSwiper.duration!.inSeconds ~/ 2));
+    leftAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1500));
+    rightAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1500));
     
     /// Define simulation sequences 
     HorizontalLeftRightSimTween = TweenSequence<double>(
       [
         TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.5),
         TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.5),
-        // TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.25),
-        // TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.25)
       ]
     );
     VerticalLeftRightSimTween = TweenSequence<double>(
       [
         TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.5),
         TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.5),
-        // TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.25),
-        // TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.25)
       ]
     );
+    upSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.15), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.15, end: 0), weight: 0.5),
+      ]
+    );
+    downSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.2), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.2, end: 0), weight: 0.5),
+      ]
+    );
+    
 
     //Set swipable
     setSwipeable(widget.swipable);
@@ -382,12 +395,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     if(oldWidget.swipable != widget.swipable){
       setSwipeable(widget.swipable);
     }
-    // if(oldWidget.sim != widget.sim){
-    //   setSim(widget.sim);
-    //   if(getSim() != SwipeCardSimulation.None){
-    //     _runSim();
-    //   }
-    // }
   }
 
   @override
@@ -418,11 +425,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 */
 
   void leftRightSim(){
-
-    // Configure animation
-    if(widget.simulationSwiper.isCompleted){
-      widget.simulationSwiper.repeat();
-    }
     
     if(widget.simulationSwiper.value <= 0.5 && widget.simulationSwiper.value >= 0 && !rightAnimationController.isAnimating){
       leftAnimationController.reset();
@@ -450,14 +452,31 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   }
 
   void upSim(){
-
+    double value = upSimTween.animate(CurvedAnimation(parent: widget.simulationSwiper, curve: Curves.slowMiddle)).value;
+    upSwiper.animateTo(value, duration: Duration.zero);
   }
 
   void downSim(){
-
+    double value = downSimTween.animate(CurvedAnimation(parent: widget.simulationSwiper, curve: Curves.slowMiddle)).value;
+    rightSwiper.animateTo(0, duration: Duration.zero);
+    leftSwiper.animateBack(0, duration: Duration.zero);
+    downSwiper.animateTo(value, duration: Duration.zero);
   }
 
   void _simulationListener(SwipeCardSimulation simulation){
+
+    if(widget.simulationSwiper.isAnimating && simulation == SwipeCardSimulation.SwipeDown){
+      trustinAnimationRunning = true;
+    }
+    else{
+      trustinAnimationRunning = false;
+    }
+
+    // Configure animation
+    if(widget.simulationSwiper.isCompleted){
+      widget.simulationSwiper.repeat();
+    }
+
     switch (simulation) {
       case SwipeCardSimulation.SwipeLeftRight:
         leftRightSim();
@@ -472,7 +491,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     }
   }
 
-  void _runSim(SwipeCardSimulation simulation){
+  void _runSim(SwipeCardSimulation simulation, {Duration duration = const Duration(seconds: 4)}){
+    // Configure animation
+    widget.simulationSwiper.duration = duration;
+
+    // Run animation
     widget.simulationSwiper.forward();
     widget.simulationSwiper.addListener(() => _simulationListener(simulation));
   }
@@ -590,7 +613,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) {
@@ -609,7 +632,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) {
@@ -628,7 +651,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) { 
@@ -647,7 +670,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) { 
@@ -702,7 +725,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //Calls any  binded call backs
     if(widget.onPanUpdate != null)
-      widget.onPanUpdate!(xDrag, yDrag);
+      widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
   }
 
   ///Called when the user finger is lifted after a pan
@@ -1029,7 +1052,7 @@ class SwipeCardController extends ChangeNotifier {
   double value(DismissDirection direction) => _state != null ? _state!.value(direction) : 0;
 
   /// Run Simulation
-  void runSimulation(SwipeCardSimulation sim) => _state != null ? _state!._runSim(sim) : null;
+  void runSimulation(SwipeCardSimulation sim, {Duration duration = const Duration(seconds: 4)}) => _state != null ? _state!._runSim(sim, duration: duration) : null;
 
   //Disposes of the controller
   @override

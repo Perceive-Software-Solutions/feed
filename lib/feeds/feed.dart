@@ -342,9 +342,9 @@ class _FeedState extends State<Feed> {
     widget.controller?._update();
   }
 
-  Widget wrapperBuilder({required BuildContext context, required Widget child}){
+  Widget wrapperBuilder({required BuildContext context, required Widget child, dynamic item}){
     if(widget.wrapper != null){
-      return widget.wrapper!(context, child);
+      return widget.wrapper!(context, child, item);
     }
     return child;
   }

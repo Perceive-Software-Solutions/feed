@@ -77,7 +77,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final AnimationSystemController? bottomAnimationSystemController;
 
   /// Gets the simulationDelegate
-  final SimulationDelegate? Function(BuildContext context, T? item)? simulationDelegate;
+  final Future<SimulationDelegate?>? Function(BuildContext context, T? item)? simulationDelegate;
 
   final Function(T? item)? onLoad;
   
@@ -217,8 +217,8 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   }
 
   /// Display overlay card delegate
-  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight}){
-    if(swipeFeedCardControllers.length > 0) swipeFeedCardControllers[0].displayStaticOverlayCardDelegate(runSimulation: runSimulation, swipeCardSimulation: simulation);
+  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}){
+    if(swipeFeedCardControllers.length > 0) swipeFeedCardControllers[0].displayStaticOverlayCardDelegate(runSimulation: runSimulation, swipeCardSimulation: simulation, duration: duration);
   }
 
   /// Remove overlay card delegate
@@ -376,13 +376,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       isLast: tower.state.items.length == 1,
       onLoad: (widget as SwipeFeed<T>).onLoad,
       bloc: backgroundSystemControllers,
-      onPanUpdate: (dx, dy){
+      onPanUpdate: (dx, dy, trustSimulationRunning){
         if(swipeFeedCardControllers[index].isBinded()){
           if(widget.bottomAnimationSystemController != null && widget.bottomAnimationSystemController!.isBinded()){
-            widget.bottomAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+            widget.bottomAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value, trustinAnimationRunning: trustSimulationRunning);
           }
           if(widget.topAnimationSystemController != null && widget.topAnimationSystemController!.isBinded()){
-            widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+            widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value, trustinAnimationRunning: trustSimulationRunning);
           }
           if(backgroundSystemControllers.state.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers.state[1].isBinded()){
             backgroundSystemControllers.state[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
@@ -510,7 +510,7 @@ class SwipeFeedController<T> extends ChangeNotifier{
   AnimationSystemController? backgroundController() => _state != null && _state!.backgroundSystemControllers.state.length >= 2 ? _state!.backgroundSystemControllers.state[1] : null;
 
   // Display static overlay delegate
-  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight}) => _state != null ? _state!.displayStaticOverlayCardDelegate(runSimulation: runSimulation, simulation: simulation) : null;
+  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}) => _state != null ? _state!.displayStaticOverlayCardDelegate(runSimulation: runSimulation, simulation: simulation, duration: duration) : null;
 
   // Remove static overlay delegate
   void removeOverlayCardDelegate() => _state != null ? _state!.removeOverlayCardDelegate() : null;
