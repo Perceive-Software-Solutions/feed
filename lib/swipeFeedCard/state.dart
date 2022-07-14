@@ -1,3 +1,4 @@
+import 'package:feed/feed.dart';
 import 'package:flutter/material.dart';
 import 'package:fort/fort.dart';
 
@@ -39,13 +40,18 @@ class SwipeCardExpandState extends FeedCardState{
 class SwipeFeedCardState extends FortState{
 
   final FeedCardState state;
+  final SimulationDelegate? simulationDelegate;
+  final bool displayOverlayCardDelegate;
 
   SwipeFeedCardState({
-    required this.state
+    required this.state,
+    required this.displayOverlayCardDelegate,
+    this.simulationDelegate
   });
 
   factory SwipeFeedCardState.initial([FeedCardState? cardState]) => SwipeFeedCardState(
-    state: cardState ?? SwipeCardHideState()
+    state: cardState ?? SwipeCardHideState(),
+    displayOverlayCardDelegate: false
   );
 
   static Tower<SwipeFeedCardState> tower([FeedCardState? cardState]){
@@ -73,13 +79,39 @@ class SetSwipeFeedCardState extends SwipeFeedCardEvent{
   SetSwipeFeedCardState(this.state);
 }
 
+class SetDisplayOverlayCardDelegateEvent extends SwipeFeedCardEvent{
+  bool displayOverlayCardDelegate;
+  SetDisplayOverlayCardDelegateEvent(this.displayOverlayCardDelegate);
+}
+
+class SetSimulationDelegate extends SwipeFeedCardEvent{
+  SimulationDelegate? delegate;
+  SetSimulationDelegate(this.delegate);
+}
+
 SwipeFeedCardState _swipeFeedCardStateReducer(SwipeFeedCardState state, dynamic event){
   if(event is SwipeFeedCardEvent){
     return SwipeFeedCardState(
-      state: setSwipeFeedCardStateReducer(state, event)
+      state: setSwipeFeedCardStateReducer(state, event),
+      displayOverlayCardDelegate: displayOverlayCardDelegateReducer(state, event),
+      simulationDelegate: setSimulationDelegateReducer(state, event)
     );
   }
   return state;
+}
+
+SimulationDelegate? setSimulationDelegateReducer(SwipeFeedCardState state, dynamic event){
+  if(event is SetSimulationDelegate){
+    return event.delegate;
+  }
+  return state.simulationDelegate;
+}
+
+bool displayOverlayCardDelegateReducer(SwipeFeedCardState state, dynamic event){
+  if(event is SetDisplayOverlayCardDelegateEvent){
+    return event.displayOverlayCardDelegate;
+  }
+  return state.displayOverlayCardDelegate;
 }
 
 FeedCardState setSwipeFeedCardStateReducer(SwipeFeedCardState state, dynamic event){

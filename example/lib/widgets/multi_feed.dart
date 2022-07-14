@@ -26,14 +26,6 @@ class _MultiFeedExampleState extends State<MultiFeedExample> with TickerProvider
   void initState() {
     super.initState();
 
-    //Initialize the feed controller
-    // feedController = MultiFeedController(
-    //   pageCount: 3,
-    //   initialPage: 1,
-    //   keepPage: true,
-    //   vsync: this
-    // );
-
     focusNode.addListener(() { 
       if(!focusNode.hasFocus){
         print("Hello");

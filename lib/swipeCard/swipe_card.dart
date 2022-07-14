@@ -1,13 +1,8 @@
 import 'dart:async';
 import 'dart:ui';
-
 import 'package:feed/util/global/functions.dart';
-import 'package:feed/util/one_sequence_gesture_recognizer.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
-
-import 'package:flutter/physics.dart';
 
 /*
 
@@ -25,6 +20,13 @@ enum SwipeCardAngle{
   None,
   Top,
   Bottom
+}
+
+enum SwipeCardSimulation{
+  None,
+  SwipeLeftRight,
+  SwipeDown,
+  SwipeUp
 }
 
 // background opac: 75%, inner shadow 1x, 1y, 1blur white 25%opac duration 0.09s
@@ -58,12 +60,12 @@ class SwipeCard extends StatefulWidget {
 
   const SwipeCard({
     Key? key,
-    this.swipable = false,
-    this.controller,
     required this.onSwipe,
+    this.swipable = false,
+    required this.simulationSwiper,
+    this.controller,
     this.child,
     this.onPanUpdate,
-    this.opacityChange = false,
   }) : super(key: key);
 
   @override
@@ -81,6 +83,8 @@ class SwipeCard extends StatefulWidget {
  
 */
 
+  final AnimationController simulationSwiper;
+
   final SwipeCardController? controller;
 
   ///Disbales all swiping on the card
@@ -93,10 +97,7 @@ class SwipeCard extends StatefulWidget {
   final Widget? child;
   
   ///The function that runs when the pan is updated
-  final Function(double dx, double dy)? onPanUpdate;
-
-  ///whether or not the card should fade out opacity
-  final bool opacityChange;
+  final Function(double dx, double dy, bool trustSimulationRunning)? onPanUpdate;
 }
 
 class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
@@ -142,6 +143,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   ///The minimum distance to be considered a fling
   static const Curve SWIPE_CURVE = Curves.linear;
+  
+  /// Simulation sequences 
+  late TweenSequence HorizontalLeftRightSimTween;
+  late TweenSequence VerticalLeftRightSimTween;
+  late TweenSequence upSimTween;
+  late TweenSequence downSimTween;
 
   ///The minimum distance to be considered a fling
   // static const Curve SPRING_CURVE = ElasticInCurve(0.4);
@@ -176,6 +183,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
                                                                               
  
 */
+
+  ///Controls the automated swiping
+  late AnimationController leftAnimationController;
+
+  /// Animates card to the right
+  late AnimationController rightAnimationController;
 
   ///Controls the right swipe animation
   late AnimationController rightSwiper = AnimationController(duration: Duration.zero, vsync: this);
@@ -227,6 +240,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   //Determines if the card is swipable
   bool swipable = false;
+
+  bool trustinAnimationRunning = false;
+
+  //Determines simulation of the card
+  SwipeCardSimulation sim = SwipeCardSimulation.None;
 
   ///Locks the haptic feedback
   Map<DismissDirection, bool> hapticLock = {
@@ -319,6 +337,37 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    // Configure animation controllers
+    leftAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1500));
+    rightAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1500));
+    
+    /// Define simulation sequences 
+    HorizontalLeftRightSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.25), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.25, end: 0), weight: 0.5),
+      ]
+    );
+    VerticalLeftRightSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.07), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.07, end: 0), weight: 0.5),
+      ]
+    );
+    upSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.15), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.15, end: 0), weight: 0.5),
+      ]
+    );
+    downSimTween = TweenSequence<double>(
+      [
+        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 0.2), weight: 0.5),
+        TweenSequenceItem(tween: Tween<double>(begin: 0.2, end: 0), weight: 0.5),
+      ]
+    );
+    
+
     //Set swipable
     setSwipeable(widget.swipable);
 
@@ -329,23 +378,6 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       //Define the animations
       _defineAnimations();
     });
-
-    
-    
-  }
-
-  void bindListeners(){
-    // leftSwiper.addListener(() { 
-    //   if(leftSwiper.value == 0){
-    //     const spring = SpringDescription(
-    //       mass: 1,
-    //       stiffness: 300,
-    //       damping: 20,
-    //     );
-
-    //     final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
-    //   }
-    // });
   }
 
   @override
@@ -392,67 +424,78 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
  
 */
 
-    /// Calculates and runs a [SpringSimulation].
-  void _runAnimation(Offset pixelsPerSecond, Size size) {
-
-    // setState(() {
-    //   //Unlock haptic
-    //   for(var direction in hapticLock.keys){
-    //     hapticLock[direction] = false;
-    //   }
-    // });
-
-    // //List of animation controllers for this widget
-    // List<AnimationController> animations = [leftSwiper, rightSwiper, downSwiper, upSwiper];
-    // List<Duration> durations = [];
-
-    // ///Find out durations
-    // for(AnimationController animation in animations){
-    //   if(animation.value != 0){
-    //     int duration = 200 ~/ animation.value;
-    //     animation.duration = Duration(milliseconds: duration);
-    //   }
-    //   else{
-    //     durations.add(Duration(milliseconds: 0));
-    //   }
-    // }
-
-    // rightAnimation = rightSwiper.drive(
-    //   Tween<double>(begin: xDrag, end: 0)
-    // );
-    // leftAnimation = leftSwiper.drive(
-    //   Tween<double>(begin: xDrag, end: 0)
-    // );
-    // upAnimation = upSwiper.drive(
-    //   Tween<double>(begin: yDrag, end: 0)
-    // );
-    // downAnimation = downSwiper.drive(
-    //   Tween<double>(begin: yDrag, end: 0)
-    // );
-
-    // // Calculate the velocity relative to the unit interval, [0,1],
-    // // used by the animation controller.
-    // final unitsPerSecondX = pixelsPerSecond.dx / size.width;
-    // final unitsPerSecondY = pixelsPerSecond.dy / size.height;
-    // final unitsPerSecond = Offset(unitsPerSecondX, unitsPerSecondY);
-    // final unitVelocity = unitsPerSecond.distance;
-
-    // const spring = SpringDescription(
-    //   mass: 1,
-    //   stiffness: 300,
-    //   damping: 20,
-    // );
-
-    // final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
-
-    // rightSwiper.animateWith(simulation);
-    // leftSwiper.animateWith(simulation);
-    // upSwiper.animateWith(simulation);
-    // downSwiper.animateWith(simulation);
-
+  void leftRightSim(){
     
+    if(widget.simulationSwiper.value <= 0.5 && widget.simulationSwiper.value >= 0 && !rightAnimationController.isAnimating){
+      leftAnimationController.reset();
+      rightAnimationController.forward();
+    }
+    else if(widget.simulationSwiper.value > 0.5 && widget.simulationSwiper.value <= 1 && !leftAnimationController.isAnimating){
+      rightAnimationController.reset();
+      leftAnimationController.forward();
+    }
 
-    // setSwipeable(widget.swipable);
+    // Run animation
+    double leftHorizontalValue = HorizontalLeftRightSimTween.animate(CurvedAnimation(parent: leftAnimationController, curve: Curves.slowMiddle)).value;
+    double rightHorizontalValue = HorizontalLeftRightSimTween.animate(CurvedAnimation(parent: rightAnimationController, curve: Curves.slowMiddle)).value;
+    double veritcalValue;
+    if(leftAnimationController.isAnimating){
+      veritcalValue = VerticalLeftRightSimTween.animate(CurvedAnimation(parent: leftAnimationController, curve: Curves.slowMiddle)).value;
+    }
+    else{
+      veritcalValue = VerticalLeftRightSimTween.animate(CurvedAnimation(parent: rightAnimationController, curve: Curves.slowMiddle)).value;
+    }
+    rightSwiper.animateTo(rightHorizontalValue, duration: Duration.zero);
+    leftSwiper.animateTo(leftHorizontalValue, duration: Duration.zero);
+    downSwiper.animateTo(veritcalValue, curve: Curves.easeInOutCubic, duration: Duration.zero);
+    rotation = SwipeCardAngle.Top;
+  }
+
+  void upSim(){
+    double value = upSimTween.animate(CurvedAnimation(parent: widget.simulationSwiper, curve: Curves.slowMiddle)).value;
+    upSwiper.animateTo(value, duration: Duration.zero);
+  }
+
+  void downSim(){
+    double value = downSimTween.animate(CurvedAnimation(parent: widget.simulationSwiper, curve: Curves.slowMiddle)).value;
+    downSwiper.animateTo(value, duration: Duration.zero);
+    rotation = SwipeCardAngle.None;
+  }
+
+  void _simulationListener(SwipeCardSimulation simulation){
+      
+    // Configure animation
+    if(widget.simulationSwiper.isCompleted){
+      widget.simulationSwiper.repeat();
+    }
+
+    switch (simulation) {
+      case SwipeCardSimulation.SwipeLeftRight:
+        leftRightSim();
+        break;
+      case SwipeCardSimulation.SwipeUp:
+        upSim();
+        break;
+      case SwipeCardSimulation.SwipeDown:
+        downSim();
+        break;
+      default:
+    }
+  }
+
+  void setTrustSimulation(bool sim){
+    setState(() {
+      trustinAnimationRunning = sim;
+    });
+  }
+
+  void _runSim(SwipeCardSimulation simulation, {Duration duration = const Duration(seconds: 4)}){
+    // Configure animation
+    widget.simulationSwiper.duration = duration;
+
+    // Run animation
+    widget.simulationSwiper.forward();
+    widget.simulationSwiper.addListener(() => _simulationListener(simulation));
   }
 
   //Controls enabling gestures on the card
@@ -461,9 +504,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     swipable = swipe;
   }
 
+  //Getter swipeable
   bool getSwipeable(){
     return swipable;
   }
+  
 
   ///Reverses any completed animation
   Future<void> reverse() async {
@@ -566,14 +611,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed && rightSwiper.value == 1.0) {
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.startToEnd);
-
           //Reset duration
           rightSwiper.duration = Duration.zero;
         }
@@ -588,14 +630,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed && leftSwiper.value == 1.0) {
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.endToStart);
-
           //Reset duration
           leftSwiper.duration = Duration.zero;
         }
@@ -610,14 +649,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) { 
         if(status == AnimationStatus.completed && downSwiper.value == 1.0){
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.down);
-
           //Reset duration
           downSwiper.duration = Duration.zero;
         }
@@ -632,14 +668,11 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
           //Calls any  binded call backs
           if(widget.onPanUpdate != null)
-            widget.onPanUpdate!(xDrag, yDrag);
+            widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
         });
       })
       ..addStatusListener((status) { 
         if(status == AnimationStatus.completed && upSwiper.value == 1.0){
-          //on complete send signal
-          // widget.onSwipe!(DismissDirection.up);
-
           //Reset duration
           upSwiper.duration = Duration.zero;
         }
@@ -690,7 +723,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
     //Calls any  binded call backs
     if(widget.onPanUpdate != null)
-      widget.onPanUpdate!(xDrag, yDrag);
+      widget.onPanUpdate!(xDrag, yDrag, trustinAnimationRunning);
   }
 
   ///Called when the user finger is lifted after a pan
@@ -1015,6 +1048,12 @@ class SwipeCardController extends ChangeNotifier {
 
   ///Get values of the card from a designated direction
   double value(DismissDirection direction) => _state != null ? _state!.value(direction) : 0;
+
+  ///Set trust sim running
+  void setTrustSimulation(bool sim) => _state != null ? _state!.setTrustSimulation(sim) : null;
+
+  /// Run Simulation
+  void runSimulation(SwipeCardSimulation sim, {Duration duration = const Duration(seconds: 4)}) => _state != null ? _state!._runSim(sim, duration: duration) : null;
 
   //Disposes of the controller
   @override

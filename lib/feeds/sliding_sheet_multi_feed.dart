@@ -229,7 +229,7 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
     double staticScrollModifier = 0.0
   }) : super(pageCount: loaders.length, initialPage: initialPage ?? ((loaders.length - 1)/2).ceil(), delegateObject: delegateObject, staticScrollModifier: staticScrollModifier);
 
-  Widget feedWrapperBuilder(BuildContext context, Widget child, int pageIndex){
+  Widget feedWrapperBuilder(BuildContext context, Widget child, dynamic item, int pageIndex){
     return wrapper?.call(context, child, pageIndex) ?? child;
   }
 
@@ -266,7 +266,7 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
       placeholder: placeholderBuilder(context, state?.extent ?? initialExtent, pageIndex),
       loading: loadingBuilder.call(context, pageIndex),
       getItemID: getItemID,
-      wrapper: (context, child) => feedWrapperBuilder(context, child, pageIndex),
+      wrapper: (context, child, item) => feedWrapperBuilder(context, child, item, pageIndex),
       pinnedItems: pinnedItems?.where((e) => e.item2 == pageIndex).toList(),
     );
   }
@@ -291,6 +291,6 @@ class MultiFeedController {
   }
 
   FeedController controllerAt(int index) => _controllers[index];
-
+  
   bool isBinded(int index) => _controllers[index].isBinded();
 }
