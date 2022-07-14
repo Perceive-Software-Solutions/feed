@@ -330,10 +330,15 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
   Widget build(BuildContext context) {
     return StoreProvider(
       store: tower,
-      child: AnimatedBuilder(
-        animation: animationController,
-        builder: (context, _) {
-          return widget.delegate.build(context, tower.state, animationController.value);
+      child: StoreConnector<AnimationSystemState, AnimationSystemState>(
+        converter: (store) => store.state,
+        builder: (context, state) {
+          return AnimatedBuilder(
+            animation: animationController,
+            builder: (context, _) {
+              return widget.delegate.build(context, state, animationController.value);
+            }
+          );
         }
       ),
     );

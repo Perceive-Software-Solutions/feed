@@ -187,6 +187,10 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
   }
 
   void removeOverlayCardDelegate(){
+
+    // Stop trust sim
+    swipeCardController.setTrustSimulation(false);
+
     // Stop simulation
     simulationSwiper.stop();
 
@@ -194,11 +198,20 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
     widget.item.item2.dispatch(SetDisplayOverlayCardDelegateEvent(false));
   }
 
-  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}){
+  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}) async {
+
     // Show Delegate
     widget.item.item2.dispatch(SetDisplayOverlayCardDelegateEvent(true));
 
-    if(runSimulation){
+    // Start trust sim
+    if(simulation == SwipeCardSimulation.SwipeDown){
+      swipeCardController.setTrustSimulation(true);
+    }
+
+    SimulationDelegate? delegate = await widget.simulationDelegate;
+    widget.item.item2.dispatch(SetSimulationDelegate(delegate));
+
+    if(runSimulation && delegate != null){
       // Run Simulation
       swipeCardController.runSimulation(simulation, duration: duration);
     }
@@ -305,12 +318,9 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
                                         distinct: true,
                                         converter: (store) => Tuple2(store.state.displayOverlayCardDelegate, store.state.simulationDelegate),
                                         builder: (context, items) {
-                                          bool show = items.item1;
+                                          bool showSimDelegate = items.item1;
                                           SimulationDelegate? delegate = items.item2;
-                                          if(show && widget.simulationDelegate != null){
-                                            
-                                            /// Get simulation delegate
-                                            getSimulationDelegate();
+                                          if(show && showSimDelegate && widget.simulationDelegate != null){
 
                                             return delegate == null ? SizedBox.shrink() : SimulationDelegateBuilder(
                                               delegate: delegate, 

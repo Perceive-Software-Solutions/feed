@@ -458,20 +458,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
 
   void downSim(){
     double value = downSimTween.animate(CurvedAnimation(parent: widget.simulationSwiper, curve: Curves.slowMiddle)).value;
-    rightSwiper.animateTo(0, duration: Duration.zero);
-    leftSwiper.animateBack(0, duration: Duration.zero);
     downSwiper.animateTo(value, duration: Duration.zero);
+    rotation = SwipeCardAngle.None;
   }
 
   void _simulationListener(SwipeCardSimulation simulation){
-
-    if(widget.simulationSwiper.isAnimating && simulation == SwipeCardSimulation.SwipeDown){
-      trustinAnimationRunning = true;
-    }
-    else{
-      trustinAnimationRunning = false;
-    }
-
+      
     // Configure animation
     if(widget.simulationSwiper.isCompleted){
       widget.simulationSwiper.repeat();
@@ -489,6 +481,12 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         break;
       default:
     }
+  }
+
+  void setTrustSimulation(bool sim){
+    setState(() {
+      trustinAnimationRunning = sim;
+    });
   }
 
   void _runSim(SwipeCardSimulation simulation, {Duration duration = const Duration(seconds: 4)}){
@@ -1050,6 +1048,9 @@ class SwipeCardController extends ChangeNotifier {
 
   ///Get values of the card from a designated direction
   double value(DismissDirection direction) => _state != null ? _state!.value(direction) : 0;
+
+  ///Set trust sim running
+  void setTrustSimulation(bool sim) => _state != null ? _state!.setTrustSimulation(sim) : null;
 
   /// Run Simulation
   void runSimulation(SwipeCardSimulation sim, {Duration duration = const Duration(seconds: 4)}) => _state != null ? _state!._runSim(sim, duration: duration) : null;

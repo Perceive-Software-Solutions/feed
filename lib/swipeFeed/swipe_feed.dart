@@ -222,8 +222,13 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
   }
 
   /// Remove overlay card delegate
-  void removeOverlayCardDelegate(){
-    if(swipeFeedCardControllers.length > 0) swipeFeedCardControllers[0].removeOverlayCardDelegate();
+  void removeOverlayCardDelegate({bool reverse = false}){
+    if(swipeFeedCardControllers.length > 0) {
+      swipeFeedCardControllers[0].removeOverlayCardDelegate();
+      if(reverse){
+        swipeFeedCardControllers[0].reverseAnimation();
+      }
+    }
   }
 
   /// Remove a card from the feed
@@ -385,7 +390,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
             widget.topAnimationSystemController!.onUpdate(dx, dy, swipeFeedCardControllers[index].value, trustinAnimationRunning: trustSimulationRunning);
           }
           if(backgroundSystemControllers.state.length >= 2 && widget.backgroundDelegate != null && backgroundSystemControllers.state[1].isBinded()){
-            backgroundSystemControllers.state[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value);
+            backgroundSystemControllers.state[1].onUpdate(dx, dy, swipeFeedCardControllers[index].value, trustinAnimationRunning: trustSimulationRunning);
           }
         }
       },
@@ -513,7 +518,7 @@ class SwipeFeedController<T> extends ChangeNotifier{
   void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}) => _state != null ? _state!.displayStaticOverlayCardDelegate(runSimulation: runSimulation, simulation: simulation, duration: duration) : null;
 
   // Remove static overlay delegate
-  void removeOverlayCardDelegate() => _state != null ? _state!.removeOverlayCardDelegate() : null;
+  void removeOverlayCardDelegate({bool reverse = false}) => _state != null ? _state!.removeOverlayCardDelegate(reverse: reverse) : null;
 
   /// Get the collective state of items from the feed
   InitialFeedState<T> get collectiveState => InitialFeedState(
