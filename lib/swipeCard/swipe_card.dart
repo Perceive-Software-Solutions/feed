@@ -406,6 +406,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
       leftSwiper.dispose();
       upSwiper.dispose();
       downSwiper.dispose();
+      leftAnimationController.dispose();
+      rightAnimationController.dispose();
     }catch(e){
       debugPrint('$e');
     }

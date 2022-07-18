@@ -319,10 +319,16 @@ class _AnimationSystemDelegateBuilderState extends State<AnimationSystemDelegate
     );
     await Future.delayed(Duration(milliseconds: 20));
 
-    animationController.forward(from: animationController.value).whenComplete(() async {
-      bool result = await widget.delegate.onComplete(tower.state, overlay: overlay, reverse: reverse, args: args ?? []);
-      completer.complete(result);
-    });
+    void animationControllerListener() async {
+      if(animationController.value == 1.0){
+        bool result = await widget.delegate.onComplete(tower.state, overlay: overlay, reverse: reverse, args: args ?? []);
+        completer.complete(result);
+        animationController.removeListener(animationControllerListener);
+      }
+    }
+
+    animationController.addListener(animationControllerListener);
+    animationController.forward();
     return completer.future;
   }
 

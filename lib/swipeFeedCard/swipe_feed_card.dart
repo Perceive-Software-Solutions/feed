@@ -245,8 +245,10 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
       widget.item.item2.dispatch(SetSimulationDelegate(delegate));
 
       if(runSimulation){
-        // Run Simulation
-        swipeCardController.runSimulation(simulation, duration: duration(simulation));
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) { 
+          // Run Simulation
+          swipeCardController.runSimulation(simulation, duration: duration(simulation));
+        });
       }
     }
   }
