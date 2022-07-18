@@ -62,7 +62,7 @@ class SwipeFeedCard<T> extends StatefulWidget {
   final AnimationSystemDelegate? backgroundDelegate;
 
   /// Simulation Delegate
-  final Future<SimulationDelegate?>? simulationDelegate;
+  final Tuple3<SimulationDelegate, SwipeCardSimulation, bool>? Function()? simulationDelegate;
 
   /// Controls the top animation
   final AnimationSystemController? topAnimationSystemController;
@@ -110,6 +110,12 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
 
   /// Simulation animation controller
   late AnimationController simulationSwiper = AnimationController(vsync: this, duration: Duration(seconds: 4), value: 0);
+
+  /// Display animation delegate
+  bool displayOverlayDelegateCalled = false;
+  
+  /// Previous simulation
+  SwipeCardSimulation sim = SwipeCardSimulation.None;
 
 
   @override
@@ -188,6 +194,8 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
 
   void removeOverlayCardDelegate(){
 
+    swipeCardController.stopSimulation(sim);
+
     // Stop trust sim
     swipeCardController.setTrustSimulation(false);
 
@@ -198,28 +206,49 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
     widget.item.item2.dispatch(SetDisplayOverlayCardDelegateEvent(false));
   }
 
-  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}) async {
+  void displayStaticOverlayCardDelegate() async {
 
-    // Show Delegate
-    widget.item.item2.dispatch(SetDisplayOverlayCardDelegateEvent(true));
-
-    // Start trust sim
-    if(simulation == SwipeCardSimulation.SwipeDown){
-      swipeCardController.setTrustSimulation(true);
+    Duration duration(SwipeCardSimulation simulation){
+      switch (simulation) {
+        case SwipeCardSimulation.None:
+          return Duration(milliseconds: 0);
+        case SwipeCardSimulation.SwipeLeftRight:
+          return Duration(seconds: 3);
+        case SwipeCardSimulation.SwipeDown:
+          return Duration(milliseconds: 1500);
+        case SwipeCardSimulation.SwipeUp:
+          return Duration(milliseconds: 1500);
+        default:
+          return Duration.zero;
+      }
     }
 
-    SimulationDelegate? delegate = await widget.simulationDelegate;
-    widget.item.item2.dispatch(SetSimulationDelegate(delegate));
+    Tuple3<SimulationDelegate, SwipeCardSimulation, bool>? delegateItems;
 
-    if(runSimulation && delegate != null){
-      // Run Simulation
-      swipeCardController.runSimulation(simulation, duration: duration);
+    if(widget.simulationDelegate != null){
+      delegateItems = widget.simulationDelegate!.call();
     }
-  }
 
-  void getSimulationDelegate() async {
-    SimulationDelegate? delegate = await widget.simulationDelegate;
-    widget.item.item2.dispatch(SetSimulationDelegate(delegate));
+    if(delegateItems != null){
+      // Show Delegate
+      widget.item.item2.dispatch(SetDisplayOverlayCardDelegateEvent(true));
+      SimulationDelegate delegate = delegateItems.item1;
+      SwipeCardSimulation simulation = delegateItems.item2;
+      bool runSimulation = delegateItems.item3;
+
+      sim = simulation;
+
+      if(simulation == SwipeCardSimulation.SwipeDown){
+        swipeCardController.setTrustSimulation(true);
+      }
+
+      widget.item.item2.dispatch(SetSimulationDelegate(delegate));
+
+      if(runSimulation){
+        // Run Simulation
+        swipeCardController.runSimulation(simulation, duration: duration(simulation));
+      }
+    }
   }
 
   /// Loads the Swipe Card
@@ -266,6 +295,12 @@ class _SwipeFeedCardState<T> extends State<SwipeFeedCard> with SingleTickerProvi
   }
 
   Widget buildSwipeCard(BuildContext context){
+
+    if(widget.index == 0 && !displayOverlayDelegateCalled){
+      displayStaticOverlayCardDelegate();
+      displayOverlayDelegateCalled = true;
+    }
+
     return StoreConnector<SwipeFeedCardState, FeedCardState>(
       converter: (store) => store.state.state,
       distinct: true,
@@ -381,8 +416,7 @@ class SwipeFeedCardController extends ChangeNotifier {
   void value(DismissDirection direction) => _state != null ? _state!.swipeCardController.value(direction) : null;
 
   /// Run Simulation
-  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation swipeCardSimulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}) => _state != null ? 
-  _state!.displayStaticOverlayCardDelegate(runSimulation: runSimulation, simulation: swipeCardSimulation, duration: duration) : null;
+  void displayStaticOverlayCardDelegate() => _state != null ? _state!.displayStaticOverlayCardDelegate() : null;
 
   /// Stop Simulation
   void removeOverlayCardDelegate() => _state != null ? _state!.removeOverlayCardDelegate() : null;

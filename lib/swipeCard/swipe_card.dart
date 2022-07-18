@@ -489,13 +489,27 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     });
   }
 
+  void simulationListener(){
+    _simulationListener(sim);
+  }
+
+
+
   void _runSim(SwipeCardSimulation simulation, {Duration duration = const Duration(seconds: 4)}){
     // Configure animation
     widget.simulationSwiper.duration = duration;
-
+    
+    // Set sim
+    sim = simulation;
+    widget.simulationSwiper.reset();
+    
     // Run animation
     widget.simulationSwiper.forward();
-    widget.simulationSwiper.addListener(() => _simulationListener(simulation));
+    widget.simulationSwiper.addListener(simulationListener);
+  }
+
+  void _stopSim(SwipeCardSimulation simulation){
+    widget.simulationSwiper.removeListener(simulationListener);
   }
 
   //Controls enabling gestures on the card
@@ -1054,6 +1068,9 @@ class SwipeCardController extends ChangeNotifier {
 
   /// Run Simulation
   void runSimulation(SwipeCardSimulation sim, {Duration duration = const Duration(seconds: 4)}) => _state != null ? _state!._runSim(sim, duration: duration) : null;
+  
+  ///Remove listener
+  void stopSimulation(SwipeCardSimulation sim) => _state != null ? _state!._stopSim(sim) : null;
 
   //Disposes of the controller
   @override

@@ -77,7 +77,7 @@ class SwipeFeed<T> extends StatefulWidget {
   final AnimationSystemController? bottomAnimationSystemController;
 
   /// Gets the simulationDelegate
-  final Future<SimulationDelegate?>? Function(BuildContext context, T? item)? simulationDelegate;
+  final Tuple3<SimulationDelegate, SwipeCardSimulation, bool>? Function(BuildContext context, T? item, bool autoRun)? simulationDelegate;
 
   final Function(T? item)? onLoad;
   
@@ -218,7 +218,7 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
 
   /// Display overlay card delegate
   void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}){
-    if(swipeFeedCardControllers.length > 0) swipeFeedCardControllers[0].displayStaticOverlayCardDelegate(runSimulation: runSimulation, swipeCardSimulation: simulation, duration: duration);
+    if(swipeFeedCardControllers.length > 0) swipeFeedCardControllers[0].displayStaticOverlayCardDelegate();
   }
 
   /// Remove overlay card delegate
@@ -372,7 +372,12 @@ class _SwipeFeedState<T> extends State<SwipeFeed> {
       padding: widget.padding,
       item: item,
       index: index,
-      simulationDelegate: (widget as SwipeFeed<T>).simulationDelegate?.call(context, item.item1),
+      simulationDelegate: (){
+        if(index == 0){
+          return (widget as SwipeFeed<T>).simulationDelegate?.call(context, item.item1, true);
+        }
+        return null;
+      },
       childBuilder: (widget as SwipeFeed<T>).childBuilder,
       loadingPlaceHolder: (widget as SwipeFeed<T>).loadingPlaceHolder,
       background: (widget as SwipeFeed<T>).background,
@@ -515,7 +520,7 @@ class SwipeFeedController<T> extends ChangeNotifier{
   AnimationSystemController? backgroundController() => _state != null && _state!.backgroundSystemControllers.state.length >= 2 ? _state!.backgroundSystemControllers.state[1] : null;
 
   // Display static overlay delegate
-  void displayStaticOverlayCardDelegate({bool runSimulation = false, SwipeCardSimulation simulation = SwipeCardSimulation.SwipeLeftRight, Duration duration = const Duration(seconds: 4)}) => _state != null ? _state!.displayStaticOverlayCardDelegate(runSimulation: runSimulation, simulation: simulation, duration: duration) : null;
+  void displayStaticOverlayCardDelegate() => _state != null ? _state!.displayStaticOverlayCardDelegate() : null;
 
   // Remove static overlay delegate
   void removeOverlayCardDelegate({bool reverse = false}) => _state != null ? _state!.removeOverlayCardDelegate(reverse: reverse) : null;
