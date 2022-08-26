@@ -241,6 +241,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   //Determines if the card is swipable
   bool swipable = false;
 
+  bool simulationHasListener = false;
+
   bool trustinAnimationRunning = false;
 
   //Determines simulation of the card
@@ -507,11 +509,15 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
     
     // Run animation
     widget.simulationSwiper.forward();
+    simulationHasListener = true;
     widget.simulationSwiper.addListener(simulationListener);
   }
 
   void _stopSim(SwipeCardSimulation simulation){
     widget.simulationSwiper.removeListener(simulationListener);
+    Future.delayed(Duration(milliseconds: 300)).then((value) {
+      simulationHasListener = false;
+    });
   }
 
   //Controls enabling gestures on the card
@@ -709,7 +715,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Called when the pan gesture starts
   void _onPanStart(DragStartDetails d){
 
-    if (swipable != true) return;
+    if (swipable != true || simulationHasListener) return;
 
     //The point on the screen that determines the different angles
     double divider = MediaQuery.of(context).size.height / 2;
@@ -732,7 +738,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Called whenever the user finger is panning accross the screen
   void _onPanUpdate(DragUpdateDetails d) {
 
-    if (swipable != true) return;
+    if (swipable != true || simulationHasListener) return;
     
     //Updtes the card position
     _updateSwipers(d.delta.dx, d.delta.dy);
@@ -745,7 +751,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   ///Called when the user finger is lifted after a pan
   void _onPanEnd(DragEndDetails d) async {
 
-    if (swipable != true) return;
+    if (swipable != true || simulationHasListener) return;
     
     //Determines the swipe direction if there is a signal
     DismissDirection? startSwipeSignal;
