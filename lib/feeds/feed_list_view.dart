@@ -51,10 +51,10 @@ class FeedListView extends StatefulWidget {
   final double? footerHeight;
 
   ///Loading widget
-  final Widget? loading;
+  final Widget? header;
 
-  ///The optional function used to wrap the list view
-  final WidgetWrapper? wrapper;
+  ///Loading widget
+  final Widget? footer;
 
   ///If defined builds this feed in grid mode
   final FeedGridViewDelegate? gridDelegate;
@@ -65,7 +65,7 @@ class FeedListView extends StatefulWidget {
   /// Physics
   final ScrollPhysics? physics;
 
-  const FeedListView({ 
+  const FeedListView({  
     Key? key, 
     this.usePrimaryScrollController = false,
     this.disableScroll = false, 
@@ -75,8 +75,8 @@ class FeedListView extends StatefulWidget {
     required this.builder, 
     required this.controller, 
     this.footerHeight, 
-    this.wrapper, 
-    this.loading, 
+    this.header, 
+    this.footer, 
     this.gridDelegate,
     this.physics
   }) : super(key: key);
@@ -89,65 +89,91 @@ class _FeedListViewState extends State<FeedListView> {
 
   ScrollController get scrollController => widget.controller;
 
-  Widget get loading => widget.loading == null ? Container() : widget.loading!;
-
-  Widget wrapperBuilder({required BuildContext context, required Widget child, required dynamic item}){
-    if(widget.wrapper != null){
-      return widget.wrapper!(context, child, item);
-    }
-    return child;
-  }
+  Widget get header => widget.header ?? SizedBox.shrink();
+  Widget get footer => widget.footer ?? SizedBox.shrink();
 
   Widget listBuilder(BuildContext context, List items){
 
-    ///Simple List
-    late Widget list;
+    final scrollPhysics = widget.physics != null ? widget.physics : widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+    final controller = widget.usePrimaryScrollController ? null : scrollController;
+    final footerHeightAdjustment = Container(
+      height: widget.footerHeight ?? 0,
+    );
 
     if(items.isEmpty){
-      list = SizedBox.shrink();
+      return SizedBox.shrink();
     }
     else if(widget.gridDelegate != null){
       //Grid list
-      list = StaggeredGridView.countBuilder(
-        reverse: widget.reverse,
-        physics: NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        addRepaintBoundaries: true,
-        crossAxisCount: widget.gridDelegate!.crossAxisCount,
-        mainAxisSpacing: widget.gridDelegate!.mainAxisSpacing,
-        crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
-        padding: widget.gridDelegate!.padding,
-        itemCount: items.length + 1,
-        itemBuilder: (context, i) => widget.builder(context, i, items),
-        staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+      Widget list = Column(
+        children: [
+
+          header,
+          
+          StaggeredGridView.countBuilder(
+            reverse: widget.reverse,
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            addRepaintBoundaries: true,
+            crossAxisCount: widget.gridDelegate!.crossAxisCount,
+            mainAxisSpacing: widget.gridDelegate!.mainAxisSpacing,
+            crossAxisSpacing: widget.gridDelegate!.crossAxisSpacing,
+            padding: widget.gridDelegate!.padding,
+            itemCount: items.length + 1,
+            itemBuilder: (context, i) => widget.builder(context, i, items),
+            staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+          ),
+
+          footer,
+
+          footerHeightAdjustment
+        ],
       );
+
+      if(widget.compact){
+        return list;
+      }
+      else{
+        return SingleChildScrollView(
+          reverse: widget.reverse,
+          physics: scrollPhysics,
+          controller: controller,
+          child: list,
+        );
+      }
     }
     else{
-      list = ListView.builder(
+      return ListView.builder(
+        controller: controller,
         reverse: widget.reverse,
         padding: EdgeInsets.zero,
         shrinkWrap: true,
         addRepaintBoundaries: true,
-        physics: NeverScrollableScrollPhysics(),
-        itemCount: items.length + 1,
-        itemBuilder: (context, i) => widget.builder(context, i, items),
+        physics: widget.compact ? NeverScrollableScrollPhysics() : scrollPhysics,
+        itemCount: items.length + 3,
+        itemBuilder: (context, i){
+          if(i == 0){
+            return header;
+          }
+          else if(i == items.length){
+            //footer
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                footer,
+                footerHeightAdjustment
+              ],
+            );
+          }
+          else{
+            //items
+            return widget.builder(context, i - 1, items);
+          }
+        },
       );
     }
 
 
-    return Column(
-      children: [
-        wrapperBuilder(
-          context: context,
-          child: list,
-          item: items.isEmpty ? null : items[0]
-        ),
-
-        Container(
-          height: widget.footerHeight ?? 0,
-        )
-      ],
-    );
   }
 
 
@@ -164,21 +190,9 @@ class _FeedListViewState extends State<FeedListView> {
         distinct: true,
         converter: (store) => store.state.items,
         builder: (context, items) {
-          
-          late Widget list = listBuilder(context, items);
-
-          if(!widget.compact){
-            list = SingleChildScrollView(
-              reverse: widget.reverse,
-              physics: widget.physics != null ? widget.physics : widget.disableScroll == true ? NeverScrollableScrollPhysics() : BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              controller: widget.usePrimaryScrollController ? null : scrollController,
-              child: list,
-            );
-          }
-
           return Container(
             height: widget.compact ? null : MediaQuery.of(context).size.height,
-            child: list,
+            child: listBuilder(context, items),
           );
         }
       ),

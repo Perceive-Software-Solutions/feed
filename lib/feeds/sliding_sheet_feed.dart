@@ -33,11 +33,14 @@ class SlidingSheetFeed extends StatelessWidget {
   /// Loading widget
   final Widget? loading;
 
+  /// Loading widget
+  final Widget? header;
+
+  /// Loading widget
+  final Widget? footer;
+
   ///Retrieves the item id, used to ensure the prevention of duplicate additions
   final RetrievalFunction? getItemID;
-
-  ///The optional function used to wrap the list view
-  final WidgetWrapper? wrapper;
 
   /// Items that will be pinned to the top of the list on init
   final List<dynamic>? pinnedItems;
@@ -92,8 +95,9 @@ class SlidingSheetFeed extends StatelessWidget {
     this.disableScroll,
     this.placeholder,
     this.loading,
+    this.header,
+    this.footer,
     this.getItemID,
-    this.wrapper,
     this.pinnedItems,
     this.sheetController,
     this.staticSheet = false,
@@ -138,8 +142,9 @@ class SlidingSheetFeed extends StatelessWidget {
         disableScroll: disableScroll,
         placeholder: placeholder,
         loading: loading,
+        feedHeader: header,
+        feedFooter: footer,
         getItemID: getItemID,
-        wrapper: wrapper,
         pinnedItems: pinnedItems,
         header: headerBuilder,
         staticScrollModifier: staticScrollModifier
@@ -175,11 +180,14 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
   /// Loading widget
   final Widget? loading;
 
+  /// Loading widget
+  final Widget? feedHeader;
+
+  /// Loading widget
+  final Widget? feedFooter;
+
   ///Retrieves the item id, used to ensure the prevention of duplicate additions
   final RetrievalFunction? getItemID;
-
-  ///The optional function used to wrap the list view
-  final WidgetWrapper? wrapper;
 
   /// Items that will be pinned to the top of the list on init
   final List<dynamic>? pinnedItems;
@@ -188,6 +196,8 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
 
   PerceiveSlidableSingleFeedDelegate({
     required this.loader,
+    required this.feedHeader,
+    required this.feedFooter,
     required this.controller,
     required this.footerHeight,
     required this.lengthFactor,
@@ -198,7 +208,6 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
     required this.placeholder,
     required this.loading,
     required this.getItemID,
-    required this.wrapper,
     required this.pinnedItems,
     required this.header,
     double staticScrollModifier = 0.0
@@ -216,6 +225,8 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
       footerHeight: (this.footerHeight ?? 0) + footerHeight,
       scrollController: scrollController,
       loader: loader,
+      header: feedHeader,
+      footer: feedFooter,
       controller: controller,
       lengthFactor: lengthFactor,
       initialLength: initialLength,
@@ -225,7 +236,6 @@ class PerceiveSlidableSingleFeedDelegate extends ScrollablePerceiveSlidableDeleg
       placeholder: placeholder?.call(context, state?.extent ?? initialExtent),
       loading: loading,
       getItemID: getItemID,
-      wrapper: wrapper,
       pinnedItems: pinnedItems,
     );
   }

@@ -74,6 +74,8 @@ class SlidingSheetMultiFeed extends StatelessWidget {
     Widget? loading,
     RetrievalFunction? getItemID,
     IndexWidgetWrapper? wrapper,
+    final Widget? Function(BuildContext context, int pageIndex)? feedHeader,
+    final Widget? Function(BuildContext context, int pageIndex)? feedFooter,
     List<Tuple2<dynamic, int>>? pinnedItems,
     Widget Function(BuildContext context, dynamic pageObj, Widget spacer, double borderRadius)? headerBuilder,
     PerceiveSlidableController? sheetController,
@@ -102,7 +104,8 @@ class SlidingSheetMultiFeed extends StatelessWidget {
       placeholders: placeholders,
       loading: loading,
       getItemID: getItemID,
-      wrapper: wrapper,
+      feedHeader: feedHeader,
+      feedFooter: feedFooter,
       pinnedItems: pinnedItems,
       header: headerBuilder,
       staticScrollModifier: staticScrollModifier
@@ -202,7 +205,10 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
   final RetrievalFunction? getItemID;
 
   ///The optional function used to wrap the list view
-  final IndexWidgetWrapper? wrapper;
+  final Widget? Function(BuildContext context, int pageIndex)? feedHeader;
+
+  ///The optional function used to wrap the list view
+  final Widget? Function(BuildContext context, int pageIndex)? feedFooter;
 
   /// Items that will be pinned to the top of the list on init
   final List<Tuple2<dynamic, int>>? pinnedItems;
@@ -221,7 +227,8 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
     required this.placeholders,
     required this.loading,
     required this.getItemID,
-    required this.wrapper,
+    required this.feedHeader,
+    required this.feedFooter,
     required this.pinnedItems,
     required this.header,
     int? initialPage,
@@ -229,8 +236,12 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
     double staticScrollModifier = 0.0
   }) : super(pageCount: loaders.length, initialPage: initialPage ?? ((loaders.length - 1)/2).ceil(), delegateObject: delegateObject, staticScrollModifier: staticScrollModifier);
 
-  Widget feedWrapperBuilder(BuildContext context, Widget child, dynamic item, int pageIndex){
-    return wrapper?.call(context, child, pageIndex) ?? child;
+  Widget? feedHeaderBuilder(BuildContext context, int pageIndex){
+    return feedHeader?.call(context, pageIndex);
+  }
+
+  Widget? feedFooterBuilder(BuildContext context, int pageIndex){
+    return feedFooter?.call(context, pageIndex);
   }
 
   Widget? placeholderBuilder(BuildContext context, double extent, int pageIndex){
@@ -266,7 +277,8 @@ class PerceiveSlidableMultiFeedDelegate extends ScrollablePerceiveSlidableDelega
       placeholder: placeholderBuilder(context, state?.extent ?? initialExtent, pageIndex),
       loading: loadingBuilder.call(context, pageIndex),
       getItemID: getItemID,
-      wrapper: (context, child, item) => feedWrapperBuilder(context, child, item, pageIndex),
+      header: feedHeaderBuilder(context, pageIndex),
+      footer: feedFooterBuilder(context, pageIndex),
       pinnedItems: pinnedItems?.where((e) => e.item2 == pageIndex).toList(),
     );
   }
