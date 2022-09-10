@@ -38,7 +38,7 @@ class Feed extends StatefulWidget {
 
   final IndexedFeedBuilder? indexedBuilder;
 
-  ///defines the height to offset the body
+  ///defines the height to offset the body, for external footers
   final double? footerHeight;
 
   ///Determines if the the feed should initially load, defaulted to true
@@ -56,11 +56,14 @@ class Feed extends StatefulWidget {
   /// Loading widget
   final Widget? loading;
 
+  /// Header widget
+  final Widget? header;
+
+  /// Footer widget
+  final Widget? footer;
+
   ///Retrieves the item id, used to ensure the prevention of duplicate additions
   final RetrievalFunction? getItemID;
-
-  ///The optional function used to wrap the list view
-  final WidgetWrapper? wrapper;
 
   /// Items that will be pinned to the top of the list on init
   final List<dynamic>? pinnedItems;
@@ -70,10 +73,6 @@ class Feed extends StatefulWidget {
 
   /// The amount of items that are rendered at once
   final int? renderCount;
-
-  /// Determines if the place holder should be used when the feed is empty
-  /// Defaulted to true
-  final bool usePlaceholder;
 
   /// Physics
   final ScrollPhysics? physics;
@@ -91,16 +90,16 @@ class Feed extends StatefulWidget {
       this.footerHeight,
       this.placeholder,
       this.loading,
+      this.header,
+      this.footer,
       this.disableScroll, 
       this.getItemID,
-      this.wrapper,
       this.scrollController,
       this.compact = false,
       this.initiallyLoad = true,
       this.pinnedItems,
       this.reverse = false,
       this.renderCount,
-      this.usePlaceholder = true,
       this.usePrimaryScrollController = false,
       this.physics
     })  : super(key: key);
@@ -342,13 +341,6 @@ class _FeedState extends State<Feed> {
     widget.controller?._update();
   }
 
-  Widget wrapperBuilder({required BuildContext context, required Widget child, dynamic item}){
-    if(widget.wrapper != null){
-      return widget.wrapper!(context, child, item);
-    }
-    return child;
-  }
-
   ///Keeps track of the added items are removes them from future loads
   void addItem(dynamic item){
 
@@ -369,7 +361,7 @@ class _FeedState extends State<Feed> {
   Widget _buildFeed(bool loadMore, int size) {
     Widget view = SizedBox();
 
-    if (size == 0 && !loadMore && widget.usePlaceholder) {
+    if (size == 0 && !loadMore) {
       if(widget.placeholder != null){
         //No items placeholder
         view = widget.placeholder!;
@@ -387,10 +379,11 @@ class _FeedState extends State<Feed> {
           gridDelegate: widget.controller?.getGridDelegate(),
           disableScroll: widget.disableScroll == null ? false : widget.disableScroll,
           footerHeight: widget.footerHeight == null ? 0 : widget.footerHeight,
-          wrapper: widget.wrapper,
           onLoad: _loadMore,
+          footer: widget.footer,
+          header: widget.header,
           builder: (context, i, items){
-            if (i == items.length) {
+            if (i == items.length + 1) {
               return loadMore ? load : SizedBox.shrink();
             }
             return widget.indexedBuilder?.call(items, i) ?? widget.childBuilder!(items[i], items.length - 1 == i);
