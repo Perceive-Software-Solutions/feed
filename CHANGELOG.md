@@ -1,3 +1,8 @@
+## [0.5.21] v0.5.21
+
+* Support for Flutter `3.3.2`
+* Various updates.
+
 ## [0.5.19] v0.5.19
 
 * Removed perceive slidable coupling
